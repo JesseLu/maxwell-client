@@ -1,18 +1,18 @@
 %% s3_upload
 % Upload files to Maxwell's simulation input S3 bucket.
 
-function s3_upload(filenames)
+function s3_upload(filenames, local_dir)
     my_disp = @(s) my_display_status(s, 'text');
     url = 'http://localhost:8000';
 
     for k = 1 : length(filenames)
         % Open connections and send headers.
         [infile{k}, outputStream{k}, footer{k}] = ...
-            my_open_connection(filenames{k});
+            my_open_connection(filenames{k}, local_dir);
     end
 
     % Stream the files.
-    stream_send(infile, outputStream, 'sent', my_disp);
+    my_stream_send(infile, outputStream, 'sent', my_disp);
 
     for k = 1 : length(filenames)
         % Send the footers.
@@ -25,7 +25,7 @@ function s3_upload(filenames)
 end
 
 %% Open a connection (POST).
-function [infile, outputStream, footer] = my_open_connection(filename)
+function [infile, outputStream, footer] = my_open_connection(filename, local_dir)
     url = 'https://s3.amazonaws.com/maxwell-in';
     params = {  'key', filename, ...
                 'acl', 'public-read', ...
@@ -59,7 +59,7 @@ function [infile, outputStream, footer] = my_open_connection(filename)
                     'filename="', filename, '"', eol, ...
                 'Content-Type: application/octet-stream', eol, eol]); 
                 % Form data for binary data (the simulation file.
-    file = java.io.File(filename);
+    file = java.io.File([local_dir, filesep, filename]);
     footer = java.lang.String([eol, '--', boundary, '--', eol]);
 
     % We used a streaming connection, crucial for large files.
@@ -70,57 +70,4 @@ function [infile, outputStream, footer] = my_open_connection(filename)
     outputStream.write(header.getBytes(), 0, header.length); % Send the header.
 
     infile = java.io.FileInputStream(file);
-end
-
-function stream_send (in, out, action_name, display_fun)
-
-    copier = MaxwellCopier; % Requires the Maxwell.jar library to be loaded.
-
-    if length(in) ~= length(out)
-        error('Unequal number of input and output streams.');
-    end
-
-
-    N = length(in);
-    running = true;
-    start_time = tic;
-    status_time = start_time;
-    prevlen = 0;
-
-    while any(running)
-        for k = 1 : N % Transfer some data.
-            running = copier.copy(in{k}, out{k});
-        end
-
-        if toc(status_time) > 0.3 || all(~running) % Periodically give updates.
-            megabytes = copier.total_bytes_transferred / 1e6;
-            status_line = sprintf('%1.2f MB %s (%1.2f MB/s)', ...
-                megabytes, action_name, megabytes/toc(start_time));
-            display_fun(status_line);
-%             fprintf([repmat('\b', 1, prevlen), status_line]); % Write-over.
-%             prevlen = length(status_line);
-            status_time = tic;
-        end
-    end
-    % fprintf('\n');
-end
-
-function my_display_status(status_text, option)
-% Used to display text on command line or title area of a plot.
-    max_length = 60;
-    switch option
-        case 'text'
-            if length(status_text) > max_length
-                fprintf(status_text(1:max_length));
-            else 
-                fprintf([status_text, ...
-                        repmat(' ', 1, max_length - length(status_text))]);
-            end
-            fprintf(repmat('\b', 1, max_length));
-        case 'plot'
-            title(status_text);
-            drawnow
-        otherwise
-            error('Unrecognized option, must be either ''plot'' or ''text''');
-    end
 end
