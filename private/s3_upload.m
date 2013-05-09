@@ -1,14 +1,38 @@
-    function S3_post
+%% s3_upload
+% Upload files to Maxwell's simulation input S3 bucket.
+
+function s3_upload(filenames)
     my_disp = @(s) my_display_status(s, 'text');
-url = 'http://localhost:8000';
-url = 'http://s3.amazonaws.com/maxwell-in';
-filename = 'small';
-params = {'key', 'matlabtest', ...
-    'acl', 'public-read', ...
-    'content-type', 'application/octet-stream', ...
-    'AWSAccessKeyId', 'AKIAI6BMVTBFEAMEMHQQ', ...
-    'policy', 'ewogICJleHBpcmF0aW9uIjogIjIwMjAtMDEtMDFUMTI6MDA6MDAuMDAwWiIsCiAgImNvbmRpdGlvbnMiOiBbCiAgICB7ImJ1Y2tldCI6ICJtYXh3ZWxsLWluIiB9LAogICAgeyJhY2wiOiAicHVibGljLXJlYWQiIH0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRrZXkiLCAiIl0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRDb250ZW50LVR5cGUiLCAiYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtIl0sCiAgXQp9Cg==', ...
-    'signature', 'QEPdrd7W6aOG8yO/tMOeyWWeNFY='};
+    url = 'http://localhost:8000';
+
+    for k = 1 : length(filenames)
+        % Open connections and send headers.
+        [infile{k}, outputStream{k}, footer{k}] = ...
+            my_open_connection(filenames{k});
+    end
+
+    % Stream the files.
+    stream_send(infile, outputStream, 'sent', my_disp);
+
+    for k = 1 : length(filenames)
+        % Send the footers.
+        outputStream{k}.write(footer{k}.getBytes(), 0, footer{k}.length); 
+
+        % Close off the messages.
+        infile{k}.close(); 
+        outputStream{k}.flush();
+    end
+end
+
+%% Open a connection (POST).
+function [infile, outputStream, footer] = my_open_connection(filename)
+    url = 'https://s3.amazonaws.com/maxwell-in';
+    params = {  'key', filename, ...
+                'acl', 'public-read', ...
+                'content-type', 'application/octet-stream', ...
+                'AWSAccessKeyId', 'AKIAI6BMVTBFEAMEMHQQ', ...
+                'policy', 'ewogICJleHBpcmF0aW9uIjogIjIwMjAtMDEtMDFUMTI6MDA6MDAuMDAwWiIsCiAgImNvbmRpdGlvbnMiOiBbCiAgICB7ImJ1Y2tldCI6ICJtYXh3ZWxsLWluIiB9LAogICAgeyJhY2wiOiAicHVibGljLXJlYWQiIH0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRrZXkiLCAiIl0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRDb250ZW50LVR5cGUiLCAiYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtIl0sCiAgXQp9Cg==', ...
+                'signature', 'QEPdrd7W6aOG8yO/tMOeyWWeNFY='};
 
     % Create a urlConnection.
     [urlConnection, errorid, errormsg] = my_urlreadwrite(url);
@@ -31,7 +55,8 @@ params = {'key', 'matlabtest', ...
                     eol, eol, params{k+1}, eol];
     end
     header = java.lang.String([header, '--', boundary, eol, ...
-                'Content-Disposition: form-data; name="file"; filename="matlabtest"', eol, ...
+                'Content-Disposition: form-data; name="file"; ', ...
+                    'filename="', filename, '"', eol, ...
                 'Content-Type: application/octet-stream', eol, eol]); 
                 % Form data for binary data (the simulation file.
     file = java.io.File(filename);
@@ -44,16 +69,8 @@ params = {'key', 'matlabtest', ...
 
     outputStream.write(header.getBytes(), 0, header.length); % Send the header.
 
-    % fprintf('Sending...'); % Send the file.
-    my_disp('Sending...'); % Send the file.
     infile = java.io.FileInputStream(file);
-    stream_send({infile}, {outputStream}, 'sent', my_disp);
-
-    outputStream.write(footer.getBytes(), 0, footer.length); % Send the footer.
-
-    infile.close(); % Close off the message.
-    outputStream.flush();
-    end
+end
 
 function stream_send (in, out, action_name, display_fun)
 
