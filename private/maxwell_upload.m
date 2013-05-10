@@ -1,0 +1,101 @@
+%% Examples
+%
+%   cb = maxwell(grid, epsilon, J); % Simple example.
+%   
+%   cb = maxwell(grid, epsilon, J, 'option', val); % Option pairs allowed.
+%
+% Available option pairs
+% * mu
+% * E0
+% * max_iters
+% * err_thresh
+% * vis_progress
+%
+    
+function [callback] = maxwell_upload(grid, epsilon, J, varargin)
+ 
+    % Parse input and option parameters.
+    [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh] = ...
+        my_parse_inputs(grid, epsilon, J, varargin{:});
+
+    % Generate a random (and hopefully unique) ID.
+    id = [datestr(now, 'HHMMSSFFF'), '-', num2str(round(1e6*rand(1)))];
+
+    % Choose a prefix for the filename. 
+    prefix = [tempdir, 'maxwell-', id, '.'];
+
+    % Write the grid file.
+    gridfile = [prefix, 'A']; % Named "A" in order to be first alphabetically.
+    hdf5write(gridfile, 'username', 'user', 'WriteMode', 'overwrite');
+    hdf5write(gridfile, 'password', 'pwd', 'WriteMode', 'append');
+    hdf5write(gridfile, 'omega_r', real(omega), 'WriteMode', 'append');
+    hdf5write(gridfile, 'omega_i', imag(omega), 'WriteMode', 'append');
+    xyz = 'xyz';
+    for k = 1 : length(xyz)
+        hdf5write(gridfile, ['sp_', xyz(k), 'r'], ...
+                    real(s_prim{k}), 'WriteMode', 'append');
+        hdf5write(gridfile, ['sp_', xyz(k), 'i'], ...
+                    imag(s_prim{k}), 'WriteMode', 'append');
+        hdf5write(gridfile, ['sd_', xyz(k), 'r'], ...
+                    real(s_dual{k}), 'WriteMode', 'append');
+        hdf5write(gridfile, ['sd_', xyz(k), 'i'], ...
+                    imag(s_dual{k}), 'WriteMode', 'append');
+    end
+    hdf5write(gridfile, 'max_iters', int64(max_iters), 'WriteMode', 'append');
+    hdf5write(gridfile, 'err_thresh', double(err_thresh), 'WriteMode', 'append');
+
+    % Write the other files (if needed).
+    my_write(prefix, 'e', epsilon);
+    my_write(prefix, 'J', J);
+    my_write(prefix, 'mu', mu);
+    my_write(prefix, 'E0', E0);
+
+    files = dir([prefix, '*']);
+    filenames = {files(:).name}
+    
+    % Upload files.
+    s3_upload(filenames(2:end), tempdir);
+    s3_upload(filenames(1), tempdir);
+
+end
+
+function my_write(prefix, name, field)
+    xyz = 'xyz';
+    for k = 1 : 3
+        file_prefix = [prefix, name, '_', xyz(k)];
+        my_write_data([file_prefix, 'r'], 'data', real(field{k}));
+        my_write_data([file_prefix, 'i'], 'data', imag(field{k}));
+    end
+end
+ 
+function my_write_data(filename, dset_name, data)
+    if ndims(data) ~= 3 
+        return % No need to write, default values still present.
+    end
+    N = 3; % 3D arrays assumed.
+    data = permute((data), [ndims(data):-1:1]); % Make data row-major.
+    dims = fliplr(size(data)); % Size of the array.
+    chunk_dims = [1 dims(2:3)]; % Should heavily affect compression.
+
+    % Create file.
+    file = H5F.create(filename, 'H5F_ACC_TRUNC', 'H5P_DEFAULT', 'H5P_DEFAULT');
+
+    % Create the dataspace.
+    space = H5S.create_simple(N, dims, []);
+
+    % Set dataspace properties.
+    dcpl = H5P.create('H5P_DATASET_CREATE');
+    H5P.set_deflate(dcpl, 1); % Deflation level: 0 (none) to 9 (most).
+    H5P.set_chunk(dcpl, chunk_dims);
+
+    % Create dataset and write to file.
+    dset = H5D.create(file, dset_name, 'H5T_IEEE_F32BE', space, dcpl); 
+    H5D.write(dset, 'H5ML_DEFAULT', 'H5S_ALL', 'H5S_ALL', 'H5P_DEFAULT', single(real(data)));
+
+    % Close resources.
+    H5P.close(dcpl);
+    H5D.close(dset);
+    H5S.close(space);
+    H5F.close(file) % Close file, flushing to storage.
+end
+
