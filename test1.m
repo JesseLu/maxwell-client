@@ -9,6 +9,6 @@ function test1
 
     grid = struct('omega', 0.08, 's_prim', {s}, 's_dual', {s});
 
-    maxwell_async(grid, epsilon, J);
+    maxwell_upload(grid, epsilon, J);
 
 end
