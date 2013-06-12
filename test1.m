@@ -9,6 +9,7 @@ function test1
 
     grid = struct('omega', 0.08, 's_prim', {s}, 's_dual', {s});
 
+    modify_javapath()
     maxwell_upload(grid, epsilon, J);
 
 end
