@@ -8,14 +8,14 @@ function my_stream_send (in, out, action_name, display_fun)
 
 
     N = length(in);
-    running = true;
+    running = true * ones(N, 1);
     start_time = tic;
     status_time = start_time;
     prevlen = 0;
 
     while any(running)
         for k = 1 : N % Transfer some data.
-            running = copier.copy(in{k}, out{k});
+            running(k) = copier.copy(in{k}, out{k});
         end
 
         if toc(status_time) > 0.3 || all(~running) % Periodically give updates.

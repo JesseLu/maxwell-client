@@ -3,11 +3,11 @@
 
 function s3_upload(filenames, local_dir)
     my_disp = @(s) my_display_status(s, 'text');
-    url = 'http://localhost:8000';
+    my_disp = @(s) s; % No printing.
 
     for k = 1 : length(filenames)
         % Open connections and send headers.
-        [infile{k}, outputStream{k}, footer{k}] = ...
+        [infile{k}, outputStream{k}, footer{k}, urlConn{k}] = ...
             my_open_connection(filenames{k}, local_dir);
     end
 
@@ -22,17 +22,20 @@ function s3_upload(filenames, local_dir)
         infile{k}.close(); 
         outputStream{k}.flush();
     end
+
+    % Check for a error response codes.
+    for k = 1 : length(filenames)
+        if (urlConn{k}.getResponseCode() ~= 200)
+            error('%s', char(urlConn{k}.getHeaderField(0)));
+        end
+    end
 end
 
 %% Open a connection (POST).
-function [infile, outputStream, footer] = my_open_connection(filename, local_dir)
-    url = 'https://s3.amazonaws.com/maxwell-in';
-    params = {  'key', filename, ...
-                'acl', 'public-read', ...
-                'content-type', 'application/octet-stream', ...
-                'AWSAccessKeyId', 'AKIAI6BMVTBFEAMEMHQQ', ...
-                'policy', 'ewogICJleHBpcmF0aW9uIjogIjIwMjAtMDEtMDFUMTI6MDA6MDAuMDAwWiIsCiAgImNvbmRpdGlvbnMiOiBbCiAgICB7ImJ1Y2tldCI6ICJtYXh3ZWxsLWluIiB9LAogICAgeyJhY2wiOiAicHVibGljLXJlYWQiIH0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRrZXkiLCAiIl0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRDb250ZW50LVR5cGUiLCAiYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtIl0sCiAgXQp9Cg==', ...
-                'signature', 'QEPdrd7W6aOG8yO/tMOeyWWeNFY='};
+function [infile, outputStream, footer, urlConnection] = ...
+            my_open_connection(filename, local_dir)
+    url = 'http://raven1.stanford.edu:8008';
+    params = {'key', filename};
 
     % Create a urlConnection.
     [urlConnection, errorid, errormsg] = my_urlreadwrite(url);

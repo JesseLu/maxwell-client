@@ -25,7 +25,7 @@ function [callback] = maxwell_upload(grid, epsilon, J, varargin)
     prefix = [tempdir, 'maxwell-', id, '.'];
 
     % Write the grid file.
-    gridfile = [prefix, '.grid']; 
+    gridfile = [prefix, 'grid']; 
     hdf5write(gridfile, 'omega_r', real(omega), 'WriteMode', 'overwrite');
     hdf5write(gridfile, 'omega_i', imag(omega), 'WriteMode', 'append');
     xyz = 'xyz';
@@ -51,17 +51,12 @@ function [callback] = maxwell_upload(grid, epsilon, J, varargin)
     
     % Upload files.
     files = dir([prefix, '*']);
-    s3_upload({files(:).name}, tempdir);
+    my_upload({files(:).name}, tempdir);
 
     % Upload a (empty) request file.
-    request_file = fopen([tempdir, 'request-', id], 'w');
-    username = 'James Clerk Maxwell';
-    password = 'Let there be light';
-    fprintf(request_file, '%s\n%s', username, password);
-
-    hdf5write(gridfile, 'username', 'user', 'WriteMode', 'overwrite');
-    hdf5write(gridfile, 'password', 'pwd', 'WriteMode', 'append');
-    s3_upload({['request-', id]}, tempdir);
+    request_file = fopen([prefix, 'request'], 'w');
+    fprintf(request_file, 'all files uploaded');
+    my_upload({strrep([prefix, 'request'], '/tmp/', '')}, tempdir);
 end
 
 function my_write(prefix, name, field)
