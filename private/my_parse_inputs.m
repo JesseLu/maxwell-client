@@ -7,7 +7,7 @@ function [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh] = ..
 
     % Here are the default options
     maxwell_options = struct(   'mu', {{1, 1, 1}}, ...
-                                'E0', {{[], [], []}}, ...
+                                'E0', {{0, 0, 0}}, ...
                                 'max_iters', 5e4, ...
                                 'err_thresh', 1e-6', ...
                                 'vis_progress', 'text');
@@ -36,20 +36,31 @@ function [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh] = ..
         error('OMEGA must be a scalar.');
     end
 
+    
+    shape = size(epsilon{1}); % Make sure all 3D fields have this shape.
+    % Expand mu and E0 if needed.
+    for k = 1 : 3
+        if numel(mu{k}) == 1
+            mu{k} = mu{k} * ones(shape);
+        end
+        if numel(E0{k}) == 1
+            E0{k} = E0{k} * ones(shape);
+        end
+    end
+
     % Check shapes of mu, epsilon, J.
     % Specifically, make sure all component fields have shape xx-yy-zz.
-    shape = size(epsilon{1}); % Make sure all 3D fields have this shape.
     if any([numel(mu), numel(epsilon), numel(E0), numel(J)] ~= 3)
         error('All 3D vector fields (EPSILON, J, MU, E0) must have three cell elements.');
     end
+
     fields = [mu, epsilon, E0, J];
     for k = 1 : length(fields)
-        if numel(fields{k}) > 1 % Scalars allowed.
-            if any(size(fields{k}) ~= shape)
-                error('All 3D vector fields (EPSILON, J, MU, E0) must have the same shape.');
-            end
+       if any(size(fields{k}) ~= shape)
+            error('All 3D vector fields (EPSILON, J, MU, E0) must have the same shape.');
         end
     end
+
 
     % Check shapes of s_prim and s_dual.
     % Specifically, each array of each must have length xx, yy, and zz respectively.

@@ -19,7 +19,7 @@ function [callback] = maxwell_upload(grid, epsilon, J, varargin)
         my_parse_inputs(grid, epsilon, J, varargin{:});
 
     % Generate a random (and hopefully unique) ID.
-    id = [datestr(now, 'HHMMSSFFF'), '-', num2str(round(1e6*rand(1)))];
+    id = [datestr(now, 'HHMMSSFFF'), '-', num2str(randi([1e6 1e7-1]))];
 
     % Choose a prefix for the filename. 
     prefix = [tempdir, 'maxwell-', id, '.'];
@@ -45,8 +45,8 @@ function [callback] = maxwell_upload(grid, epsilon, J, varargin)
     % Write the other files (if needed).
     my_write(prefix, 'e', epsilon);
     my_write(prefix, 'J', J);
-    my_write(prefix, 'mu', mu);
-    my_write(prefix, 'E0', E0);
+    my_write(prefix, 'm', mu);
+    my_write(prefix, 'E', E0);
 
     
     % Upload files.
