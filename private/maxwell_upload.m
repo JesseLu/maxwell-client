@@ -60,6 +60,17 @@ function [server_url, name] = maxwell_upload(grid, epsilon, J, varargin)
     request_file = fopen([prefix, 'request'], 'w');
     fprintf(request_file, 'all files uploaded');
     my_upload({strrep([prefix, 'request'], '/tmp/', '')}, tempdir, server_url);
+    
+    % Delete files.
+    for f = 'eJmE'
+        for g = 'xyz'
+            for h = 'ri'
+                delete([prefix, f, '_', g, h])
+            end
+        end
+    end
+    delete([prefix, 'grid'])
+    delete([prefix, 'request'])
 end
 
 function my_write(prefix, name, field)

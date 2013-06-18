@@ -47,6 +47,9 @@ function [E, H, err, state, s] = maxwell_download(server_url, name)
         H = F(4:6);
 
         % Delete files.
+        for k = 1 : numel(files)
+            delete([tempdir, files{k}]);
+        end
     
     end
 
