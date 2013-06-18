@@ -36,6 +36,17 @@ function [E, H, err, state, s] = maxwell_download(server_url, name)
             files{k} = [name, a(k), '_', b(k), c(k)];
         end
         my_download(files, tempdir, server_url);
+
+        % Load files.
+        for k = 2 : 2 : numel(files)
+            F{k/2} = double(h5read([tempdir, files{k-1}], '/data')) + ...
+                1i * double(h5read([tempdir, files{k}], '/data'));
+            F{k/2} = permute(F{k/2}, [ndims(F{k/2}):-1:1]); % Convert to column-major.
+        end
+        E = F(1:3);
+        H = F(4:6);
+
+        % Delete files.
     
     end
 
