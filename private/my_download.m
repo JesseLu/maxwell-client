@@ -1,7 +1,10 @@
-function s3_download(filenames, local_dir)
+% Batch download via http.
+
+function my_download(filenames, local_dir, url)
     my_disp = @(s) my_display_status(s, 'text');
+    my_disp = @(s) s; % No printing.
     for k = 1 : length(filenames)
-        [inputStream{k}, file{k}] = my_open_connection(filenames{k}, local_dir);
+        [inputStream{k}, file{k}] = my_open_connection(filenames{k}, local_dir, url);
     end
 
     my_disp('Receiving...');
@@ -16,8 +19,8 @@ function s3_download(filenames, local_dir)
 end
 
 
-function [inputStream, file] = my_open_connection(filename, local_dir)
-    url = ['https://s3.amazonaws.com/maxwell-out/', filename];
+function [inputStream, file] = my_open_connection(filename, local_dir, url)
+    url = [url, filename];
     urlConnection = my_urlreadwrite(url);
     urlConnection.connect();
     inputStream = urlConnection.getInputStream();

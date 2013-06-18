@@ -1,14 +1,13 @@
-%% s3_upload
-% Upload files to Maxwell's simulation input S3 bucket.
+% Batch upload via http.
 
-function s3_upload(filenames, local_dir)
+function s3_upload(filenames, local_dir, url)
     my_disp = @(s) my_display_status(s, 'text');
     my_disp = @(s) s; % No printing.
 
     for k = 1 : length(filenames)
         % Open connections and send headers.
         [infile{k}, outputStream{k}, footer{k}, urlConn{k}] = ...
-            my_open_connection(filenames{k}, local_dir);
+            my_open_connection(filenames{k}, local_dir, url);
     end
 
     % Stream the files.
@@ -33,8 +32,7 @@ end
 
 %% Open a connection (POST).
 function [infile, outputStream, footer, urlConnection] = ...
-            my_open_connection(filename, local_dir)
-    url = 'http://raven1.stanford.edu:8008';
+            my_open_connection(filename, local_dir, url)
     params = {'key', filename};
 
     % Create a urlConnection.

@@ -1,4 +1,4 @@
-function test1
+function [cb] = test1
     dims = [100 160 40];
     for k = 1 : 3
         s{k} = ones(dims(k), 1);
@@ -9,7 +9,12 @@ function test1
 
     grid = struct('omega', 0.08, 's_prim', {s}, 's_dual', {s});
 
-    modify_javapath()
-    maxwell_upload(grid, epsilon, J);
+    modify_javapath();
+    [cb] = maxwell_solve_async(grid, epsilon, J);
+    % If finished file exists, job is done.
+
+    % 
+
+
 
 end

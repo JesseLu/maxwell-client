@@ -12,7 +12,8 @@
 % * vis_progress
 %
     
-function [callback] = maxwell_upload(grid, epsilon, J, varargin)
+function [server_url, name] = maxwell_upload(grid, epsilon, J, varargin)
+    server_url = 'http://raven1.stanford.edu:8008/';
  
     % Parse input and option parameters.
     [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh] = ...
@@ -22,7 +23,9 @@ function [callback] = maxwell_upload(grid, epsilon, J, varargin)
     id = [datestr(now, 'HHMMSSFFF'), '-', num2str(randi([1e6 1e7-1]))];
 
     % Choose a prefix for the filename. 
-    prefix = [tempdir, 'maxwell-', id, '.'];
+    name = ['maxwell-', id, '.'];
+    prefix = [tempdir, name];
+    url = [server_url, name];
 
     % Write the grid file.
     gridfile = [prefix, 'grid']; 
@@ -51,12 +54,12 @@ function [callback] = maxwell_upload(grid, epsilon, J, varargin)
     
     % Upload files.
     files = dir([prefix, '*']);
-    my_upload({files(:).name}, tempdir);
+    my_upload({files(:).name}, tempdir, server_url);
 
     % Upload a (empty) request file.
     request_file = fopen([prefix, 'request'], 'w');
     fprintf(request_file, 'all files uploaded');
-    my_upload({strrep([prefix, 'request'], '/tmp/', '')}, tempdir);
+    my_upload({strrep([prefix, 'request'], '/tmp/', '')}, tempdir, server_url);
 end
 
 function my_write(prefix, name, field)
