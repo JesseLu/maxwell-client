@@ -1,10 +1,13 @@
+%% maxwell_download
+% Downloads result files from simulation server.
+
 function [E, H, err, state, s] = maxwell_download(server_url, name)
 
     E = [];
     H = [];
     err = [];
 
-    url = [server_url, name]
+    url = [server_url, name];
     endings = {'request', 'status', 'log', 'finished'};
     for k = 1 : length(endings)
         [s{k}, status(k)] = urlread([url, endings{k}]);

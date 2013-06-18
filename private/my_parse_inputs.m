@@ -1,4 +1,5 @@
-function [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh] = ...
+% Parse inputs for the maxwell_upload function.
+function [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_progress] = ...
         parse_inputs(grid, epsilon, J, varargin);
 
         %
@@ -10,7 +11,7 @@ function [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh] = ..
                                 'E0', {{0, 0, 0}}, ...
                                 'max_iters', 5e4, ...
                                 'err_thresh', 1e-6', ...
-                                'vis_progress', 'text');
+                                'vis_progress', 'plot'); % Options: none, text, plot, both.
 
     for k = 2 : 2 : length(varargin)
         maxwell_options = setfield(maxwell_options, varargin{k-1}, varargin{k});
@@ -86,7 +87,7 @@ function [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh] = ..
     end
 
     % Make sure the value for view_progress is valid.
-    if all(~strcmp(vis_progress, {'plot', 'text', 'none'}))
+    if all(~strcmp(vis_progress, {'plot', 'text', 'none', 'both'}))
         error('VIS_PROGRESS must be either ''plot'', ''text'', or ''none''.');
     end
 

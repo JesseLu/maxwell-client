@@ -1,5 +1,4 @@
 % Batch download via http.
-
 function my_download(filenames, local_dir, url)
     my_disp = @(s) my_display_status(s, 'text');
     my_disp = @(s) s; % No printing.

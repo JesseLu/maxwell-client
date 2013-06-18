@@ -1,8 +1,5 @@
 %% maxwell_urlreadwrite
 % Initiates an http or https connection to a server.
-% Uses a custom Certificate authority that validates only a specific
-% self-signed ssl connection for https connections.
-% Requires the Maxwell java library to obtain the MaxwellTrustManager object.
 
 function [urlConnection, errorid, errormsg] = my_urlreadwrite(urlChar, varargin)
     % Default output arguments.

@@ -1,5 +1,5 @@
-function my_display_status(status_text, option)
 % Used to display text on command line or title area of a plot.
+function my_display_status(status_text, option)
     max_length = 60;
     switch option
         case 'text'

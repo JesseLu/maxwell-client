@@ -2,7 +2,10 @@ import java.io.*;
 import java.lang.Math;
 
 public class MaxwellCopier{
-    // Make this permanent or something
+    // This java class allows for simultaneous communication across HTTP 
+    // for Maxwell.
+    //
+    // TODO: Make this permanent or something
     // private static byte[] buf = new byte[4 * 1024];
     public int total_bytes_transferred;
     private byte[] buf;

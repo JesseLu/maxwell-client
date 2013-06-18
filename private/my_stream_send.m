@@ -1,3 +1,4 @@
+% Allows for multiple simultaneous transfer over HTTP.
 function my_stream_send (in, out, action_name, display_fun)
 
     copier = MaxwellCopier; % Requires the Maxwell.jar library to be loaded.
