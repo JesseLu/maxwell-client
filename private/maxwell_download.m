@@ -34,7 +34,7 @@ function [E, H, err, state, s] = maxwell_download(server_url, name)
 
     if strcmp(state, 'finished')
         % Download all files.
-        [a, b, c] = ndgrid('EH', 'xyz', 'ri');
+        [c, b, a] = ndgrid('ri', 'xyz', 'EH');
         for k = 1 : numel(a)
             files{k} = [name, a(k), '_', b(k), c(k)];
         end
