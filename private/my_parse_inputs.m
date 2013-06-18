@@ -33,7 +33,7 @@ function [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_
         %
 
     % Check omega.
-    if numel(omega) ~= 1 
+    if numel(omega) ~= 1 | isnan(omega) 
         error('OMEGA must be a scalar.');
     end
 

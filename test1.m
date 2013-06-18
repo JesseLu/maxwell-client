@@ -1,4 +1,4 @@
-function [E, H, err] = test1
+function [E, H, err, grid, epsilon] = test1
     dims = [100 160 40];
     for k = 1 : 3
         s{k} = ones(dims(k), 1);
