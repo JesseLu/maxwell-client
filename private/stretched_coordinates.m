@@ -29,34 +29,29 @@ function [s_prim, s_dual] = make_scpml(omega, origin, s_prim, s_dual, num_cells)
 %% Source code
 
     % Position functions.
-    w_p = origin + [0 cumsum(s_prim)];
-    w_s = mean(w_p(1:2)) + [0 cumsum(s_dual)];
+    pos = origin + [0; cumsum(s_prim(:))]; % Position of grid points.
+    pos_prim = (pos(1:end-1) + pos(2:end)) ./ 2;
+    pos_dual = pos(2:end);
 
-    % Define the borders.
-    if isempty(find(w_p == 0))
-        % 0 position does not occur on the primary grid,
-        % act as if it occurs on the dual grid.
-        border = [(w_s(1) - s_dual(end)), w_s(end)];
+    border = [pos(1) pos(end)];
+    bnd = [pos(num_cells+1), pos(end-num_cells)];
 
-    else
-        % 0-position occurs on the primary grid.
-        border = [w_p(1), w_p(end)];
-    end
-    % Helper functions.
-    pos = @(z) (z > 0) .* z; % Only take positive values.
-    l = @(u, n, t) pos(t - u) + pos(u - (n - t)); % Distance to nearest pml boundary.
+    % Front PML.
+    r = 1:num_cells;
+    l_over_d = @(pos) (bnd(1) - pos) ./ (bnd(1) - border(1));
+    s_prim(r) = stretch_s(omega, s_prim(r), l_over_d(pos_prim(r)));
+    s_dual(r) = stretch_s(omega, s_dual(r), l_over_d(pos_dual(r)));
 
-    % Compute the stretched-coordinate grid spacing values.
-    for k = 1 : 3
-        if t_pml(k) > 0 % PML requested in this direction.
-            s_prim{k} = 1 - i * (4 / omega) * ...
-                            (l(0:dims(k)-1, dims(k), t_pml(k)) / t_pml(k)).^4;
-            s_dual{k} = 1 - i * (4 / omega) * ...
-                            (l(0.5:dims(k)-0.5, dims(k), t_pml(k)) / t_pml(k)).^4;
+    % Back PML.
+    r = length(s_prim) + [-num_cells+1:0];
+    l_over_d = @(pos) (pos - bnd(2)) ./ (border(2) - bnd(2));
+    s_prim(r) = stretch_s(omega, s_prim(r), l_over_d(pos_prim(r)));
+    s_dual(r) = stretch_s(omega, s_dual(r), l_over_d(pos_dual(r)));
+    return
 
-        else % No PML requested in this direction 
-            s_prim{k} = ones(1, dims(k));
-            s_dual{k} = ones(1, dims(k));
-        end
-    end
-
+function [s] = stretch_s(omega, s, l_over_d)
+% We use the following formula for the imaginary part of s:
+% -4 / (delta * omega) * (l/d)^4
+% where delta is the grid spacing, omega is the frequency,
+% l is the distance inside the pml, and d is the width of the pml.
+    s = s - (4i * l_over_d.^4) ./ (s * omega);
