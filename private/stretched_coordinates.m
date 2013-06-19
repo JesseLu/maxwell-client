@@ -8,7 +8,7 @@
 % Steven Johnson has a great reference on this.
 %
 
-function [s_prim, s_dual] = make_scpml(omega, s_prim, s_dual, num_cells)
+function [s_prim, s_dual] = make_scpml(omega, origin, s_prim, s_dual, num_cells)
 
 %% Input parameters
 % * |omega| is the angular frequency of the simulation.
@@ -28,12 +28,22 @@ function [s_prim, s_dual] = make_scpml(omega, s_prim, s_dual, num_cells)
 
 %% Source code
 
+    % Position functions.
+    w_p = origin + [0 cumsum(s_prim)];
+    w_s = mean(w_p(1:2)) + [0 cumsum(s_dual)];
 
+    % Define the borders.
+    if isempty(find(w_p == 0))
+        % 0 position does not occur on the primary grid,
+        % act as if it occurs on the dual grid.
+        border = [(w_s(1) - s_dual(end)), w_s(end)];
+
+    else
+        % 0-position occurs on the primary grid.
+        border = [w_p(1), w_p(end)];
+    end
     % Helper functions.
     pos = @(z) (z > 0) .* z; % Only take positive values.
-    w_p = cumsum(s_prim);
-    w_s = 
-    bnd = [s
     l = @(u, n, t) pos(t - u) + pos(u - (n - t)); % Distance to nearest pml boundary.
 
     % Compute the stretched-coordinate grid spacing values.
