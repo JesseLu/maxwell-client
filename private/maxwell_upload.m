@@ -14,6 +14,7 @@
     
 function [server_url, name, vis_progress] = maxwell_upload(grid, epsilon, J, varargin)
     server_url = 'http://raven1.stanford.edu:8008/';
+    modify_javapath();
  
     % Parse input and option parameters.
     [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_progress] = ...

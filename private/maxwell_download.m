@@ -2,6 +2,8 @@
 % Downloads result files from simulation server.
 
 function [E, H, err, state, s] = maxwell_download(server_url, name)
+;
+    modify_javapath();
 
     E = [];
     H = [];
