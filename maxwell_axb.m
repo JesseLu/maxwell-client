@@ -1,3 +1,6 @@
+%% maxwell_axb
+% Get the matrices and vectors associated with the electromagnetic wave equation.
+
 
 function [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)
 
