@@ -65,7 +65,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>maxwell_axb</h1><!--introduction--><p>Get the matrices and vectors associated with the electromagnetic wave equation.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Description</a></li><li><a href="#3">Examples</a></li><li><a href="#5">maxwell_matrices</a></li><li><a href="#6">Description</a></li><li><a href="#7">Input parameters</a></li><li><a href="#8">Output parameters</a></li><li><a href="#9">Example</a></li><li><a href="#10">Source code</a></li><li><a href="#11">Source code for private functions</a></li></ul></div><h2>Syntax<a name="1"></a></h2><p>s</p><h2>Description<a name="2"></a></h2><p>a</p><h2>Examples<a name="3"></a></h2><p>e</p><pre class="codeinput"><span class="keyword">function</span> [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)
+  </style></head><body><div class="content"><h1>maxwell_axb</h1><!--introduction--><p>Get the matrices and vectors associated with the electromagnetic wave equation.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Description</a></li><li><a href="#3">Examples</a></li><li><a href="#5">maxwell_matrices</a></li><li><a href="#6">Description</a></li><li><a href="#7">Input parameters</a></li><li><a href="#8">Output parameters</a></li><li><a href="#9">Example</a></li><li><a href="#10">Source code</a></li><li><a href="#11">Source code for private functions</a></li></ul></div><h2>Syntax<a name="1"></a></h2><pre class="language-matlab">[A, x, b] = maxwell_axb(grid, J, eps);
+</pre><p>returns the matrix <tt>A</tt> and the column-vectors <tt>x</tt> and <tt>b</tt> which form the electromagnetic wave equation</p><p><img src="maxwell_axb_eq02362.png" alt="$$ \nabla \times \mu^{-1} \nabla \times E - \omega^2 \epsilon E = -i \omega J $$"></p><h2>Description<a name="2"></a></h2><p>a</p><h2>Examples<a name="3"></a></h2><p>e</p><pre class="codeinput"><span class="keyword">function</span> [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)
 </pre><pre class="codeinput">   <span class="comment">% Parse input and option parameters.</span>
     [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_progress] = <span class="keyword">...</span>
         my_parse_inputs(grid, epsilon, J, varargin{:});
@@ -158,13 +159,19 @@ J{2}(40,20,10) = 1; <span class="comment">% Centrally-located point source.</spa
 %% maxwell_axb
 % Get the matrices and vectors associated with the electromagnetic wave equation.
 
-%% Syntax
-% s
+%%% Syntax
+%
+%   [A, x, b] = maxwell_axb(grid, J, eps);
+%
+% returns the matrix |A| and the column-vectors |x| and |b|
+% which form the electromagnetic wave equation
+%
+% $$ \nabla \times \mu^{-1} \nabla \times E - \omega^2 \epsilon E = -i \omega J $$
 
-%% Description
+%%% Description
 % a
 
-%% Examples
+%%% Examples
 % e
 
 function [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)

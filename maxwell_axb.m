@@ -1,13 +1,26 @@
 %% maxwell_axb
 % Get the matrices and vectors associated with the electromagnetic wave equation.
 
-%% Syntax
-% s
+%%% Syntax
+%
+% * |[A, x, b] = maxwell_axb(grid, J, eps, E)| returns the matrix and vectors 
+%   for the electromagnetic wave equation for the E-field (see below).
+%
+% * |[A, x, b] = maxwell_axb(grid, J, [eps, mu], E)| does the same for
+%   |mu| not equal to 1.
+%
+% * |[A, x, b] = maxwell_axb(grid, J, eps, [E H])| returns the matrix and
+%   vectorsfor the electromagnetic wave equation 
+%   written for both E- and H-fields.
+%
+% * |[A, x, b] = maxwell_axb(grid, J, [eps mu], [E H])| does the same for 
+%   |mu| not equal to 1.
 
-%% Description
+
+%%% Description
 % a
 
-%% Examples
+%%% Examples
 % e
 
 function [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)

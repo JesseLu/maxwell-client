@@ -1,3 +1,22 @@
+%% maxwell_grid
+% Create a simulation domain.
+
+%%% Syntax
+%
+% * |[grid, J, eps] = maxwell_grid(wavelength, x, y, z)|
+%   produces a grid for a specific wavelength with
+%   grid points located at the points specified at |x|, |y|, and |z|.
+%   Initial variables for the current excitation source |J|
+%   and permittivity |eps| are also returned.
+%
+% * |[grid, J, eps, mu] = maxwell_grid(...)|
+%   also returns an initial variable for the permeability, |mu|.
+%
+% * |... = maxwell_grid(..., 'nopml', xyz, 'num_pml_cells', n_pml)
+%
+% * |... = maxwell_grid(..., 'refine', {pos, size})
+%   for local refinement.
+
 function [grid, epsilon, J] = maxwell_grid(omega, x, y, z, varargin)
 
     % Check omega.

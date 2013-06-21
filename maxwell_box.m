@@ -1,3 +1,13 @@
+%% maxwell_box
+% Used to insert a box of constant epsilon/mu into the simulation grid.
+
+%%% Syntax
+%
+% * |fun = maxwell_box(center, box_size)| 
+%   returns function handle |fun| which describes a rectangular prism 
+%   centered at |center| and of size |box_size|.
+
+
 function [box_fun] = maxwell_box(center, box_size)
 
     bounding_box = {center - box_size/2, ...

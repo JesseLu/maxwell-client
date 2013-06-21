@@ -1,4 +1,23 @@
-% Add shapes to epsilon data structure.
+%% maxwell_epsilon
+% Generic function to add constant material shapes to the simulation domain.
+
+%%% Syntax
+%
+% * |eps = maxwell_epsilon(grid, eps, eps_val, shape_fun)|
+%   modifies the epsilon structure |eps| by inserting |eps_val| 
+%   in the volume described by |shape_fun|.
+%
+% * |[eps, mu] = maxwell_epsilon(grid, [eps, mu], [eps_val mu_val], shape_fun)|
+%   modifies both |eps| and |mu|.
+%
+% * |... = maxwell_epsilon(..., 'upsample_ratio', ratio)|
+%   allows for an upsampling ratio of |ratio|, defaults to |ratio = 6|.
+%
+% * |... = maxwell_epsilon(..., 'avg_fun', f_avg, 'rep_fun', f_rep)|
+%   allows for custom functions which determine the averaging function
+%   for a grid point (|f_avg|) and how values of |eps| (and |mu|) 
+%   are replaced (|f_rep|).
+
 function [epsilon] = maxwell_epsilon(grid, epsilon, f, eps_val, varargin)
 
     % Here are the default options

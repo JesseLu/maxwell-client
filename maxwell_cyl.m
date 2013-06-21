@@ -1,3 +1,12 @@
+%% maxwell_cyl
+% Used to define a cylinder of a constant epsilon/mu in the simulation domain.
+
+%%% Syntax
+%
+% * |f = maxwell_cyl(center, radius, height)|
+%   produces function handle |f| which defines a cylinder centered at |center|
+%   of dimensions |radius| and |height|.
+
 function [cyl_fun] = maxwell_cyl(center, radius, height)
 
     box_size = [radius, radius, height];

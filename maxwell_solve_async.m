@@ -1,4 +1,5 @@
-
+%% maxwell_solve_async
+% Asynchronous solve for matlab
 function [cb, vis_progress] = maxwell_solve_async(grid, epsilon, J, varargin)
 
     my_axis = gca;
