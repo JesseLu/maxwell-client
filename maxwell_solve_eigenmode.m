@@ -1,4 +1,4 @@
-function [omega, E, H] = maxwell_eigenmode(grid, epsilon, E0, varargin) 
+function [omega, E, H] = maxwell_solve_eigenmode(grid, epsilon, E0, varargin) 
 
 
 %% Form matrices and function handles 
@@ -23,7 +23,6 @@ function [omega, E, H] = maxwell_eigenmode(grid, epsilon, E0, varargin)
     n = prod(dims);
     unvec = @(z) {reshape(z(1:n), dims), reshape(z(n+1:2*n), dims), reshape(z(2*n+1:3*n), dims)};
     vec = @(z) [z{1}(:); z{2}(:); z{3}(:)]; 
-%     my_diag = @(z) spdiags(z(:), 0, numel(z), numel(z));
 
     % Compose function handles.
     mult_A = @(x) e.^-0.5 .* (A * (e.^-0.5 .* x));
@@ -42,5 +41,7 @@ function [omega, E, H] = maxwell_eigenmode(grid, epsilon, E0, varargin)
     end
 
     [lambda, v] = my_solve_eigenmode(mult_A, @solve_A_shifted, @my_vis, v, 10, 1e-6);
+
+    % Get back E and H.
 
 end
