@@ -65,12 +65,12 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">maxwell_axb</a></li><li><a href="#3">maxwell_matrices</a></li><li><a href="#4">Description</a></li><li><a href="#5">Input parameters</a></li><li><a href="#6">Output parameters</a></li><li><a href="#7">Example</a></li><li><a href="#8">Source code</a></li><li><a href="#9">Source code for private functions</a></li></ul></div><h2>maxwell_axb<a name="1"></a></h2><p>Get the matrices and vectors associated with the electromagnetic wave equation.</p><pre class="codeinput"><span class="keyword">function</span> [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)
+  </style></head><body><div class="content"><h1>maxwell_axb</h1><!--introduction--><p>Get the matrices and vectors associated with the electromagnetic wave equation.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Description</a></li><li><a href="#3">Examples</a></li><li><a href="#5">maxwell_matrices</a></li><li><a href="#6">Description</a></li><li><a href="#7">Input parameters</a></li><li><a href="#8">Output parameters</a></li><li><a href="#9">Example</a></li><li><a href="#10">Source code</a></li><li><a href="#11">Source code for private functions</a></li></ul></div><h2>Syntax<a name="1"></a></h2><p>s</p><h2>Description<a name="2"></a></h2><p>a</p><h2>Examples<a name="3"></a></h2><p>e</p><pre class="codeinput"><span class="keyword">function</span> [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)
 </pre><pre class="codeinput">   <span class="comment">% Parse input and option parameters.</span>
     [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_progress] = <span class="keyword">...</span>
         my_parse_inputs(grid, epsilon, J, varargin{:});
-</pre><h2>maxwell_matrices<a name="3"></a></h2><p>Create the relevant matrices used in the FDFD method, which Maxwell implements.</p><h2>Description<a name="4"></a></h2><p>Converts from physics-based concepts (E-fields, permittivities, current densities) to linear algebra concepts (matrices and vectors).</p><p>To be specific, the electromagnetic wave equation that Maxwell solves is</p><p><img src="maxwell_axb_eq02362.png" alt="$$ \nabla \times \mu^{-1} \nabla \times E - \omega^2 \epsilon E = -i \omega J $$"></p><p>which we translate term-for-term, with the help of <tt>maxwell_matrices</tt> into linear algebra parlance as</p><p><img src="maxwell_axb_eq76627.png" alt="$$ A_1 \mbox{diag}(m^{-1}) A_2 x - \omega^2 \mbox{diag}(e) x = b. $$"></p><pre class="codeinput"><span class="comment">% function [A1, A2, m, e, b] = maxwell_matrices(omega, s_prim, s_dual, mu, epsilon, J)</span>
-</pre><h2>Input parameters<a name="5"></a></h2><div><ul><li><tt>omega</tt> is the angular frequency of the simulation.</li><li><tt>s_prim, s_dual</tt> represent the s-parameters for the FDFD grid.   Each should be a 3-element cell array with each element representing the   s-parameters along the x-, y-, and z-direction respectively.</li><li><tt>mu, epsilon, J</tt> are 3-element cell arrays where each element is itself   a 3D array of size (xx, yy, zz).   These parameters represent the permeability, permittivity, and current density   vector fields respectively.</li></ul></div><h2>Output parameters<a name="6"></a></h2><div><ul><li>|A1, A2] are sparse matrices representing the curl operators in the electromagnetic wave equation, while</li><li><tt>m, e, b</tt> are vectors in the same equation.</li></ul></div><h2>Example<a name="7"></a></h2><p>The following example obtains the matrices for a very simple simulation grid.</p><pre class="language-matlab">omega = 0.08;
+</pre><h2>maxwell_matrices<a name="5"></a></h2><p>Create the relevant matrices used in the FDFD method, which Maxwell implements.</p><h2>Description<a name="6"></a></h2><p>Converts from physics-based concepts (E-fields, permittivities, current densities) to linear algebra concepts (matrices and vectors).</p><p>To be specific, the electromagnetic wave equation that Maxwell solves is</p><p><img src="maxwell_axb_eq02362.png" alt="$$ \nabla \times \mu^{-1} \nabla \times E - \omega^2 \epsilon E = -i \omega J $$"></p><p>which we translate term-for-term, with the help of <tt>maxwell_matrices</tt> into linear algebra parlance as</p><p><img src="maxwell_axb_eq76627.png" alt="$$ A_1 \mbox{diag}(m^{-1}) A_2 x - \omega^2 \mbox{diag}(e) x = b. $$"></p><pre class="codeinput"><span class="comment">% function [A1, A2, m, e, b] = maxwell_matrices(omega, s_prim, s_dual, mu, epsilon, J)</span>
+</pre><h2>Input parameters<a name="7"></a></h2><div><ul><li><tt>omega</tt> is the angular frequency of the simulation.</li><li><tt>s_prim, s_dual</tt> represent the s-parameters for the FDFD grid.   Each should be a 3-element cell array with each element representing the   s-parameters along the x-, y-, and z-direction respectively.</li><li><tt>mu, epsilon, J</tt> are 3-element cell arrays where each element is itself   a 3D array of size (xx, yy, zz).   These parameters represent the permeability, permittivity, and current density   vector fields respectively.</li></ul></div><h2>Output parameters<a name="8"></a></h2><div><ul><li>|A1, A2] are sparse matrices representing the curl operators in the electromagnetic wave equation, while</li><li><tt>m, e, b</tt> are vectors in the same equation.</li></ul></div><h2>Example<a name="9"></a></h2><p>The following example obtains the matrices for a very simple simulation grid.</p><pre class="language-matlab">omega = 0.08;
 </pre><pre class="language-matlab">s_prim = {ones(80,1), ones(40,1), ones(20,1)};
 s_dual = s_prim;
 </pre><pre class="language-matlab">m = {ones(80,40,20), ones(80,40,20), ones(80,40,20)};
@@ -78,7 +78,7 @@ e = m;
 J = {zeros(80,40,20), zeros(80,40,20), zeros(80,40,20)};
 J{2}(40,20,10) = 1; <span class="comment">% Centrally-located point source.</span>
 </pre><pre class="language-matlab">[A1, A2, m, e, b] = maxwell_matrices(omega, s_prim, s_dual, m, e, J);
-</pre><h2>Source code<a name="8"></a></h2><pre class="codeinput">    <span class="comment">% Get the dimensions of the simulation.</span>
+</pre><h2>Source code<a name="10"></a></h2><pre class="codeinput">    <span class="comment">% Get the dimensions of the simulation.</span>
     dims = size(epsilon{1});
     <span class="keyword">if</span> numel(dims) == 2 <span class="comment">% Take care of special 2D case.</span>
         dims = [dims, 1];
@@ -132,7 +132,7 @@ J{2}(40,20,10) = 1; <span class="comment">% Centrally-located point source.</spa
         A_h = A2 * my_diag(1./e) * A1 - omega^2 * my_diag(m);
         b_h = A2 * (b ./ (-i * omega * e));
     <span class="keyword">end</span>
-</pre><h2>Source code for private functions<a name="9"></a></h2><pre class="codeinput"><span class="keyword">function</span> [D] = deriv(dir, shape)
+</pre><h2>Source code for private functions<a name="11"></a></h2><pre class="codeinput"><span class="keyword">function</span> [D] = deriv(dir, shape)
 <span class="comment">% Private function for creating derivative matrices.</span>
 <span class="comment">% Note that we are making the forward derivative only.</span>
 <span class="comment">% Also, we assume periodic boundary conditions.</span>
@@ -158,6 +158,14 @@ J{2}(40,20,10) = 1; <span class="comment">% Centrally-located point source.</spa
 %% maxwell_axb
 % Get the matrices and vectors associated with the electromagnetic wave equation.
 
+%%% Syntax
+% s
+
+%%% Description
+% a
+
+%%% Examples
+% e
 
 function [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)
 
