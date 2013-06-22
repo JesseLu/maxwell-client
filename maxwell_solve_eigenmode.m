@@ -1,3 +1,16 @@
+%% maxwell_solve_eigenmode
+% Find the eigenmode based on an initial guess for E.
+
+%%% Syntax
+%
+% * |[omega, E, H] = maxwell_solve_eigenmode(grid, eps, E0)|
+%   returns the frequency (|omega|), and fields (|E| and |H|)
+%   of the eigenmode "nearest" to the field |E0|.
+%
+% * |[omega, E, H] = maxwell_solve_eigenmode(grid, [eps mu], E0)|
+%   does the same except for |mu ~= 1|.
+%
+% Many options included those for the solve and those for the rqi algorithm.
 function [omega, E, H] = maxwell_solve_eigenmode(grid, epsilon, E0, varargin) 
 
 

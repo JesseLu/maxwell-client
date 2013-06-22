@@ -1,5 +1,15 @@
 %% maxwell_solve_async
-% Asynchronous solve for matlab
+% Asynchronous solve.
+
+%%% Syntax
+% * |cb_fun = maxwell_solve_async(grid, eps, J)|
+%   uploads a simulation and returns a callback function |cb_fun|
+%   which is used to query progress and return the results.
+%
+% * |cb_fun = maxwell_solve_async(grid, [eps mu], J)|
+%   is the same as above except that it allows |mu ~= 1|.
+%
+% See |maxwell_solve| for optional value pairs.
 function [cb, vis_progress] = maxwell_solve_async(grid, epsilon, J, varargin)
 
     my_axis = gca;

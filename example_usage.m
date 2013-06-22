@@ -19,9 +19,8 @@
 
 % Most general use-case
 
-[grid, J, eps] = maxwell_grid(1550, -50:50, -80:80, -20:20);
-[grid, J, eps, mu] = maxwell_grid(1550, -50:50, -80:80, -20:20); % If we want mu.
-[grid, J, eps, mu] = maxwell_grid(1550, -50:50, -80:80, -20:20, options); 
+[grid, eps, mu, J] = maxwell_grid(1550, -50:50, -80:80, -20:20, ...
+                'nopml', , 'num_pml_cells', , 'hires_box', {start end delta});
 ... = maxwell_grid(1550, -50:50, -80:80, -20:20, 'hires_box', [dx dy dz], 'hires_box', delta);
 
 eps = maxwell_epsilon(grid, eps, 10, my_box(box_pos, box_size));
@@ -29,14 +28,14 @@ eps = maxwell_epsilon(grid, eps, 10, my_box(box_pos, box_size));
 [eps, mu] = maxwell_epsilon(grid, [eps, mu], [10, 3], my_box(box_pos, box_size), options);
 % Options include upsample_ratio, functions for averaging and eps/mu-modification.
 
-[J, E1, H1] = maxwell_wgmode(grid, [eps, mu], [+inf, 50, 50], [40 40 20]);
-[J, E1, H1] = maxwell_wgmode(grid, [eps, mu], [+inf, 50, 50], [40 40 20], 1); % Optional mode number.
+[J, E1, H1] = maxwell_wgmode(grid, [eps, mu], [40 40 20], [+inf, 50, 50]);
+[J, E1, H1] = maxwell_wgmode(grid, [eps, mu], [40 40 20], [+inf, 50, 50], 1); % Optional mode number.
 
 E = maxwell_solve(grid, eps, J, 'vis_progress', 'both');
 [E, H] = maxwell_solve(grid, [eps, mu], J, 'vis_progress', 'both');
  
-P = maxwell_flux(grid, E, [20 -inf 3], [40 40 20])
+P = maxwell_flux(grid, E, [40 40 20], [20 -inf 3])
 P = maxwell_flux(grid, E, [E1, H1]); % Special case where [E1, H1] is output from maxwell_wgmode  
 
-maxwell_view(grid, E{2}, 'y', 50);
+maxwell_view(grid, eps, E, 'y', [4 12 inf]);
 % Various options for absolute value, movie, phase, with structure, transperancy, etc...
