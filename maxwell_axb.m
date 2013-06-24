@@ -3,17 +3,17 @@
 
 %%% Syntax
 %
-% * |[A, x, b] = maxwell_axb(grid, J, eps, E)| returns the matrix and vectors 
+% * |[A, x, b] = maxwell_axb(grid, eps, E, J)| returns the matrix and vectors 
 %   for the electromagnetic wave equation for the E-field (see below).
 %
-% * |[A, x, b] = maxwell_axb(grid, J, [eps, mu], E)| does the same for
+% * |[A, x, b] = maxwell_axb(grid, [eps, mu], ...)| does the same for
 %   |mu| not equal to 1.
 %
-% * |[A, x, b] = maxwell_axb(grid, J, eps, [E H])| returns the matrix and
+% * |[A, x, b] = maxwell_axb(grid, eps, [E H], J)| returns the matrix and
 %   vectorsfor the electromagnetic wave equation 
 %   written for both E- and H-fields.
 %
-% * |[A, x, b] = maxwell_axb(grid, J, [eps mu], [E H])| does the same for 
+% * |[A, x, b] = maxwell_axb(grid, [eps mu], [E H], J)| does the same for 
 %   |mu| not equal to 1.
 
 

@@ -1,5 +1,5 @@
 %% maxwell_solve_async
-% Asynchronous solve.
+% Initiate an electromagnetic solve and immediately return a callback function.
 
 %%% Syntax
 % * |cb_fun = maxwell_solve_async(grid, eps, J)|
@@ -9,7 +9,8 @@
 % * |cb_fun = maxwell_solve_async(grid, [eps mu], J)|
 %   is the same as above except that it allows |mu ~= 1|.
 %
-% See |maxwell_solve| for optional value pairs.
+% The optional input parameters for |maxwell_solve| are also valid here.
+
 function [cb, vis_progress] = maxwell_solve_async(grid, epsilon, J, varargin)
 
     my_axis = gca;

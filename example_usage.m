@@ -9,7 +9,6 @@
 % * Fast (gpu solver in cloud)
 
 %% Functionality
-% * Dynamix grid.
 % * Isotropic materials (no anisotropy for now).
 % * Epsilon and mu both covered.
 % * E and H fields.
@@ -50,6 +49,13 @@ while ~cb(); end
                                         'eig_iters', 10, 'eig_err_thresh', 1e-6, ...
                                         'max_iters', 1e5, 'err_thresh', 1e-6);
  
+% Check the simulation.
+[A, x, b] = maxwell_axb(grid, eps, E, J);
+err = norm(A*x-b) / norm(b);
+
+[A, x, b] = maxwell_axb(grid, [eps mu], [E H], J);
+err = norm(A*x-b) / norm(b);
+
 % Calculate output powers.
 P = maxwell_flux(grid, [E H], [40 40 20], [20 -inf 3])
 

@@ -3,19 +3,26 @@
 
 %%% Syntax
 %
-% * |[grid, J, eps] = maxwell_grid(wavelength, x, y, z)|
+% * |[grid, eps] = maxwell_grid(wavelength, x, y, z)|
 %   produces a grid for a specific wavelength with
 %   grid points located at the points specified at |x|, |y|, and |z|.
-%   Initial variables for the current excitation source |J|
-%   and permittivity |eps| are also returned.
+%   An initial variable for the permittivity |eps| is returned.
+%   Perfectly matched layer (PML) absorbing boundaries
+%   are automatically included in the grid.
+%   Use the |'nopml'| option (below) to create grids without PMLs.
 %
-% * |[grid, J, eps, mu] = maxwell_grid(...)|
-%   also returns an initial variable for the permeability, |mu|.
+% * |[grid, eps, mu, J] = maxwell_grid(...)|
+%   also returns initial variables for the permeability, |mu|,
+%   and the excitation current, |J|.
 %
 % * |... = maxwell_grid(..., 'nopml', xyz, 'num_pml_cells', n_pml)
+%   allows for grids without PMLs in one or many directions of the grid.
+%   |xyz| can be any combination of |'x'|, |'y'|, or |'z'|,
+%   in order to not include PMLs in the x-, y-, or z-directions.
+%   Additionally, the |'num_pml_cells'| option can be used to 
+%   change the number of grid points used for the PML layer
+%   (defaults to 10). 
 %
-% * |... = maxwell_grid(..., 'refine', {pos, size})
-%   for local refinement.
 
 function [grid, epsilon, J] = maxwell_grid(omega, x, y, z, varargin)
 

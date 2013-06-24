@@ -9,7 +9,7 @@
 %
 % * |[E H] = maxwell_solve(grid, [eps mu], J)|
 %   same as above except for |mu ~= 1|.
-%%
+%
 % * |... = maxwell_solve(..., 'vis_progress', vis_opt)|
 %   controls the progress visualization where |vis_opt| can be
 %   |none|, |plot|, |text|, or |both|. Defaults to |plot|.

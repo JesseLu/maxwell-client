@@ -3,15 +3,15 @@
 
 %%% Syntax
 %
-% * |maxwell_view(grid, eps, E, 'x', [inf 50 inf])|
+% * |maxwell_view(grid, eps, E, 'x', [nan 50 nan])|
+%   visualizes the |y = 50| slice of the x-components of |eps| and |E|.
 %
-% * |maxwell_view(grid, eps, [], 'x', [inf 50 inf])|
-%   used to only visualize the structure.
+% * |maxwell_view(grid, eps, [], 'x', [nan 50 nan])|
+%   visualizes only the structure.
 %
-% * |maxwell_view(grid, eps, H, ...)| or
-%   |maxwell_view(grid, mu, H, ...)| or
-%   |maxwell_view(grid, mu, E, ...)| 
-%   are all acceptable.
+% * |maxwell_view(grid, [], E, 'x', [nan 50 nan])|
+%   visualizes only the field.
 %
+% |mu| and |H| can be visualized by replacing either |eps| or |E|.
 
 

@@ -3,7 +3,7 @@
 
 %%% Syntax
 %
-% * |[E, H, J, beta] = maxwell_wgmode(grid, eps, plane_size, plane_pos)|
+% * |[J, E, H, beta] = maxwell_wgmode(grid, eps, plane_size, plane_pos)|
 %   computes the fundamental waveguide mode 
 %   at the finite plane located at |plane_pos|, 
 %   and of size |plane_size|.
@@ -13,8 +13,11 @@
 %   as well as the current excitation needed to excite the mode (|J|).
 %   These field values actually consist of the entire vector-field.
 %   Lastly, the wave-vector (|beta|) of the mode is also returned.
+%   The fundamental mode is assumed.
 %
-% * |[E, H, J, beta] = maxwell_wgmode(grid, [eps mu], plane_size, plane_pos)|
+% * |... = maxwell_wgmode(..., 'mode_number', m)|
+%   returns the |m|-th order mode, where |m = 1| denotes the fundamental mode.
+%   Defaults to 1.
 
 %% solve_waveguide_mode
 % Find the mode of a waveguide, as well as the current excitation for it.

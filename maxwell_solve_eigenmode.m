@@ -6,11 +6,25 @@
 % * |[omega, E, H] = maxwell_solve_eigenmode(grid, eps, E0)|
 %   returns the frequency (|omega|), and fields (|E| and |H|)
 %   of the eigenmode "nearest" to the field |E0|.
+%   |maxwell_solve_eigenmode| works by calling 
+%   an underlying |maxwell_solve| via the Rayleigh Quotient Iteration algorithm.
 %
-% * |[omega, E, H] = maxwell_solve_eigenmode(grid, [eps mu], E0)|
+% * |... = maxwell_solve_eigenmode(grid, [eps mu], E0)|
 %   does the same except for |mu ~= 1|.
 %
-% Many options included those for the solve and those for the rqi algorithm.
+% * |... = maxwell_solve_eigenmode(..., 'vis_progress', vis_opt)|
+%   controls the progress visualization where |vis_opt| can be
+%   |none|, |plot|, |text|, or |both|. Defaults to |plot|.
+%
+% * |... = maxwell_solve_eigenmode(..., 'eig_max_iters', eig_n, ...
+%                                       'eig_err_thresh', eig_err)|
+%   sets the termination conditions for the eigenmode algorithm 
+%   (Rayleigh quotient iteration).
+%   Defaults to |eig_n = 10|, and |eig_err = 1e-6|.
+%
+% * |... = maxwell_solve_eigenmode(..., 'max_iters', n, 'err_thresh', err)|
+%   sets the termination conditions for the underlying calls to |maxwell_solve|,
+
 function [omega, E, H] = maxwell_solve_eigenmode(grid, epsilon, E0, varargin) 
 
 
