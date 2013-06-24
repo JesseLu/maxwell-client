@@ -13,7 +13,7 @@
 % * |... = maxwell_epsilon(..., 'upsample_ratio', ratio)|
 %   allows for an upsampling ratio of |ratio|, defaults to |ratio = 6|.
 %
-% * |... = maxwell_epsilon(..., 'avg_fun', f_avg, 'rep_fun', f_rep)|
+% * |... = maxwell_epsilon(..., 'f_avg', f_avg, 'f_rep', f_rep)|
 %   allows for custom functions which determine the averaging function
 %   for a grid point (|f_avg|) and how values of |eps| (and |mu|) 
 %   are replaced (|f_rep|).
