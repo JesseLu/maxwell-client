@@ -23,9 +23,30 @@
 %%% Examples
 % e
 
-function [A, x, b, A_h, b_h] = maxwell_axb(grid, epsilon, J, varargin)
+%% Source code
+function [A, x, b] = maxwell_axb(grid, eps_mu, J)
+    my_validate_grid(grid, mfilename);
+    
+    validateattributes(grid, {'struct'}, {'nonempty'}, mfilename, 'grid', 1)
 
-   % Parse input and option parameters.
+    if ~isfield(grid, 'omega')
+        error('Expected input number 1, grid, to be a structure with field "omega".')
+    else
+        validateattributes(grid.omega, {'double'}, {'scalar'}, mfilename, 'grid.omega', 1)
+    end
+
+    if ~isfield(grid, 'shape')
+        validateattributes([], {'numeric'}, {'vector', 'numel', 3, 'positive'}, mfilename, 'grid.shape', 1)
+    else
+        validateattributes(grid.shape, {'numeric'}, {'vector', 'numel', 3, 'positive'}, mfilename, 'grid.shape', 1)
+    end
+
+    if ~isfield(grid, 's_prim')
+        grid.s_prim = [];
+    end
+    validateattributes(grid.s_prim, {'cell'}, {'numel', 3}, mfilename, 'grid.s_prim', 1)
+
+    % Parse input and option parameters.
     [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_progress] = ...
         my_parse_inputs(grid, epsilon, J, varargin{:});
 
