@@ -1,24 +1,26 @@
-%% maxwell_epsilon
+%% maxwell_shape
 % Generic function to add constant material shapes to the simulation domain.
 
 %%% Syntax
 %
-% * |eps = maxwell_epsilon(grid, eps, eps_val, shape_fun)|
-%   modifies the epsilon structure |eps| by inserting |eps_val| 
+% * |eps = maxwell_shape(grid, eps, eps_val, shape_fun)|
+%   modifies the shape structure |eps| by inserting |eps_val| 
 %   in the volume described by |shape_fun|.
 %
-% * |[eps, mu] = maxwell_epsilon(grid, [eps, mu], [eps_val mu_val], shape_fun)|
+% * |[eps, mu] = maxwell_shape(grid, [eps, mu], [eps_val mu_val], shape_fun)|
 %   modifies both |eps| and |mu|.
 %
-% * |... = maxwell_epsilon(..., 'upsample_ratio', ratio)|
+% * |... = maxwell_shape(..., 'upsample_ratio', ratio)|
 %   allows for an upsampling ratio of |ratio|, defaults to |ratio = 6|.
 %
-% * |... = maxwell_epsilon(..., 'f_avg', f_avg, 'f_rep', f_rep)|
+% * |... = maxwell_shape(..., 'f_avg', f_avg, 'f_rep', f_rep)|
 %   allows for custom functions which determine the averaging function
 %   for a grid point (|f_avg|) and how values of |eps| (and |mu|) 
 %   are replaced (|f_rep|).
 
-function [epsilon] = maxwell_epsilon(grid, eps_mu, val, f, varargin)
+%%% Description
+% |maxwell_shape| modifies
+function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
 
 
         %
@@ -39,20 +41,26 @@ function [epsilon] = maxwell_epsilon(grid, eps_mu, val, f, varargin)
 
     validateattributes(f, {'function_handle'}, {}, mfilename, 'f');
 
-    % Optional arguments
+    % Optional arguments.
     options = my_parse_options(struct(  'upsample_ratio', 6, ...
-                                        'f_avg', ,  ...
-                                        'f_rep', ), ...
+                                        'f_avg', @(z) mean(z(:)),  ...
+                                        'f_rep', @(val, ff, m) ff * val + ...
+                                                                (1-ff) .* m), ...
                                 varargin);
-    options = struct(  'upsample_ratio', 6);
-    for k = 2 : 2 : length(varargin)
-        options = setfield(options, varargin{k-1}, varargin{k});
-    end
+    validateattributes(options.upsample_ratio, {'numeric'}, ...
+        {'positive', 'integer', 'scalar'}, mfilename, 'upsample_ratio');
+    validateattributes(options.f_avg, {'function_handle'}, {}, ...
+                        mfilename, 'f_avg');
+    validateattributes(options.f_rep, {'function_handle'}, {}, ...
+                        mfilename, 'f_rep');
 
     % Test if we can get a bounding box.
     % TODO: Check bounding box has non-zero (positive) volume.
     try 
         bnd_box = f();
+        validateattributes(bnd_box, {'cell'}, {'numel', 2});
+        validateattributes(bnd_box{1}, {'numeric'}, {'numel', 3});
+        validateattributes(bnd_box{2}, {'numeric'}, {'numel', 3});
     catch
         bnd_box = {[-Inf -Inf -Inf], [Inf Inf Inf]};
     end
@@ -64,6 +72,11 @@ function [epsilon] = maxwell_epsilon(grid, eps_mu, val, f, varargin)
     catch
         multipoint = false;
     end
+
+
+        %
+        % Prepare necessary grid information.
+        %
 
     % Build up grid info.
     origin_prim = grid.origin(:);
@@ -78,19 +91,32 @@ function [epsilon] = maxwell_epsilon(grid, eps_mu, val, f, varargin)
     for k = 1 : 3
         for l = 1 : 3
             eps_grid_pos{k}{l} = pos_dual{l};
+            mu_grid_pos{k}{l} = pos_prim{l};
         end
         eps_grid_pos{k}{k} = pos_prim{k};
+        mu_grid_pos{k}{k} = pos_dual{k};
     end
+
+
+        %
+        % Update material fields.
+        %
 
     % Update components of epsilon.
+    params = {bnd_box, f, options.upsample_ratio, multipoint, ...
+                options.f_avg, options.f_rep};
     for k = 1 : 3
-        epsilon{k} = my_update(eps_grid_pos{k}, epsilon{k}, ...
-                                bnd_box, f, eps_val, ...
-                                options.upsample_ratio, multipoint);
+        eps{k} = my_update(eps_grid_pos{k}, eps{k}, val(1), params{:}); 
+        if ~isempty(mu)
+            mu{k} = my_update(mu_grid_pos{k}, mu{k}, mu_val, params{:});
+        end
     end
 
 
-function [mat] = my_update(pos, mat, box, f, val, up_ratio, multipoint)
+function [mat] = my_update(pos, mat, val, box, f, up_ratio, multipoint, ...
+                            f_avg, f_rep)
+% Updates a single component of a field.
+
     % Determine box on which to evaluate f.
     for k = 1 : 3
         if box{1}(k) <= pos{k}(1)
@@ -130,7 +156,7 @@ function [mat] = my_update(pos, mat, box, f, val, up_ratio, multipoint)
     end
     inside_shape = reshape(inside_shape, size(x));
 
-    % Downsample results by averaging (TODO: other option later).
+    % Downsample results by averaging.
     for i = 1 : (s{2}(1) - s{1}(1))
         for j = 1 : (s{2}(2) - s{1}(2))
             for k = 1 : (s{2}(3) - s{1}(3))
@@ -146,5 +172,3 @@ function [mat] = my_update(pos, mat, box, f, val, up_ratio, multipoint)
     m = mat(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1);
     mat(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1) = ...
         reshape(f_rep(val, fill_fraction(:), m(:)), size(m));
-%     epsilon(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1) = ds_eps * val + ...
-%         (1 - ds_eps) .* epsilon(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1);

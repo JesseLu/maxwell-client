@@ -26,9 +26,9 @@
 
 
 % Place object in grid.
-eps = maxwell_epsilon(grid, eps, 10, maxwell_box(box_pos, box_size));
+eps = maxwell_shape(grid, eps, 10, maxwell_box(box_pos, box_size));
 
-[eps, mu] = maxwell_epsilon(grid, [eps, mu], [10, 3], maxwell_box(box_pos, box_size), ...
+[eps, mu] = maxwell_shape(grid, [eps, mu], [10, 3], maxwell_box(box_pos, box_size), ...
                             'upsample_ratio', 6, 'f_avg', @mean, 'f_rep', @f);
 
 % Construct excitation source.
