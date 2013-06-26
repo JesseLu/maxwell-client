@@ -3,13 +3,17 @@
 
 %%% Syntax
 %
-% * |[grid, eps] = maxwell_grid(wavelength, x, y, z)|
-%   produces a grid for a specific wavelength with
+% * |[grid, eps] = maxwell_grid(omega, x, y, z)|
+%   produces a grid for a specific angular frequency with
 %   grid points located at the points specified at |x|, |y|, and |z|.
 %   An initial variable for the permittivity |eps| is returned.
 %   Perfectly matched layer (PML) absorbing boundaries
 %   are automatically included in the grid.
 %   Use the |'nopml'| option (below) to create grids without PMLs.
+%
+% * |... = maxwell_grid(2*pi/wavelength, ...)|
+%   allows the user to define the angular frequency using a wavelength
+%   parameter instead of an angular frequency parameter.
 %
 % * |[grid, eps, mu, J] = maxwell_grid(...)|
 %   also returns initial variables for the permeability, |mu|,
@@ -24,27 +28,65 @@
 %   (defaults to 10). 
 %
 
-function [grid, epsilon, J] = maxwell_grid(omega, x, y, z, varargin)
+%%% Description
+% |maxwell_grid| returns the |grid| variable along with initial values 
+% for certain field vectors.
+% |grid| defines the position and spacing of the simulation domain,
+% and has the following important properties:
+%
+% * Periodic, wrap-around boundaries. 
+%   This is very important in the case where PML has been removed 
+%   (via the |'nopml'| option).
+%
+% * The number of unique grid points is one less than the length 
+%   of the position arguments.
+%   In other words, the number of unique grid points in the x-direction
+%   is |length(x) - 1|.
+%   This is a natural result of wrap-around boundaries.
+%   
 
-    % Check omega.
-    if numel(omega) ~= 1 | isnan(omega) 
-        error('OMEGA must be a scalar.');
+function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
+
+        %
+        % Validate and parse inputs.
+        %
+
+    my_simple_check = @(var, var_name) ...
+        validateattributes(var, {'double'}, {'nonnan', 'finite', 'vector'}, ...
+                            mfilename, var_name);
+
+    my_simple_check(omega, 'omega');
+    validateattributes(omega, {'double'}, {'scalar'}, mfilename, 'omega');
+
+    my_simple_check(x, 'x');
+    my_simple_check(y, 'y');
+    my_simple_check(z, 'z');
+
+    % Optional arguments
+    options = my_parse_options(struct('nopml', '', 'num_pml_cells', 10), ...
+                                varargin);
+
+    validateattributes(options.nopml, {'char'}, {}, mfilename, 'nopml');
+
+    if length(options.num_pml_cells) == 1
+        options.num_pml_cells = options.num_pml_cells * ones(3, 1);
     end
+    validateattributes(options.num_pml_cells, {'numeric'}, ...
+                        {'positive', 'integer', 'vector'}, mfilename, 'num_pml_cells');
 
-    % Here are the default options
-    grid_options = struct(  'nopml', '', ...
-                            'num_pml_cells', 10); 
+ 
+        %
+        % Initialize the grid structure.
+        %
 
-    for k = 2 : 2 : length(varargin)
-        grid_options = setfield(grid_options, varargin{k-1}, varargin{k});
-    end
+    grid = struct(  'omega', omega, ...
+                    'origin', [x(1), y(1), z(1)], ...
+                    'shape', [length(x), length(y), length(z)] - 1);
+                    
 
-    if numel(grid_options.num_pml_cells) == 1
-        grid_options.num_pml_cells = grid_options.num_pml_cells * ones(1, 3);
-    end
-      
-    grid.omega = omega;
-    grid.origin = [x(1), y(1), z(1)];
+        %
+        % Compute the s-parameters for the grid (spacing between grid points).
+        %
 
     pos = {x(:), y(:), z(:)};
     xyz = 'xyz';
@@ -57,22 +99,29 @@ function [grid, epsilon, J] = maxwell_grid(omega, x, y, z, varargin)
             grid.s_dual{k} = my_dual(pos{k});
         end
 
-        % Add pml.
-        if ~any(grid_options.nopml == xyz(k))
+        % Add pml if needed.
+        if ~any(options.nopml == xyz(k))
             [grid.s_prim{k}, grid.s_dual{k}] = ...
                 stretched_coordinates(grid.omega, grid.origin(k), ...
-                grid.s_prim{k}, grid.s_dual{k}, grid_options.num_pml_cells(k));
+                grid.s_prim{k}, grid.s_dual{k}, options.num_pml_cells(k));
         end
     end
 
-    dims = [length(grid.s_prim{1}), ...
-            length(grid.s_prim{2}), ...
-            length(grid.s_prim{3})];
+    my_validate_grid(grid, mfilename); % Sanity check.
 
-    epsilon = {ones(dims), ones(dims), ones(dims)};
+    
+        %
+        % Form the initial field vectors.
+        %
+
+    dims = grid.shape;
+    eps = {ones(dims), ones(dims), ones(dims)};
+    mu = {ones(dims), ones(dims), ones(dims)};
     J = {zeros(dims), zeros(dims), zeros(dims)};
 
 
+
 function [s] = my_dual(w)
+% Private function to compute s_dual.
     w_avg = (w + [w(2:end); (w(end) + (w(2)-w(1)))]) ./ 2;
     s = diff(w_avg);

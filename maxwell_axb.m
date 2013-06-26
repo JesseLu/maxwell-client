@@ -18,101 +18,63 @@
 
 
 %%% Description
-% a
+% The electromagnetic wave equation for the E-field that Maxwell solves is
+%
+% $$ \nabla \times \mu^{-1} \nabla \times E - \omega^2 \epsilon E = -i \omega J, $$
+%
+% which is equivalent to the equation which uses both E- and H-fields
+%
+% $$ \nabla \times E - i \omega \mu H = 0, \quad \nabla \times H + i \omega \epsilon E = J. $$
+%
+%
+% |maxwell_axb| composes systems of equations, in matrix form $ Ax = b $, 
+% to represent either of these equations 
+% (depending on the user's input parameters).
+%
+% Once the matrix |A|, and vectors |x| and |b| have been obtained,
+% a representative error can be calculated via |norm(A*x-b)/norm(b)|.
+% Note that this error may differ from that calculated displayed 
+% during the solve process because of various "tricks" Maxwell uses
+% to speed up the solve process.
 
-%%% Examples
-% e
 
-%% Source code
-function [A, x, b] = maxwell_axb(grid, eps_mu, J)
+function [A, x, b] = maxwell_axb(grid, eps_mu, E_H, J)
+
+        %
+        % Validate and parse input values.
+        %
+
     my_validate_grid(grid, mfilename);
-    
-    validateattributes(grid, {'struct'}, {'nonempty'}, mfilename, 'grid', 1)
 
-    if ~isfield(grid, 'omega')
-        error('Expected input number 1, grid, to be a structure with field "omega".')
-    else
-        validateattributes(grid.omega, {'double'}, {'scalar'}, mfilename, 'grid.omega', 1)
+    [eps, mu] = my_split(eps_mu, grid.shape, {'eps', 'mu'}, mfilename);
+    if isempty(mu)
+        mu = my_default_field(grid.shape, 1); 
     end
 
-    if ~isfield(grid, 'shape')
-        validateattributes([], {'numeric'}, {'vector', 'numel', 3, 'positive'}, mfilename, 'grid.shape', 1)
-    else
-        validateattributes(grid.shape, {'numeric'}, {'vector', 'numel', 3, 'positive'}, mfilename, 'grid.shape', 1)
-    end
+    [E, H] = my_split(E_H, grid.shape, {'E', 'H'}, mfilename);
 
-    if ~isfield(grid, 's_prim')
-        grid.s_prim = [];
-    end
-    validateattributes(grid.s_prim, {'cell'}, {'numel', 3}, mfilename, 'grid.s_prim', 1)
+    my_validate_field(J, grid.shape, 'J', mfilename);
 
-    % Parse input and option parameters.
-    [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_progress] = ...
-        my_parse_inputs(grid, epsilon, J, varargin{:});
 
-%% maxwell_matrices
-% Create the relevant matrices used in the FDFD method, which Maxwell implements.
 
-%% Description
-% Converts from physics-based concepts (E-fields, permittivities, current densities)
-% to linear algebra concepts (matrices and vectors).
-%
-% To be specific, the electromagnetic wave equation that Maxwell solves is
-%
-% $$ \nabla \times \mu^{-1} \nabla \times E - \omega^2 \epsilon E = -i \omega J $$
-%
-% which we translate term-for-term, with the help of |maxwell_matrices| into linear algebra parlance as
-%
-% $$ A_1 \mbox{diag}(m^{-1}) A_2 x - \omega^2 \mbox{diag}(e) x = b. $$
-%
+        %
+        % Helper variables and functions.
+        %
 
-% function [A1, A2, m, e, b] = maxwell_matrices(omega, s_prim, s_dual, mu, epsilon, J)
-
-%% Input parameters
-% * |omega| is the angular frequency of the simulation.
-% * |s_prim, s_dual| represent the s-parameters for the FDFD grid. 
-%   Each should be a 3-element cell array with each element representing the
-%   s-parameters along the x-, y-, and z-direction respectively.
-% * |mu, epsilon, J| are 3-element cell arrays where each element is itself 
-%   a 3D array of size (xx, yy, zz).
-%   These parameters represent the permeability, permittivity, and current density
-%   vector fields respectively.
-
-%% Output parameters
-% * |A1, A2] are sparse matrices representing the curl operators in the electromagnetic wave equation, while
-% * |m, e, b| are vectors in the same equation.
-
-%% Example
-% The following example obtains the matrices for a very simple simulation grid.
-%
-%   omega = 0.08;
-%
-%   s_prim = {ones(80,1), ones(40,1), ones(20,1)};
-%   s_dual = s_prim;
-%
-%   m = {ones(80,40,20), ones(80,40,20), ones(80,40,20)};
-%   e = m;
-%   J = {zeros(80,40,20), zeros(80,40,20), zeros(80,40,20)};
-%   J{2}(40,20,10) = 1; % Centrally-located point source.
-%
-%   [A1, A2, m, e, b] = maxwell_matrices(omega, s_prim, s_dual, m, e, J);
-
-%% Source code
-
-    % Get the dimensions of the simulation.
-    dims = size(epsilon{1});
-    if numel(dims) == 2 % Take care of special 2D case.
-        dims = [dims, 1];
-    end
+    dims = grid.shape;
     N = prod(dims);
-
-    % Some helper functions.
     my_diag = @(z) spdiags(z(:), 0, numel(z), numel(z));
     my_blkdiag = @(z) blkdiag(my_diag(z{1}), my_diag(z{2}), my_diag(z{3}));
 
+
+        %
+        % Build component matrices.
+        % (The matrices which will be used to build the large A matrix.)
+        %
+
     % Get the relevant derivative matrices.
-    [spx, spy, spz] = ndgrid(s_prim{1}, s_prim{2}, s_prim{3});
-    [sdx, sdy, sdz] = ndgrid(s_dual{1}, s_dual{2}, s_dual{3});
+    [spx, spy, spz] = ndgrid(grid.s_prim{1}, grid.s_prim{2}, grid.s_prim{3});
+    [sdx, sdy, sdz] = ndgrid(grid.s_dual{1}, grid.s_dual{2}, grid.s_dual{3});
     
     % Derivative in x, y, and z directions.
     Dx = deriv('x', dims); 
@@ -130,7 +92,8 @@ function [A, x, b] = maxwell_axb(grid, eps_mu, J)
     Dby = -my_diag(spy.^-1) * Dy';
     Dbz = -my_diag(spz.^-1) * Dz';
 
-    % Form matrices
+    % Form curl matrices.
+    % A1 and A2 compute the curls of H- and E-fields respectively.
     A1 = [  Z, -Dbz, Dby; ...
             Dbz, Z, -Dbx; ...
             -Dby, Dbx, Z];
@@ -139,24 +102,28 @@ function [A, x, b] = maxwell_axb(grid, eps_mu, J)
             Dfz, Z, -Dfx; ...
             -Dfy, Dfx, Z];
 
-    % Form vectors.
+    % Form vectors representing the permittivity and permeability.
     m = [mu{1}(:) ; mu{2}(:) ; mu{3}(:)];
-    e = [epsilon{1}(:) ; epsilon{2}(:) ; epsilon{3}(:)];
+    e = [eps{1}(:) ; eps{2}(:) ; eps{3}(:)];
 
-    % Output variables.
-    A = A1 * my_diag(1./m) * A2 - omega^2 * my_diag(e);
-    x = [E0{1}(:) ; E0{2}(:) ; E0{3}(:)];
-    b = -i * omega * [J{1}(:) ; J{2}(:) ; J{3}(:)];
 
-    % Output variables for H-field equation.
-    if nargout > 3
-        A_h = A2 * my_diag(1./e) * A1 - omega^2 * my_diag(m);
-        b_h = A2 * (b ./ (-i * omega * e));
+        %
+        % Form final output matrix and vectors..
+        %
+
+    if isempty(H) % Wave equation in E.
+        A = A1 * my_diag(1./m) * A2 - grid.omega^2 * my_diag(e);
+        x = [E{1}(:) ; E{2}(:) ; E{3}(:)];
+        b = -i * grid.omega * [J{1}(:) ; J{2}(:) ; J{3}(:)];
+
+    else % Wave equation in E and H.
+        A = [-1i*grid.omega*my_diag(e), A1; A2, +1i*grid.omega*my_diag(m)];
+        x = [E{1}(:) ; E{2}(:) ; E{3}(:) ; H{1}(:) ; H{2}(:) ; H{3}(:)];
+        b = [J{1}(:) ; J{2}(:) ; J{3}(:); zeros(3*N, 1)];
     end
 
 
 
-%% Source code for private functions
 function [D] = deriv(dir, shape)
 % Private function for creating derivative matrices.
 % Note that we are making the forward derivative only.

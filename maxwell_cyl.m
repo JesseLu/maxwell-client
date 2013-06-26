@@ -9,6 +9,13 @@
 
 function [cyl_fun] = maxwell_cyl(center, radius, height)
 
+    validateattributes(center, {'double'}, ...
+        {'vector', 'numel', 3}, mfilename, 'center');
+    validateattributes(radius, {'double'}, ...
+        {'scalar', 'positive',}, mfilename, 'radius');
+    validateattributes(height, {'double'}, ...
+        {'scalar', 'positive',}, mfilename, 'height');
+
     box_size = [radius, radius, height];
     bounding_box = {center - box_size/2, ...
                     center + box_size/2};

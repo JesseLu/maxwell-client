@@ -19,8 +19,11 @@
 % Most general use-case
 
 % Initialize simulation grid.
-[grid, eps, mu, J] = maxwell_grid(1550, -50:50, -80:80, -20:20, ...
+[grid, eps, mu, J] = maxwell_grid(2*pi/1550, -50:50, -80:80, -20:20, ...
                                     'nopml', 'xyz', 'num_pml_cells', 10);
+
+[grid, eps, mu, J] = maxwell_grid(0.08 - 0.003i, -50:50, -80:80, -20:20);
+
 
 % Place object in grid.
 eps = maxwell_epsilon(grid, eps, 10, maxwell_box(box_pos, box_size));

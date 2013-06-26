@@ -10,6 +10,11 @@
 
 function [box_fun] = maxwell_box(center, box_size)
 
+    validateattributes(center, {'double'}, ...
+        {'vector', 'numel', 3}, mfilename, 'center');
+    validateattributes(box_size, {'double'}, ...
+        {'vector', 'positive', 'numel', 3}, mfilename, 'box_size');
+
     bounding_box = {center - box_size/2, ...
                     center + box_size/2};
         

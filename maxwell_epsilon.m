@@ -18,9 +18,32 @@
 %   for a grid point (|f_avg|) and how values of |eps| (and |mu|) 
 %   are replaced (|f_rep|).
 
-function [epsilon] = maxwell_epsilon(grid, epsilon, f, eps_val, varargin)
+function [epsilon] = maxwell_epsilon(grid, eps_mu, val, f, varargin)
 
-    % Here are the default options
+
+        %
+        % Validate and parse inputs.
+        %
+
+    my_validate_grid(grid, mfilename);
+
+    [eps, mu] = my_split(eps_mu, grid.shape, {'eps', 'mu'}, mfilename);
+
+    if isempty(mu)
+        validateattributes(val, {'double'}, {'scalar', 'nonnan', 'finite'}, ...
+                           mfilename, 'eps_val'); 
+    else
+        validateattributes(val, {'double'}, {'numel', 2, 'nonnan', 'finite'}, ...
+                           mfilename, '[eps_val mu_val]'); 
+    end
+
+    validateattributes(f, {'function_handle'}, {}, mfilename, 'f');
+
+    % Optional arguments
+    options = my_parse_options(struct(  'upsample_ratio', 6, ...
+                                        'f_avg', ,  ...
+                                        'f_rep', ), ...
+                                varargin);
     options = struct(  'upsample_ratio', 6);
     for k = 2 : 2 : length(varargin)
         options = setfield(options, varargin{k-1}, varargin{k});
@@ -67,7 +90,7 @@ function [epsilon] = maxwell_epsilon(grid, epsilon, f, eps_val, varargin)
     end
 
 
-function [epsilon] = my_update(pos, epsilon, box, f, val, up_ratio, multipoint)
+function [mat] = my_update(pos, mat, box, f, val, up_ratio, multipoint)
     % Determine box on which to evaluate f.
     for k = 1 : 3
         if box{1}(k) <= pos{k}(1)
@@ -108,11 +131,10 @@ function [epsilon] = my_update(pos, epsilon, box, f, val, up_ratio, multipoint)
     inside_shape = reshape(inside_shape, size(x));
 
     % Downsample results by averaging (TODO: other option later).
-    ds_fun = @(z) mean(z(:));
     for i = 1 : (s{2}(1) - s{1}(1))
         for j = 1 : (s{2}(2) - s{1}(2))
             for k = 1 : (s{2}(3) - s{1}(3))
-                ds_eps(i, j, k) = ds_fun(inside_shape(...
+                fill_fraction(i, j, k) = f_avg(inside_shape(...
                                     (i-1)*up_ratio+[1:up_ratio], ...
                                     (j-1)*up_ratio+[1:up_ratio], ...
                                     (k-1)*up_ratio+[1:up_ratio]));
@@ -121,5 +143,8 @@ function [epsilon] = my_update(pos, epsilon, box, f, val, up_ratio, multipoint)
     end
 
     % Make changes to epsilon.
-    epsilon(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1) = ds_eps * val + ...
-        (1 - ds_eps) .* epsilon(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1);
+    m = mat(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1);
+    mat(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1) = ...
+        reshape(f_rep(val, fill_fraction(:), m(:)), size(m));
+%     epsilon(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1) = ds_eps * val + ...
+%         (1 - ds_eps) .* epsilon(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1);
