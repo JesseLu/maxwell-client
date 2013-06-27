@@ -14,4 +14,5 @@
 %
 % |mu| and |H| can be visualized by replacing either |eps| or |E|.
 
+function maxwell_view(grid, mat, F, dir, slice_ind)
 
