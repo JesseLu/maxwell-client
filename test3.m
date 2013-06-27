@@ -1,8 +1,8 @@
 function [eps] = test(box_pos, box_size)
     [grid, eps, J] = maxwell_grid(0.3, -20:20, -20:20, -20:20);
-    % eps = maxwell_epsilon(grid, eps, 10, my_box(box_pos, box_size));
-    eps = maxwell_epsilon(grid, eps, 10, maxwell_box(box_pos, box_size));
-    % eps = maxwell_epsilon(grid, eps, 10, maxwell_cyl(box_pos, 5, 4));
+    % eps = maxwell_shape(grid, eps, 10, my_box(box_pos, box_size));
+    % eps = maxwell_shape(grid, eps, 10, maxwell_box(box_pos, box_size));
+    eps = maxwell_shape(grid, eps, 2, maxwell_cyl(box_pos, 6, 6));
 end
 
 

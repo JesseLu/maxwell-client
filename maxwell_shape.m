@@ -19,7 +19,35 @@
 %   are replaced (|f_rep|).
 
 %%% Description
-% |maxwell_shape| modifies
+% |maxwell_shape| modifies the permittivity (and permeability, if desired)
+% of the simulation domain.
+% It does so by computing the approximate fill-fraction of a shape
+% for every grid cell, and then inserting the appropriately scaled
+% material value in that cell.
+% As such, only shapes with constant epsilon and mu are supported.
+%
+% |maxwell_shape| is designed to be both simple and extensible at the same time.
+% This is achieved in the following way:
+%
+% * |shape_fun| is a relatively simple function handle that 
+%   only has to determine whether a point is inside or outside a shape.
+%   This is to enable the user to easily define arbitrary shapes
+%   without having to worry about grids, grid offsets, etc...
+%   Please use |maxwell_box| and |maxwell_cyl| as templates for creating
+%   your own |shape_fun|.
+%
+% * The |'f_avg'| and |'f_rep'| functions are provided so that the user
+%   can customize how the average material parameter of the cell should
+%   be calculated.
+%   This level of extensibility is provided because the averaging of 
+%   material parameters is still largely an unsolved problem.
+%   By default, |'f_avg'| is a simple averaging function and
+%   |'f_rep'| weights the new material value against the existing one
+%   according to a cell's fill-fraction.
+%   Since these functions are somewhat involved, the advanced user is
+%   directed to the source code for additional information.
+%
+
 function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
 
 
@@ -44,7 +72,7 @@ function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
     % Optional arguments.
     options = my_parse_options(struct(  'upsample_ratio', 6, ...
                                         'f_avg', @(z) mean(z(:)),  ...
-                                        'f_rep', @(val, ff, m) ff * val + ...
+                                        'f_rep', @(val, ff, m, dir) ff * val + ...
                                                                 (1-ff) .* m), ...
                                 varargin);
     validateattributes(options.upsample_ratio, {'numeric'}, ...
@@ -106,15 +134,15 @@ function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
     params = {bnd_box, f, options.upsample_ratio, multipoint, ...
                 options.f_avg, options.f_rep};
     for k = 1 : 3
-        eps{k} = my_update(eps_grid_pos{k}, eps{k}, val(1), params{:}); 
+        eps{k} = my_update(eps_grid_pos{k}, eps{k}, k, val(1), params{:}); 
         if ~isempty(mu)
-            mu{k} = my_update(mu_grid_pos{k}, mu{k}, mu_val, params{:});
+            mu{k} = my_update(mu_grid_pos{k}, mu{k}, k, val(2), params{:});
         end
     end
 
 
-function [mat] = my_update(pos, mat, val, box, f, up_ratio, multipoint, ...
-                            f_avg, f_rep)
+function [mat] = my_update(pos, mat, dir, val, box, f, ...
+                            up_ratio, multipoint, f_avg, f_rep)
 % Updates a single component of a field.
 
     % Determine box on which to evaluate f.
@@ -171,4 +199,4 @@ function [mat] = my_update(pos, mat, val, box, f, up_ratio, multipoint, ...
     % Make changes to epsilon.
     m = mat(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1);
     mat(s{1}(1):s{2}(1)-1, s{1}(2):s{2}(2)-1, s{1}(3):s{2}(3)-1) = ...
-        reshape(f_rep(val, fill_fraction(:), m(:)), size(m));
+        reshape(f_rep(val, fill_fraction(:), m(:), dir), size(m));
