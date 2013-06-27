@@ -23,15 +23,54 @@
 %   Defaults to |n = 5e4| and |err = 1e-6|.
 %
 % 
-function [E, H, err] = maxwell_solve(grid, epsilon, J, varargin)
-    [cb, vis_progress] = maxwell_solve_async(grid, epsilon, J, varargin{:});
+
+%%% Description
+% |maxwell_solve| is the primary function in Maxwell in that it solves
+% the electromagnetic wave equation
+%
+% $$ \nabla \times \mu^{-1} \nabla \times E - \omega^2 \epsilon E = -i \omega J. $$
+%
+% It's unique characteristic is that it offloads the computation
+% to a remote server, and then downloads the solution fields once available.
+% This is typically very advantageous for 3D simulations which generally
+% are not feasible to solve on typical desktop computers.
+% However, if a 2D simulation is detected, the solution will proceed locally.
+%
+% Although the solve proceeds remotely, near-complete control of the 
+% relevant parameters is provided.
+% Specifically, since the remote server uses an indirect solution method,
+% the maximum number of iterations (|'max_iters'|)
+% and the error threshold (|'err_thresh'|) which together determine
+% the termination conditions for the solve,
+% are available for the user to tweak.
+
+
+function [E, H, err] = maxwell_solve(grid, eps_mu, J, varargin)
+
+        %
+        % Initiate simulation.
+        %
+
+    [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin{:});
+
+
+        %
+        % Monitor simulation progress.
+        %
+
     text_output = strcmp(vis_progress, 'text') | strcmp(vis_progress, 'both');
     while ~cb()
         if text_output
-            fprintf(repmat('\b', 1, 80));
+            fprintf(repmat('\b', 1, 80)); 
         end
     end
     if text_output; fprintf(repmat('\b', 1, 80)); end
+
+
+        %
+        % Obtain solution fields.
+        %
+
     [~, E, H, err] = cb();
     if text_output; fprintf('\n'); end
     

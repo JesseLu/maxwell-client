@@ -12,13 +12,15 @@
 % * vis_progress
 %
     
-function [server_url, name, vis_progress] = maxwell_upload(grid, epsilon, J, varargin)
+function [server_url, name, vis_progress] = maxwell_upload(grid, eps, mu, J, ...
+                                        E0, max_iters, err_thresh, vis_progress)
+
     server_url = 'http://raven1.stanford.edu:8008/';
     modify_javapath();
  
-    % Parse input and option parameters.
-    [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_progress] = ...
-        my_parse_inputs(grid, epsilon, J, varargin{:});
+%     % Parse input and option parameters.
+%     [omega, s_prim, s_dual, mu, epsilon, E0, J, max_iters, err_thresh, vis_progress] = ...
+%         my_parse_inputs(grid, epsilon, J, varargin{:});
 
     % Generate a random (and hopefully unique) ID.
     id = [datestr(now, 'HHMMSSFFF'), '-', num2str(randi([1e6 1e7-1]))];
@@ -30,24 +32,24 @@ function [server_url, name, vis_progress] = maxwell_upload(grid, epsilon, J, var
 
     % Write the grid file.
     gridfile = [prefix, 'grid']; 
-    hdf5write(gridfile, 'omega_r', real(omega), 'WriteMode', 'overwrite');
-    hdf5write(gridfile, 'omega_i', imag(omega), 'WriteMode', 'append');
+    hdf5write(gridfile, 'omega_r', real(grid.omega), 'WriteMode', 'overwrite');
+    hdf5write(gridfile, 'omega_i', imag(grid.omega), 'WriteMode', 'append');
     xyz = 'xyz';
     for k = 1 : length(xyz)
         hdf5write(gridfile, ['sp_', xyz(k), 'r'], ...
-                    real(s_prim{k}), 'WriteMode', 'append');
+                    real(grid.s_prim{k}), 'WriteMode', 'append');
         hdf5write(gridfile, ['sp_', xyz(k), 'i'], ...
-                    imag(s_prim{k}), 'WriteMode', 'append');
+                    imag(grid.s_prim{k}), 'WriteMode', 'append');
         hdf5write(gridfile, ['sd_', xyz(k), 'r'], ...
-                    real(s_dual{k}), 'WriteMode', 'append');
+                    real(grid.s_dual{k}), 'WriteMode', 'append');
         hdf5write(gridfile, ['sd_', xyz(k), 'i'], ...
-                    imag(s_dual{k}), 'WriteMode', 'append');
+                    imag(grid.s_dual{k}), 'WriteMode', 'append');
     end
     hdf5write(gridfile, 'max_iters', int64(max_iters), 'WriteMode', 'append');
     hdf5write(gridfile, 'err_thresh', double(err_thresh), 'WriteMode', 'append');
 
     % Write the other files (if needed).
-    my_write(prefix, 'e', epsilon);
+    my_write(prefix, 'e', eps);
     my_write(prefix, 'J', J);
     my_write(prefix, 'm', mu);
     my_write(prefix, 'E', E0);

@@ -58,11 +58,13 @@ function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
     my_validate_grid(grid, mfilename);
 
     [eps, mu] = my_split(eps_mu, grid.shape, {'eps', 'mu'}, mfilename);
+    my_validate_field(eps, grid.shape, 'eps', mfilename);
 
     if isempty(mu)
         validateattributes(val, {'double'}, {'scalar', 'nonnan', 'finite'}, ...
                            mfilename, 'eps_val'); 
     else
+        my_validate_field(mu, grid.shape, 'mu', mfilename);
         validateattributes(val, {'double'}, {'numel', 2, 'nonnan', 'finite'}, ...
                            mfilename, '[eps_val mu_val]'); 
     end
