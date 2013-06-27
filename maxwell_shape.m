@@ -47,6 +47,12 @@
 %   Since these functions are somewhat involved, the advanced user is
 %   directed to the source code for additional information.
 %
+% As a last note, one of the disadvantages to this approach is that the removal
+% of shapes is imperfect, meaning that writing the same shape twice,
+% with different material values, will not be exactly equivalent
+% to simply writing it once with the second material value only.
+% There will be slight differences at the edge of the shape.
+% 
 
 function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
 
@@ -105,32 +111,10 @@ function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
 
 
         %
-        % Prepare necessary grid information.
-        %
-
-    % Build up grid info.
-    origin_prim = grid.origin(:);
-    origin_dual = grid.origin(:) + [real(grid.s_prim{1}(1))/2; ...
-                                    real(grid.s_prim{2}(1))/2; ...
-                                    real(grid.s_prim{3}(1))/2];
-    for k = 1 : 3
-        pos_prim{k} = origin_prim(k) + [0; cumsum(real(grid.s_prim{k}))];
-        pos_dual{k} = origin_dual(k) + [0; cumsum(real(grid.s_dual{k}))];
-    end
-
-    for k = 1 : 3
-        for l = 1 : 3
-            eps_grid_pos{k}{l} = pos_dual{l};
-            mu_grid_pos{k}{l} = pos_prim{l};
-        end
-        eps_grid_pos{k}{k} = pos_prim{k};
-        mu_grid_pos{k}{k} = pos_dual{k};
-    end
-
-
-        %
         % Update material fields.
         %
+
+    [eps_grid_pos, mu_grid_pos] = my_s2pos(grid); % Get grid positions.
 
     % Update components of epsilon.
     params = {bnd_box, f, options.upsample_ratio, multipoint, ...
@@ -170,10 +154,11 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
         cnt = 0;
         for l = s{1}(k) : s{2}(k)-1
             c{k}(cnt*up_ratio+[1:up_ratio]) = pos{k}(l) + ...
-                ([0.5 : up_ratio] ./ (up_ratio * (pos{k}(l+1)-pos{k}(l))));
+                (([0.5 : up_ratio] ./ up_ratio) .* (pos{k}(l+1)-pos{k}(l)));
             cnt = cnt + 1;
         end
     end
+
 
     % Obtain upsampled values.
     [x, y, z] = ndgrid(c{1}, c{2}, c{3});

@@ -14,7 +14,7 @@ function f = my_validate_grid(grid, name)
 
     my_validate(grid.omega, {'double'}, {'nonnan', 'finite', 'scalar'}, 'grid.omega');
     my_validate(grid.shape, {'numeric'}, {'real', 'integer', 'numel', 3}, 'grid.shape');
-    my_validate(grid.origin, {'numeric'}, {'real', 'integer', 'numel', 3}, 'grid.origin');
+    my_validate(grid.origin, {'numeric'}, {'real', 'numel', 3}, 'grid.origin');
     my_validate(grid.s_prim, {'cell'}, {'numel', 3}, 'grid.s_prim');
     my_validate(grid.s_dual, {'cell'}, {'numel', 3}, 'grid.s_dual');
     for k = 1 : 3

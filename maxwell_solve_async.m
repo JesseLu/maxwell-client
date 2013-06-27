@@ -121,26 +121,30 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
         end
 
         if strcmp(vis_progress, 'text') | strcmp(vis_progress, 'both')
-            % Normalized text progress output prints constant length of 80.
+            % Normalized text progress output prints constant length of 60.
             norm_p_text = [progress_text, ...
-                    repmat(' ', 1, 80 - length(progress_text))];
+                    repmat(' ', 1, 60 - length(progress_text))];
             fprintf(norm_p_text);
         end
 
         if strcmp(vis_progress, 'plot') | strcmp(vis_progress, 'both')
             % Plot the progress in log-scale.
             axes(my_axis);
+            if isempty(err)
+                semilogy(1, 'bx');
+            else 
+                semilogy(err, 'b.-');
+            end
             title(progress_text);
             xlabel('iterations');
             ylabel('error');
-            if isempty(err)
-                semilogy(1);
-            else 
-                semilogy(err, 'b.-');
-                hold on
-                semilogy(length(err), err(end), 'rx');
-                hold off
-            end
+
+            % Add a dotted line showing the error threshold.
+            hold on
+            a = axis;
+            semilogy(a(1:2), options.err_thresh * [1 1], 'k--');
+            axis([a(1:2), options.err_thresh/10, a(4)]);
+            hold off
         end
 
     end
