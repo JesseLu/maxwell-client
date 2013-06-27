@@ -160,9 +160,15 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
         else
             cnt = 0;
             while true
+                frame_start = tic;
                 my_plot(x, y, data{mod(cnt, num_frames)+1}, alpha_data, ...
                         {xlabel, ylabel}, clims);
+                pause_time = toc(frame_start) - 2 / num_frames;
+                if pause_time > 0
+                    pause(pause_time);
+                end
                 cnt = cnt + 1;
+                drawnow;
             end
         end
 
