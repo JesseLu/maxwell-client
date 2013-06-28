@@ -34,6 +34,7 @@ function [server_url, name, vis_progress] = maxwell_upload(grid, eps, mu, J, ...
     gridfile = [prefix, 'grid']; 
     hdf5write(gridfile, 'omega_r', real(grid.omega), 'WriteMode', 'overwrite');
     hdf5write(gridfile, 'omega_i', imag(grid.omega), 'WriteMode', 'append');
+    hdf5write(gridfile, 'shape' , int64(grid.shape), 'WriteMode', 'append');
     xyz = 'xyz';
     for k = 1 : length(xyz)
         hdf5write(gridfile, ['sp_', xyz(k), 'r'], ...
