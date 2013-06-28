@@ -1,7 +1,7 @@
 %% maxwell_download
 % Downloads result files from simulation server.
 
-function [E, H, err, state, s] = maxwell_download(server_url, name)
+function [E, err, state, s] = maxwell_download(server_url, name)
 ;
     modify_javapath();
 
@@ -36,20 +36,18 @@ function [E, H, err, state, s] = maxwell_download(server_url, name)
 
     if strcmp(state, 'finished')
         % Download all files.
-        [c, b, a] = ndgrid('ri', 'xyz', 'EH');
-        for k = 1 : numel(a)
-            files{k} = [name, a(k), '_', b(k), c(k)];
+        [quad, comp] = ndgrid('ri', 'xyz');
+        for k = 1 : numel(quad)
+            files{k} = [name, 'E_', comp(k), quad(k)];
         end
         my_download(files, tempdir, server_url);
 
         % Load files.
-        for k = 2 : 2 : numel(files)
-            F{k/2} = double(h5read([tempdir, files{k-1}], '/data')) + ...
-                1i * double(h5read([tempdir, files{k}], '/data'));
-            F{k/2} = permute(F{k/2}, [ndims(F{k/2}):-1:1]); % Convert to column-major.
+        for k = 1 : 3
+            E{k} = double(h5read([tempdir, files{2*k-1}], '/data')) + ...
+                1i * double(h5read([tempdir, files{2*k}], '/data'));
+            E{k} = permute(E{k}, [ndims(E{k}):-1:1]); % Convert to column-major.
         end
-        E = F(1:3);
-        H = F(4:6);
 
         % Delete files.
         for k = 1 : numel(files)

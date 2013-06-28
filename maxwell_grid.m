@@ -88,18 +88,12 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
         % Compute the s-parameters for the grid (spacing between grid points).
         %
 
-    pos = {x(:), y(:), z(:)};
+    % Obtain the s-parameters (real parts).
+    [grid.s_prim, grid.s_dual] = my_pos2s({x(:), y(:), z(:)});
+
+    % Add pml if needed.
     xyz = 'xyz';
     for k = 1 : 3
-        if length(x) == 1
-            grid.s_prim{k} = Inf;
-            grid.s_prim{k} = Inf;
-        else
-            grid.s_prim{k} = diff(pos{k});
-            grid.s_dual{k} = my_dual(pos{k});
-        end
-
-        % Add pml if needed.
         if ~any(options.nopml == xyz(k))
             [grid.s_prim{k}, grid.s_dual{k}] = ...
                 my_stretched_coordinates(grid.omega, grid.origin(k), ...
@@ -120,8 +114,3 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
     J = {zeros(dims), zeros(dims), zeros(dims)};
 
 
-
-function [s] = my_dual(w)
-% Private function to compute s_dual.
-    w_avg = (w + [w(2:end); (w(end) + (w(2)-w(1)))]) ./ 2;
-    s = diff(w_avg);

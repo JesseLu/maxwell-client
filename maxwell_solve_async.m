@@ -93,9 +93,10 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
     function [is_done, E, H, err] = maxwell_callback()
     % Queries server to inform user of the state of the simulation.
         if ~p_is_done % Not done, keep trying.
-            [p_E, p_H, p_err, p_state, s] = maxwell_download(server_url, prefix);
+            [p_E, p_err, p_state, s] = maxwell_download(server_url, prefix);
             if strcmp(p_state, 'finished')
                 p_is_done = true;
+                p_H = my_E2H(grid, mu, p_E);
             end
         end
 
