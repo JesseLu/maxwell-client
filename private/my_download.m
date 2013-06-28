@@ -1,14 +1,10 @@
 % Batch download via http.
 function my_download(filenames, local_dir, url)
-    my_disp = @(s) my_display_status(s, 'text');
-    my_disp = @(s) s; % No printing.
     for k = 1 : length(filenames)
         [inputStream{k}, file{k}] = my_open_connection(filenames{k}, local_dir, url);
     end
 
-    my_disp('Receiving...');
-
-    my_stream_send(inputStream, file, 'received', my_disp);
+    my_stream_send(inputStream, file);
 
     for k = 1 : length(filenames) % Close the files and connections.
         inputStream{k}.close()

@@ -1,7 +1,5 @@
 % Batch upload via http.
 function my_upload(filenames, local_dir, url)
-    my_disp = @(s) my_display_status(s, 'text');
-    my_disp = @(s) s; % No printing.
 
     for k = 1 : length(filenames)
         % Open connections and send headers.
@@ -10,7 +8,7 @@ function my_upload(filenames, local_dir, url)
     end
 
     % Stream the files.
-    my_stream_send(infile, outputStream, 'sent', my_disp);
+    my_stream_send(infile, outputStream);
 
     for k = 1 : length(filenames)
         % Send the footers.

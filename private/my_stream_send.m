@@ -1,5 +1,5 @@
 % Allows for multiple simultaneous transfer over HTTP.
-function my_stream_send (in, out, action_name, display_fun)
+function my_stream_send (in, out)
 
     copier = MaxwellCopier; % Requires the Maxwell.jar library to be loaded.
 
@@ -21,9 +21,9 @@ function my_stream_send (in, out, action_name, display_fun)
 
         if toc(status_time) > 0.3 || all(~running) % Periodically give updates.
             megabytes = copier.total_bytes_transferred / 1e6;
-            status_line = sprintf('%1.2f MB %s (%1.2f MB/s)', ...
-                megabytes, action_name, megabytes/toc(start_time));
-            display_fun(status_line);
+%             status_line = sprintf('%1.2f MB %s (%1.2f MB/s)', ...
+%                 megabytes, action_name, megabytes/toc(start_time));
+%             display_fun(status_line);
 %             fprintf([repmat('\b', 1, prevlen), status_line]); % Write-over.
 %             prevlen = length(status_line);
             status_time = tic;
