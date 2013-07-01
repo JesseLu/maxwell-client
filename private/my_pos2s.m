@@ -1,9 +1,9 @@
-function [s_prim, s_dual] = my_s2pos(pos)
+function [s_prim, s_dual] = my_pos2s(pos)
 
     for k = 1 : 3
         if length(pos{k}) == 1
-            s_prim{k} = 0;
-            s_dual{k} = 0;
+            s_prim{k} = inf;
+            s_dual{k} = inf;
         else
             s_prim{k} = my_prim(pos{k});
             s_dual{k} = diff(pos{k});

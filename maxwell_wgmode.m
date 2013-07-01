@@ -210,7 +210,7 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
     lambda = v' * A * v;
     rqi_done = false;
     for k = 1 : 40 
-        err(k) = norm(A*v - lambda*v);
+        err(k) = norm(A*v - lambda*v) / norm(lambda*v);
         if (err(k) < 1e-13)
             rqi_done = true;
             break
@@ -243,14 +243,15 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
     % Fields.
     [E_small, H_small, J_small, E_err, H_err] = get_wg_fields(beta, v);
 
-    % Make the components of the E and H fields match the propagation
-    % direction.
     if prop_in_pos_dir
         coeff = -1;
     else
         coeff = +1;
     end
 
+    % Make the components of the E and H fields match the propagation
+    % direction.
+    % TODO: Check is this correction is needed.
     E_small{prop_dir} = coeff * E_small{prop_dir};
     H_small{prop_dir} = coeff * H_small{prop_dir};
 
@@ -295,15 +296,21 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
         J{k} = J{k} ./ abs(1 - exp(coeff * 2i * beta * dl));
     end
 
-%     %% Plot fields
-%     f = {E_small{:}, H_small{:}};
-%     title_text = {'Ex', 'Ey', 'Ez', 'Hx', 'Hy', 'Hz'};
-%     for k = 1 : 6
-%         subplot(2, 3, k);
-%         my_plot(reshape(real(f{k}), shape));
-%         title(title_text{k});
-%     end
-%     pause
+
+        %
+        % Plot fields, if desired.
+        %
+
+    if options.pause_and_view
+        f = {E_small{:}, H_small{:}};
+        title_text = {'Ex', 'Ey', 'Ez', 'Hx', 'Hy', 'Hz'};
+        for k = 1 : 6
+            subplot(2, 3, k);
+            my_plot(reshape(real(f{k}), sub_shape));
+            title(title_text{k});
+        end
+        pause
+    end
 % %     % Can be used for lower dimension cases.
 % %     subplot 121; plot(real([f{1}, f{2}, f{3}, f{4}, f{5}, f{6}]), '.-');
 % %     subplot 122; plot(imag([f{1}, f{2}, f{3}, f{4}, f{5}, f{6}]), '.-');
@@ -338,10 +345,10 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
 
     % Build matrices.
     my_diag = @(z) spdiags(z(:), 0, numel(z), numel(z));
-    Dfx = my_diag(s_dual_x) * Dx;
-    Dbx = my_diag(s_prim_x) * (-Dx');
-    Dfy = my_diag(s_dual_y) * Dy;
-    Dby = my_diag(s_prim_y) * (-Dy');
+    Dfx = my_diag(1./s_dual_x) * Dx;
+    Dbx = my_diag(1./s_prim_x) * (-Dx');
+    Dfy = my_diag(1./s_dual_y) * Dy;
+    Dby = my_diag(1./s_prim_y) * (-Dy');
     eps_yx = my_diag([epsilon{ydir}(:); epsilon{xdir}(:)]);
     inv_eps_z = my_diag(epsilon{prop_dir}.^-1);
     mu_xy = my_diag([mu{xdir}(:); mu{ydir}(:)]);
@@ -406,23 +413,13 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
 
         % This calculates the total power of the mode as is,
         % and then uses the inverse root as the amplitude of the normalization factor.
-        if all(s_prim_x(:)) == 0 % Cross-section 1.
-            xsec{1} = real(s_dual_y(:));
-        elseif all(s_dual_y(:)) == 0
-            xsec{1} = real(s_prim_x(:));
-        else
-            xsec{1} = real(s_prim_x(:)) .* real(s_dual_y(:));
-        end
-        if all(s_dual_x(:)) == 0 % Cross-section 2.
-            xsec{2} = real(s_prim_y(:));
-        elseif all(s_prim_y(:)) == 0
-            xsec{2} = real(s_dual_x(:));
-        else
-            xsec{2} = real(s_dual_x(:)) .* real(s_prim_y(:));
-        end
+        d_prim_x = my_s2d(s_prim_x);
+        d_dual_x = my_s2d(s_dual_x);
+        d_prim_y = my_s2d(s_prim_y);
+        d_dual_y = my_s2d(s_dual_y);
         norm_amplitude = abs(...
-                dot(xsec{1}.*e(1:n), h(n+1:2*n)) + ...
-                dot(xsec{2}.*-e(n+1:2*n), h(1:n)))^-0.5;
+                dot(d_prim_x.*d_dual_y.*e(1:n), h(n+1:2*n)) + ...
+                dot(d_dual_x.*d_prim_y.*-e(n+1:2*n), h(1:n)))^-0.5;
 
         % Use the element of the E-field with largest magnitude as a phase reference.
         % Actually, only use the first element...
@@ -450,8 +447,8 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         % Error in waveguide mode equation.
         % Note that this may increase because of the correction to the beta term,
         % especially for larger values of beta.
-        E_err = e_err(beta, e);
-        H_err = h_err(beta, h);
+        E_err = e_err(beta, e)
+        H_err = h_err(beta, h)
     end
 
     get_wg_fields = @wg_fields; % Function handle to get all the important info.
@@ -485,10 +482,19 @@ end % End of deriv private function.
 
 function my_plot(x)
 % Helps with plotting.
-    imagesc(squeeze(x).', (max(abs(x(:))) + eps) * [-1 1]);
-    colorbar 
-    axis equal tight;
-    set(gca, 'YDir', 'normal');
+    if numel(find(size(x) ~= 1)) == 1 % Detect 1D data.
+        plot([real(x(:)), imag(x(:))], '.-');
+    else
+        imagesc(squeeze(x).', (max(abs(x(:))) + eps) * [-1 1]);
+        colorbar 
+        axis equal tight;
+        set(gca, 'YDir', 'normal');
+    end
 end
 
-
+function [d] = my_s2d(s)
+    d = real(s(:));
+    if any(isinf(d))
+        d = 1;
+    end
+end

@@ -28,9 +28,10 @@ eps = maxwell_shape(grid, eps, si_eps, ...
                     maxwell_box([0 wg_offset 0], [inf, wg_width, height]));
 maxwell_view(grid, eps, [], 'z', [nan nan 0]); % Visualize the waveguide.
 
-J = maxwell_wgmode(grid, eps, [-1 wg_offset 0], [+inf 1.5 1.5], 'mode_number', 1);
+J = maxwell_wgmode(grid, eps, [-1 wg_offset 0], [+inf 2 2], 'mode_number', 2, 'pause_and_view', true);
 [E, H] =  maxwell_solve(grid, eps, J);
-maxwell_view(grid, eps, E, 'z', [nan nan 0], 'field_phase', nan); % Visualize the excited waveguide.
+subplot 111
+maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan); % Visualize the excited waveguide.
 
 
     %
