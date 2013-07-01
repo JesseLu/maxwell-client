@@ -64,7 +64,7 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
 
     % Optional arguments
     options = my_parse_options(struct('nopml', '', 'num_pml_cells', 10), ...
-                                varargin);
+                                varargin, mfilename);
 
     validateattributes(options.nopml, {'char'}, {}, mfilename, 'nopml');
 

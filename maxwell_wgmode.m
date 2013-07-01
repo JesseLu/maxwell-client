@@ -15,6 +15,9 @@
 %   Lastly, the wave-vector (|beta|) of the mode is also returned.
 %   The fundamental mode is assumed.
 %
+% * |... = maxwell_wgmode(grid, [eps mu], ...)|
+%   allows for |mu| not equal to 1.
+%
 % * |... = maxwell_wgmode(..., 'mode_number', m)|
 %   returns the |m|-th order mode, where |m = 1| denotes the fundamental mode.
 %   Defaults to 1.
@@ -29,10 +32,6 @@
 %
 % Theoretically, the excited wave should be of power 1.
 % In practice, there is some error, although this is almost always less than 1%.
-
-function [beta, E, H, J] = solve_wgmode(omega, s_prim, s_dual, ...
-                                                mu, epsilon, ...
-                                                pos, dir, mode_num)
 
 %% Input parameters
 % The input parameters are very similar to those which describe a simulation,
@@ -62,47 +61,118 @@ function [beta, E, H, J] = solve_wgmode(omega, s_prim, s_dual, ...
 %   a plane in-front of the bounded plane in order to enable a unidirectional
 %   source.
 
-    %% Parse inputs
 
-    % Shorthand for the bounded plane.
-    p0 = round(pos{1});
-    p1 = round(pos{2});
-    shape = p1 - p0 + 1;
+function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, varargin)
+
+        %
+        % Validate and parse inputs.
+        %
+
+    my_validate_grid(grid, mfilename);
+
+    [eps, mu] = my_split(eps_mu, grid.shape, {'eps', 'mu'}, mfilename);
+    if isempty(mu)
+        mu = my_default_field(grid.shape, 1); 
+    end
+    my_validate_field(eps, grid.shape, 'eps', mfilename);
+    my_validate_field(mu, grid.shape, 'mu', mfilename);
+
+    validateattributes(plane_pos, {'numeric'}, ...
+                {'nonnan', 'finite', 'numel', 3}, mfilename, 'plane_pos');
+    validateattributes(plane_size, {'numeric'}, ...
+                {'nonnan', 'numel', 3}, mfilename, 'plane_size');
+    if length(find(isinf(plane_size))) ~= 1
+        error('plane_size must have exactly 1 element equal to either +inf or -inf.');
+    end
+
+    % Optional arguments.
+    options = my_parse_options(struct(  'mode_number', 1, ...
+                                        'pause_and_view', false), ...
+                                varargin, mfilename);
+    validateattributes(options.mode_number, {'numeric'}, ...
+                        {'positive', 'integer'}, mfilename, 'mode_number');
+    validateattributes(options.pause_and_view, {'logical'}, ...
+                        {'binary'}, mfilename, 'pause_and_view');
+
+
+        %
+        % Find plane (sub-grid) on which to solve for the eigenmode.
+        %
+
+    [eps_grid_pos, mu_grid_pos] = my_s2pos(grid); % Get grid positions.
+
+    % Determine desired direction of propagation.
+    prop_dir = find(isinf(plane_size));
+    prop_in_pos_dir = (plane_size(prop_dir) == +inf);
+
+    % Determine the index of the plane (in propagation direction).
+    avg_pos = mean([eps_grid_pos{prop_dir}{prop_dir}(:), ...
+                    mu_grid_pos{prop_dir}{prop_dir}(:)], 2);
+    [~, prop_ind] = min(abs(plane_pos(prop_dir) - avg_pos)); 
+
+    % Determine plane for which to solve for the waveguide mode.
+    pos = mu_grid_pos{3}; % Use the Hz point for reference.
+    box = {plane_pos - plane_size/2, plane_pos + plane_size/2};
+    for k = 1 : 3
+        if k ~= prop_dir
+            if length(pos{k}) == 2 % Special 2D case.
+                p0(k) = 1;
+                p1(k) = 1;
+
+            else
+                if box{1}(k) <= pos{k}(1)
+                    ind = 1;
+                else
+                    ind = max(find(pos{k} <= box{1}(k)));
+                end
+                p0(k) = ind;
+
+                if box{2}(k) >= pos{k}(end)
+                    ind = length(pos{k});
+                else
+                    ind = min(find(pos{k} >= box{2}(k)));
+                end
+                p1(k) = ind;
+            end
+        else
+            p0(k) = prop_ind;
+            p1(k) = prop_ind;
+        end
+    end
 
     % Cut out the bounded plane.
+    sub_shape = p1 - p0 + 1;
     for k = 1 : 3
-        sp{k} = s_prim{k}(p0(k):p1(k));
-        sd{k} = s_dual{k}(p0(k):p1(k));
-        eps{k} = epsilon{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
+        sp{k} = grid.s_prim{k}(p0(k):p1(k));
+        sd{k} = grid.s_dual{k}(p0(k):p1(k));
+        e{k} = eps{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
         m{k} = mu{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
     end
-
-    % Figure out what direction we are to propagate in.
-    if all(dir(1) ~= 'xyz') || all(dir(2) ~= '+-')
-        error('The propagation direction must be either x+, x-, y+, y-, z+, or z-.');
-    end
-    prop_dir = find(dir(1) == 'xyz');
-
     
-    %% Build the operator
-    % Build both real-only and full-complex versions of the operator.
+        %
+        % Build both real-only and full-complex versions of the operator
+        % for the waveguide mode within the plane.
+        %
 
     % Full complex operator.
-    [A, get_wg_fields] = wg_operator(omega, sp, sd, eps, m, prop_dir, shape);
+    [A, get_wg_fields] = wg_operator(grid.omega, sp, sd, e, m, prop_dir, sub_shape);
 
-    % Real-only operator.
     for k = 1 : 3
         sp_r{k} = real(sp{k});
         sd_r{k} = real(sd{k});
-        eps_r{k} = real(eps{k});
+        e_r{k} = real(e{k});
         m_r{k} = real(m{k});
     end
-    A_r = wg_operator(real(omega), sp_r, sd_r, eps_r, m_r, prop_dir, shape);
+
+    % Real-only operator.
+    A_r = wg_operator(real(grid.omega), sp_r, sd_r, e_r, m_r, prop_dir, sub_shape);
 
 
-    %% Solve for largest-magnitude eigenvalue of the real operator 
-    % This is done in order to obtain the appropriate shift, 
-    % from which we can calculate the most negative eigenvalues.
+        %
+        % Solve for largest-magnitude eigenvalue of the real operator 
+        % This is done in order to obtain the appropriate shift, 
+        % from which we can calculate the most negative eigenvalues.
+        %
 
     % Use the power iteration algorithm.
     n = size(A_r, 1);
@@ -114,38 +184,49 @@ function [beta, E, H, J] = solve_wgmode(omega, s_prim, s_dual, ...
     shift = abs(ev_max); % Shift works for both positive and negative ev_max.
 
 
-    %% Solve for the desired eigenvector of the real operator
-    % Taking the real operator, we a few of the most negative eigenmodes,
-    % and then choose the one we are interested in.
+        %
+        % Solve for the desired eigenvector of the real operator
+        % Taking the real operator, we a few of the most negative eigenmodes,
+        % and then choose the one we are interested in.
+        %
 
     % Shift the matrix and find the appropriate eigenmode.
     % Find a few extra modes just to be sure we found the correct one.
-    [V, D] = eigs(A_r - shift * speye(n), mode_num + 2); 
+    [V, D] = eigs(A_r - shift * speye(n), options.mode_number + 2); 
 
     
     gamma = diag(D);
     [temp, ind] = sort(gamma); % Sort most negative first.
-    v = V(:,ind(mode_num)); % Choose the appropriate eigenmode.
+    v = V(:,ind(options.mode_number)); % Choose the appropriate eigenmode.
 
 
-    %% Solve for the eigenvector of the full operator
-    % We use the selected eigenvector from the real operator as an initial
-    % guess.
+        %
+        % Solve for the eigenvector of the full operator
+        % We use the selected eigenvector from the real operator as an initial
+        % guess.
+        %
 
     % Perform Rayleigh quotient iteration to get the mode of the full operator.
     lambda = v' * A * v;
+    rqi_done = false;
     for k = 1 : 40 
         err(k) = norm(A*v - lambda*v);
         if (err(k) < 1e-13)
+            rqi_done = true;
             break
         end
         w = (A - lambda*speye(n)) \ v; 
         v = w / norm(w);
         lambda = v' * A * v;
     end
+    if ~rqi_done 
+        error('Did not converge to mode, rqi error: %e.', err(end));
+    end
 
 
-    %% Calculate output parameters
+        %
+        % Calculate output parameters.
+        %
 
     % Compute the wave-vector.
     beta = i * sqrt(lambda);
@@ -153,7 +234,7 @@ function [beta, E, H, J] = solve_wgmode(omega, s_prim, s_dual, ...
 
     % Perform correction on beta to account for numerical dispersion.
     % Inspiration: Taflove's FDTD book, under Numerical Dispersion.
-    % This correction term brings the error in emitted power to within +/- 1%.
+    % This correction term brings the error in emitted power to within 1 percent.
     % At the same time, additional error is introduced into the E_err and H_err terms.
     % This effect becomes more pronounced as beta increases.
     beta_corr = 2*sin(real(beta/2)) - real(beta);
@@ -164,22 +245,20 @@ function [beta, E, H, J] = solve_wgmode(omega, s_prim, s_dual, ...
 
     % Make the components of the E and H fields match the propagation
     % direction.
-    if dir(2) == '+'
+    if prop_in_pos_dir
         coeff = -1;
-    elseif dir(2) == '-'
-        coeff = +1;
     else
-        error('Directionality must be either + or -.');
+        coeff = +1;
     end
+
     E_small{prop_dir} = coeff * E_small{prop_dir};
     H_small{prop_dir} = coeff * H_small{prop_dir};
 
     % Expand the fields to span the entire simulation space.
-    orig_dims = size(epsilon{1});
     for k = 1 : 3
-        E{k} = zeros(orig_dims);
-        H{k} = zeros(orig_dims);
-        J{k} = zeros(orig_dims);
+        E{k} = zeros(grid.shape);
+        H{k} = zeros(grid.shape);
+        J{k} = zeros(grid.shape);
 
         E{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3)) = E_small{k};
         H{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3)) = H_small{k};
@@ -192,19 +271,17 @@ function [beta, E, H, J] = solve_wgmode(omega, s_prim, s_dual, ...
 
     dl = real(sp{prop_dir}); % Distance separating J and J_adj planes.
 
-    if dir(2) == '+'
-        coeff = 1;
-    elseif dir(2) == '-'
-        coeff = -1;
-    else
-        error('Directionality must be either + or -.');
-    end
+%     if prop_in_pos_dir
+%         coeff = 1;
+%     else
+%         coeff = -1;
+%     end
 
     % Shift indices for the propagation direction.
     ps0 = p0;
     ps1 = p1;
-    ps0(prop_dir) = p0(prop_dir) + 1;
-    ps1(prop_dir) = p1(prop_dir) + 1;
+    ps0(prop_dir) = p0(prop_dir) + coeff;
+    ps1(prop_dir) = p1(prop_dir) + coeff;
 
     % Form the adjacent J-field. 
     for k = 1 : 3  
@@ -329,9 +406,23 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
 
         % This calculates the total power of the mode as is,
         % and then uses the inverse root as the amplitude of the normalization factor.
+        if all(s_prim_x(:)) == 0 % Cross-section 1.
+            xsec{1} = real(s_dual_y(:));
+        elseif all(s_dual_y(:)) == 0
+            xsec{1} = real(s_prim_x(:));
+        else
+            xsec{1} = real(s_prim_x(:)) .* real(s_dual_y(:));
+        end
+        if all(s_dual_x(:)) == 0 % Cross-section 2.
+            xsec{2} = real(s_prim_y(:));
+        elseif all(s_prim_y(:)) == 0
+            xsec{2} = real(s_dual_x(:));
+        else
+            xsec{2} = real(s_dual_x(:)) .* real(s_prim_y(:));
+        end
         norm_amplitude = abs(...
-                dot(real(s_prim_x(:)).*real(s_dual_y(:)).*e(1:n), h(n+1:2*n)) + ...
-                dot(real(s_prim_y(:)).*real(s_dual_x(:)).*-e(n+1:2*n), h(1:n)))^-0.5;
+                dot(xsec{1}.*e(1:n), h(n+1:2*n)) + ...
+                dot(xsec{2}.*-e(n+1:2*n), h(1:n)))^-0.5;
 
         % Use the element of the E-field with largest magnitude as a phase reference.
         % Actually, only use the first element...

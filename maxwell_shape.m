@@ -82,7 +82,7 @@ function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
                                         'f_avg', @(z) mean(z(:)),  ...
                                         'f_rep', @(val, ff, m, dir) ff * val + ...
                                                                 (1-ff) .* m), ...
-                                varargin);
+                                varargin, mfilename);
     validateattributes(options.upsample_ratio, {'numeric'}, ...
         {'positive', 'integer', 'scalar'}, mfilename, 'upsample_ratio');
     validateattributes(options.f_avg, {'function_handle'}, {}, ...
@@ -146,7 +146,11 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
             ind = min(find(pos{k} >= box{2}(k)));
         end
         s{2}(k) = ind;
+        if s{1}(k) == s{2}(k) % 2D special case.
+            s{2}(k) = s{2}(k) + 1;
+        end
     end
+
 
     % Produce upsampled grid.
     for k = 1 : 3
