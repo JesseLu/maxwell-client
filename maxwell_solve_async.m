@@ -71,6 +71,30 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
 
         %
+        % Check if the simulation is 2D (can be solved locally).
+        %
+   
+    if any(grid.shape == 1)
+        % Compute E-field.
+        [A, ~, b] = maxwell_axb(grid, [eps mu], options.E0, J);
+        x = A \ b;
+        N = prod(grid.shape);
+        for k = 1 : 3
+            E{k} = reshape(x((k-1)*N+1:k*N), grid.shape);
+        end
+        err = norm(A*x-b)/norm(b);
+        
+        % Compute H-field.
+        H = my_E2H(grid, mu, E);
+
+        % Return solution.
+        vis_progress = 'none';
+        cb = @() my_simple_callback(true, E, H, err);
+        return
+    end
+
+
+        %
         % Upload simulation.
         %
 
@@ -153,4 +177,8 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
     cb = @maxwell_callback;
 end
 
+
+function [varargout] = my_simple_callback(varargin)
+    varargout = varargin;
+end
 

@@ -204,5 +204,5 @@ function my_plot(x, y, data, alpha_data, labels, clims)
    colorbar();
    axis equal tight;
    if ~isempty(clims)
-       caxis(clims)
+       caxis(clims);
    end

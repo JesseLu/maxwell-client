@@ -8,8 +8,11 @@ function [E, H, err, grid, eps] = test1
 %     J{2}(50, 80, 20) = 1;
 % 
 %     grid = struct('omega', 0.08, 's_prim', {s}, 's_dual', {s});
-    [grid, eps, ~, J] = maxwell_grid(0.3, -100:100, -100:100, -20:20);
-    J{2}(100,100,20) = 1;
+%     [grid, eps, ~, J] = maxwell_grid(0.3, -100:100, -100:100, -20:20);
+%     J{2}(100,100,20) = 1;
+% 
+    [grid, eps, ~, J] = maxwell_grid(0.3, -100:100, -100:100, 0);
+    J{2}(100,100,1) = 1;
 
     [E, H, err] = maxwell_solve(grid, eps, J, 'vis_progress', 'both');
 

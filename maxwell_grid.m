@@ -82,6 +82,7 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
     grid = struct(  'omega', omega, ...
                     'origin', [x(1), y(1), z(1)], ...
                     'shape', [length(x), length(y), length(z)] - 1);
+    grid.shape = grid.shape + (grid.shape == 0); % Correct for 2D case.
                     
 
         %
@@ -94,7 +95,7 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
     % Add pml if needed.
     xyz = 'xyz';
     for k = 1 : 3
-        if ~any(options.nopml == xyz(k))
+        if ~any(options.nopml == xyz(k)) && grid.shape(k) > 1
             [grid.s_prim{k}, grid.s_dual{k}] = ...
                 my_stretched_coordinates(grid.omega, grid.origin(k), ...
                 grid.s_prim{k}, grid.s_dual{k}, options.num_pml_cells(k));
