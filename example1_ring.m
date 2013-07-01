@@ -14,7 +14,7 @@
 height = 0.5;
 ring_radii = [1.5 1.0];
 wg_width = 0.5;
-wg_offset = 0;
+wg_offset = -1;
 si_eps = 13;
 air_eps = 1;
 
@@ -31,8 +31,8 @@ maxwell_view(grid, eps, [], 'z', [nan nan 0]); % Visualize the waveguide.
 J = maxwell_wgmode(grid, eps, [-1 wg_offset 0], [+inf 2 2], 'mode_number', 2, 'pause_and_view', true);
 [E, H] =  maxwell_solve(grid, eps, J);
 subplot 111
-maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan); % Visualize the excited waveguide.
-
+maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
+return
 
     %
     % Setup the ring.

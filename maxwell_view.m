@@ -29,6 +29,9 @@
 % * |maxwell_view(..., 'clims', clims)|
 %   allows the user to determine the minimum and maximum values of 
 %   the colorbar.
+%
+% * |maxwell_view(..., 'reverse_structure', true)|
+%   allows the user to reverse the grayscale/shading used to draw the structure.
 
 
 function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
@@ -65,7 +68,8 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
     % Optional arguments.
     options = my_parse_options(struct(  'grid_type', 'prim', ...
                                         'clims', [], ...
-                                        'field_phase', 0), ...
+                                        'field_phase', 0, ...
+                                        'reverse_structure', false), ...
                                 varargin, mfilename);
 
     validateattributes(options.grid_type, {'char'}, {}, 'grid_type', mfilename);
@@ -75,6 +79,9 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
     validateattributes(options.field_phase, {'numeric'}, {'scalar'}, ...
                         'field_phase', mfilename);
+
+    validateattributes(options.reverse_structure, {'logical'}, {'binary'}, ...
+                        'reverse_structure', mfilename);
 
         %
         % Determine slice.
@@ -101,7 +108,7 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
     % Extract out the relevant slice.
     if ~isempty(mat)
-        m_data = real(my_slice(mat{field_comp}, slice_comp, ind));
+        m_data = abs(my_slice(mat{field_comp}, slice_comp, ind));
     end
 
     if ~isempty(F)
@@ -120,7 +127,6 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
         %
         % Plot.
         %
-
 
     if ~isempty(F) % Just field.
 
@@ -143,7 +149,11 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
         if isempty(mat) 
             alpha_data = [];
         else
-            alpha_data = m_data; 
+            alpha_data = m_data - min(m_data(:));
+            if options.reverse_structure
+                alpha_data = 1 - alpha_data;
+            end
+            alpha_data = -alpha_data ./ max(alpha_data(:));
         end
         
         % Allow for user-override of cmax.
@@ -175,8 +185,9 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
     elseif ~isempty(mat) && isempty(F) % Just material.
         my_plot(x, y, m_data, [], {xlabel, ylabel}, options.clims);
         cmap = colormap('gray');
-        colormap(cmap(end:-1:1,:)); % Reversed grayscale colormap.
-
+        if ~options.reverse_structure
+            colormap(cmap(end:-1:1,:)); % Reversed grayscale colormap.
+        end
     else
         error('Could not figure out what to plot.'); % Should never get here.
     end
@@ -197,12 +208,24 @@ function [data] = my_slice(arr, comp, ind)
 
 function my_plot(x, y, data, alpha_data, labels, clims)
 % Plot that allows for variable grid spacing.
-   pcolor(x, y, data.');
+
+    pcolor(x, y, data.');
+
+    % Add transparency effect if needed.
+    if ~isempty(alpha_data)
+        alpha(alpha_data(2:end, 2:end).'); % 2:end is because of pcolor function.
+        set(gca, 'Color', 'black', 'Alim', [-4 0]);
+    end
+
    shading('flat');
    xlabel(labels{1});
    ylabel(labels{2});
    colorbar();
    axis equal tight;
+   set(gca, 'YDir', 'normal');
+
    if ~isempty(clims)
        caxis(clims);
    end
+
+
