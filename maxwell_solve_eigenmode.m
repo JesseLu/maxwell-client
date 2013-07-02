@@ -64,7 +64,9 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
     my_validate_field(E0, grid.shape, 'E0', mfilename);
 
     % Optional parameter-value pairs.
-    options = my_parse_options(struct(  'eig_max_iters', 10, ...
+    % TODO: add documentation, checking, and default for eig_vis.
+    options = my_parse_options(struct(  'eig_vis_progress', [], ...
+                                        'eig_max_iters', 10, ...
                                         'eig_err_thresh', 1e-6, ...
                                         'vis_progress', 'plot', ...
                                         'max_iters', 1e5, ...
@@ -120,6 +122,9 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
         %
 
     % Get back E and H.
-    omega = sqrt(lambda);
+    grid.omega = sqrt(lambda);
+    omega = grid.omega;
+    E = unvec(v ./ sqrt(e));
+    H = my_E2H(grid, mu, E);
 
 end
