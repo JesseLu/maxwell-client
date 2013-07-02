@@ -173,6 +173,7 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
                 frame_start = tic;
                 my_plot(x, y, data{mod(cnt, num_frames)+1}, alpha_data, ...
                         {xlabel, ylabel}, clims);
+                colormap('jet');
                 pause_time = toc(frame_start) - 2 / num_frames;
                 if pause_time > 0
                     pause(pause_time);

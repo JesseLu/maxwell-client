@@ -154,7 +154,13 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
         if strcmp(vis_progress, 'plot') | strcmp(vis_progress, 'both')
             % Plot the progress in log-scale.
-            axes(my_axis);
+            try
+                axes(my_axis);
+            catch 
+                my_axis = gca;
+                axes(my_axis);
+            end
+
             if isempty(err)
                 semilogy(1, 'bx');
             else 
