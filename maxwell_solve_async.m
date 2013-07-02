@@ -88,8 +88,8 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
         H = my_E2H(grid, mu, E);
 
         % Return solution.
-        vis_progress = 'none';
-        cb = @() my_simple_callback(true, E, H, err);
+        vis_progress = options.vis_progress;
+        cb = @() my_simple_callback(options.vis_progress, true, E, H, err);
         return
     end
 
@@ -184,7 +184,13 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 end
 
 
-function [varargout] = my_simple_callback(varargin)
+function [varargout] = my_simple_callback(vis_progress, varargin)
+    if strcmp(vis_progress, 'text') || strcmp(vis_progress, 'both')
+        progress_text = '[finished] 2D problem solved locally';
+        norm_p_text = [progress_text, ...
+                repmat(' ', 1, 60 - length(progress_text))];
+        fprintf(norm_p_text);
+    end
     varargout = varargin;
 end
 

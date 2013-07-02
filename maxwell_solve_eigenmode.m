@@ -11,16 +11,16 @@
 %
 % * |... = maxwell_solve_eigenmode(grid, [eps mu], E0)|
 %   does the same except for |mu ~= 1|.
-%
-% * |... = maxwell_solve_eigenmode(..., 'vis_progress', vis_opt)|
-%   controls the progress visualization where |vis_opt| can be
-%   |none|, |plot|, |text|, or |both|. Defaults to |plot|.
-%
+
 % * |... = maxwell_solve_eigenmode(..., 'eig_max_iters', eig_n, ...
 %                                       'eig_err_thresh', eig_err)|
 %   sets the termination conditions for the eigenmode algorithm 
 %   (Rayleigh quotient iteration).
 %   Defaults to |eig_n = 10|, and |eig_err = 1e-6|.
+%%
+% * |... = maxwell_solve_eigenmode(..., 'vis_progress', vis_opt)|
+%   controls the progress visualization for individual calls to |maxwell_solve|.
+%   Defaults to |plot|.
 %
 % * |... = maxwell_solve_eigenmode(..., 'max_iters', n, 'err_thresh', err)|
 %   sets the termination conditions for the underlying calls to |maxwell_solve|,
@@ -64,11 +64,9 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
     my_validate_field(E0, grid.shape, 'E0', mfilename);
 
     % Optional parameter-value pairs.
-    % TODO: add documentation, checking, and default for eig_vis.
-    options = my_parse_options(struct(  'eig_vis_progress', [], ...
-                                        'eig_max_iters', 10, ...
+    options = my_parse_options(struct(  'eig_max_iters', 10, ...
                                         'eig_err_thresh', 1e-6, ...
-                                        'vis_progress', 'plot', ...
+                                        'vis_progress', 'both', ...
                                         'max_iters', 1e5, ...
                                         'err_thresh', 1e-6), ...
                                 varargin, mfilename);
@@ -77,13 +75,22 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
         %
         % Get ingredient matrices, vectors, and functions.
         %
+        % The "F-field", which is defined as F = sqrt(epsilon) * E,
+        % is used here because it transforms the wave equation from being
+        % a generalized eigenvalue problem to a simple (canonical) one.
+        % As such, most of the definitions in this section are in "F-space".
+        %
 
+    % Form the modified matrix and guess eigenvector. 
     [A, v] = maxwell_axb(grid, [eps mu], E0, my_default_field(grid.shape, 0));
     e = [eps{1}(:); eps{2}(:); eps{3}(:)];
+    A = A + spdiags(grid.omega^2 * e, 0, numel(e), numel(e)); % Remove a term.
+    v = v .* sqrt(e); % Transform to "F-space".
 
     % Compose function handles.
-    mult_A = @(x) e.^-0.5 .* (A * (e.^-0.5 .* x));
-    mult_A_dag = @(x) (e.^-0.5 .* (A.' * (e.^-0.5 .* conj(x)))).';
+    mult_A = @(v) e.^-0.5 .* (A * (e.^-0.5 .* v));
+    mult_A_dag = @(v) (e.^-0.5 .* (A.' * (e.^-0.5 .* conj(v)))).';
+    sAinv_err = @(l, v, w) norm(mult_A(w) - l * w - v); % Useful for checking.
 
     % Helper functions.
     dims = grid.shape;
@@ -91,11 +98,10 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
     unvec = @(z) {reshape(z(1:n), dims), reshape(z(n+1:2*n), dims), reshape(z(2*n+1:3*n), dims)};
     vec = @(z) [z{1}(:); z{2}(:); z{3}(:)]; 
 
-
     function [x] = solve_A_shifted(lambda, b)
     % Solves for the F-field.
         grid.omega = sqrt(lambda);
-        J = unvec(-i * grid.omega * b);
+        J = unvec(sqrt(e) .* b ./ (-i * grid.omega));
         E = maxwell_solve(grid, [eps mu], J, ...
                             'max_iters', options.max_iters, ...
                             'err_thresh', options.err_thresh, ...
@@ -103,9 +109,11 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
         x = sqrt(e) .* vec(E);
     end
 
-    function my_vis(lambda, b)
-    % Visualization function.
-        fprintf('omega: %e (real), %e (imag) | ', real(sqrt(lambda)), imag(sqrt(lambda)));
+    function my_vis(lambda, b, err)
+        % Progress function.
+        omega = sqrt(lambda);
+        fprintf('wvlen: %1.3f, omega: %1.1e + i%1.1e, err: %1.1e -- ', ...
+                2*pi/real(omega), real(omega), imag(omega), err);
     end
 
 
@@ -115,6 +123,7 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
 
     [lambda, v] = my_solve_eigenmode(mult_A, @solve_A_shifted, @my_vis, v, ...
                                 options.eig_max_iters, options.eig_err_thresh);
+    fprintf('\n');
 
     
         %

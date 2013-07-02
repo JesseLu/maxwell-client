@@ -6,18 +6,18 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         % Create grid.
         %
 
-    delta = 5;
-    % [grid, eps, ~, J] = maxwell_grid(2*pi/940, -200:delta:200, -200:delta:200, -100);
-    [grid, eps, ~, J] = maxwell_grid(2*pi/940, -200:delta:200, -200:delta:200, -300:delta:100);
+    delta = 2;
+    [grid, eps, ~, J] = maxwell_grid(2*pi/940, -200:delta:200, -200:delta:200, -100);
+    % [grid, eps, ~, J] = maxwell_grid(2*pi/940, -200:delta:200, -200:delta:200, -300:delta:100);
 
     if isempty(varargin)
         % Structure constants.
         radius = 80;
         height = 200;
-        smooth_dist = 0.5*delta;
+        smooth_dist = 4*delta;
 
         gaas = 3.5^2;
-        silver = -40-4i;
+        silver = -40+4i;
         air = 1;
         my_inf = 1e4;
 
@@ -69,7 +69,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
     omega = grid.omega;
     fprintf('Solving for initial field... ');
     [E, H] =  maxwell_solve(grid, eps, J, 'vis_progress', 'both'); % Use this solution as an initial guess.
-    % [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E); % Use this solution as an initial guess.
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'eig_max_iters', 40); % Use this solution as an initial guess.
     fprintf('\n');
 end
 

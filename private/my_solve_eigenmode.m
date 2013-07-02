@@ -63,12 +63,12 @@ function [lambda, v] = my_eigenmode_solve(mult_A, solve_A_shifted, vis_current, 
         % Compute error.
         err(k) = norm(mult_A(v) - lambda * v); % Compute error.
 
-        % Plot error.
-        vis_current(lambda, v);
-        semilogy(0:(k-1), err, '.-'); % Plot error.
-        a = axis;
-        hold on; semilogy(a(1:2), err_lim * [1 1], 'k--'); hold off;
-        ylabel('Eigenvector error'); xlabel('iteration'); drawnow; 
+        vis_current(lambda, v, err(end));
+%         % Plot error.
+%         semilogy(0:(k-1), err, '.-'); % Plot error.
+%         a = axis;
+%         hold on; semilogy(a(1:2), err_lim * [1 1], 'k--'); hold off;
+%         ylabel('Eigenvector error'); xlabel('iteration'); drawnow; 
 
         % Check for termination condition.
         if (err(k) < err_lim) || (k >= max_iters) % Check if we're done

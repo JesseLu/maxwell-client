@@ -58,7 +58,7 @@ function [E, H, err] = maxwell_solve(grid, eps_mu, J, varargin)
         % Monitor simulation progress.
         %
 
-    text_output = strcmp(vis_progress, 'text') | strcmp(vis_progress, 'both');
+    text_output = strcmp(vis_progress, 'text') || strcmp(vis_progress, 'both');
     while ~cb()
         if text_output
             fprintf(repmat('\b', 1, 60)); 

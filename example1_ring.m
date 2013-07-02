@@ -13,20 +13,8 @@
     % Structure constants.
     height = 0.2;
     ring_radii = [1.3 1.0];
-    wg_width = 0.4;
-    wg_offset = -1.55;
     si_eps = 13;
     air_eps = 1;
-
-
-        % 
-        % Setup the waveguide (which will be used to couple to the ring).
-        %
-
-    % Draw coupling waveguide.
-    eps = maxwell_shape(grid, eps, si_eps, ...
-                        maxwell_box([0 wg_offset 0], [inf, wg_width, height]));
-
 
 
         %
@@ -39,8 +27,20 @@
     eps = maxwell_shape(grid, eps, air_eps, ...
                         maxwell_cyl([0 0 0], ring_radii(2), height));
 
+    % Excitation for the fundamental mode (of the ring's waveguide).
+    J = maxwell_wgmode(grid, eps, [0 mean(ring_radii) 0], [+inf 2 2], 'mode_number', 1);
 
-    J = maxwell_wgmode(grid, eps, [-2 wg_offset 0], [+inf 2 2], 'mode_number', 1);
 
+        %
+        % Solve for initial excitation.
+        %
+
+    fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
     maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
+
+
+        % 
+        % Solve for the eigenmode.
+        %
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E); % Use this solution as an initial guess.

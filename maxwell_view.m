@@ -228,5 +228,6 @@ function my_plot(x, y, data, alpha_data, labels, clims)
    if ~isempty(clims)
        caxis(clims);
    end
+   drawnow;
 
 
