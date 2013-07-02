@@ -108,11 +108,11 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
     % Extract out the relevant slice.
     if ~isempty(mat)
-        m_data = abs(my_slice(mat{field_comp}, slice_comp, ind));
+        m_data = squeeze(real(my_slice(mat{field_comp}, slice_comp, ind)));
     end
 
     if ~isempty(F)
-        F_data = my_slice(F{field_comp}, slice_comp, ind);
+        F_data = squeeze(my_slice(F{field_comp}, slice_comp, ind));
     end
 
     % Determine grids which will be used for plotting the slice.
@@ -212,7 +212,7 @@ function my_plot(x, y, data, alpha_data, labels, clims)
     pcolor(x, y, data.');
 
     % Add transparency effect if needed.
-    if ~isempty(alpha_data)
+    if ~isempty(alpha_data) && ~any(isnan(alpha_data(:)))
         alpha(alpha_data(2:end, 2:end).'); % 2:end is because of pcolor function.
         set(gca, 'Color', 'black', 'Alim', [-4 0]);
     end
