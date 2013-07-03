@@ -201,7 +201,7 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
             colormap('jet');
         else
             cnt = 0;
-            while true
+            for k = 1 : 3 * num_frames
                 frame_start = tic;
                 my_plot(data{mod(cnt, num_frames)+1})
                 colormap('jet');

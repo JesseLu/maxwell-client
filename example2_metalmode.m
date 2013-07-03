@@ -8,9 +8,9 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         % Parse inputs.
         %
 
-    options = my_parse_options(struct(  'delta', 20, ...
+    options = my_parse_options(struct(  'delta', 25, ...
                                         'flatten', false, ...
-                                        'hires_delta', [1 1 2], ...
+                                        'hires_delta', [3 3 6], ...
                                         'view_only', false, ...
                                         'sim_only', false), ...
                                 varargin, mfilename);
@@ -21,16 +21,18 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         %
 
     omega = 2*pi/940;
-    x = -400 : options.delta : 400;
-    y = -400 : options.delta : 400;
-    z = -500 : options.delta : 300;
+    x = -600 : options.delta : 600;
+    y = -600 : options.delta : 600;
+    z = -700 : options.delta : 500;
     if options.flatten
         x = 0;
     end
 
     hires_option = {[0 0 -100], [120 120 220], [options.hires_delta]};
 
-    [grid, eps, ~, J] = maxwell_grid(omega, x, y, z, 'hires_box', hires_option);
+    [grid, eps, ~, J] = maxwell_grid(omega, x, y, z, ...
+                                        'hires_box', hires_option, ...
+                                        'growth_rate', 1.1);
 
     % Structure constants.
     radius = 50;
@@ -77,8 +79,8 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         %
 
     c = round(grid.shape/2); % Center.
-    % J{1}(:, :, end-12) = 1;
-    J{1}(c(1), c(2), c(3)) = 1;
+    J{1}(:, :, end-12) = 1;
+    % J{1}(c(1), c(2), c(3)) = 1;
     % J{1}(c(1)+[-5:5], c(2)+[-5:5], c(3)) = 1;
 
 
@@ -90,11 +92,11 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
     end
     omega = grid.omega;
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-3, 'vis_progress', 'both'); % Use this solution as an initial guess.
+    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-6, 'vis_progress', 'both'); % Use this solution as an initial guess.
     if options.sim_only
         return
     end
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'eig_err_thresh', 1e-14); % Use this solution as an initial guess.
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'err_thresh', 1e-6); % Use this solution as an initial guess.
     fprintf('\n');
 end
 
