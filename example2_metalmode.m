@@ -7,17 +7,17 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         %
 
     delta = 2;
-    [grid, eps, ~, J] = maxwell_grid(2*pi/940, -200:delta:200, -200:delta:200, -100);
+    [grid, eps, ~, J] = maxwell_grid(2*pi/940, 0, -200:delta:200, -300:delta:100);
     % [grid, eps, ~, J] = maxwell_grid(2*pi/940, -200:delta:200, -200:delta:200, -300:delta:100);
 
     if isempty(varargin)
         % Structure constants.
-        radius = 80;
+        radius = 100;
         height = 200;
-        smooth_dist = 4*delta;
+        smooth_dist = 1e-5*delta;
 
         gaas = 3.5^2;
-        silver = -40+4i;
+        silver = -40-4i;
         air = 1;
         my_inf = 1e4;
 
@@ -40,7 +40,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
                             maxwell_smooth_box([0 0 -2*height], [my_inf my_inf 2*height], ...
                                                 'smooth_dist', smooth_dist), ...
                             'upsample_ratio', 1, 'f_avg', @my_pass);
-        maxwell_view(grid, eps, [], 'y', [nan nan -100]);
+        maxwell_view(grid, eps, [], 'y', [0 nan nan]);
 %         omega = nan;
 %         E = nan;
 %         H = nan;
@@ -57,7 +57,8 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
 
     c = round(grid.shape/2); % Center.
     % J{1}(:, :, end-12) = 1;
-    J{1}(c(1), c(2), c(3)) = 1;
+    J{2}(c(1), c(2), c(3)) = 1;
+    % J{1}(c(1)+[-5:5], c(2)+[-5:5], c(3)) = 1;
 
 
         %
@@ -69,7 +70,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
     omega = grid.omega;
     fprintf('Solving for initial field... ');
     [E, H] =  maxwell_solve(grid, eps, J, 'vis_progress', 'both'); % Use this solution as an initial guess.
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'eig_max_iters', 40); % Use this solution as an initial guess.
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'eig_err_thresh', 1e-14); % Use this solution as an initial guess.
     fprintf('\n');
 end
 

@@ -20,7 +20,10 @@
 
 % Initialize simulation grid.
 [grid, eps, mu, J] = maxwell_grid(2*pi/1550, -50:50, -80:80, -20:20, ...
-                                    'nopml', 'xyz', 'num_pml_cells', 10);
+                                    'nopml', 'xyz', 'num_pml_cells', 10, ...
+
+[grid, eps, mu, J] = maxwell_grid(2*pi/1550, -50:50, -80:80, -20:20, ...
+                            'hires_box', {[0 0 0], [10 10 10], [0.1 0.1 0.2]});
 
 [grid, eps, mu, J] = maxwell_grid(0.08 - 0.003i, -50:50, -80:80, -20:20);
 

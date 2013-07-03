@@ -27,6 +27,19 @@
 %   change the number of grid points used for the PML layer
 %   (defaults to 10). 
 %
+% * |... = maxwell_grid(..., 'hires_box', {center, box_size, delta})|
+%   allows for a high resolution grid at location |center| of size |box_size|
+%   with a grid resolution of |delta| 
+%   (which must be 3-elements for resolution in x-, y- and z-directions).
+%   Note that although |maxwell_grid| supports variable grid resolutions 
+%   directly via the |maxwell_grid(omega, x, y, z)| interface,
+%   using the |'hires_box'| option is often easier.
+%
+% * |... = maxwell_grid(..., 'growth_rate', rate)|
+%   determines the growth rate of the grid, when using the |'hires_box'| option.
+%   In other words, it determines how fast the resolution changes.
+%   Defaults to 1.5.
+%
 
 %%% Description
 % |maxwell_grid| returns the |grid| variable along with initial values 
@@ -63,7 +76,10 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
     my_simple_check(z, 'z');
 
     % Optional arguments
-    options = my_parse_options(struct('nopml', '', 'num_pml_cells', 10), ...
+    options = my_parse_options(struct(  'nopml', '', ...
+                                        'num_pml_cells', 10, ...
+                                        'hires_box', [], ...
+                                        'growth_rate', 1.5), ...
                                 varargin, mfilename);
 
     validateattributes(options.nopml, {'char'}, {}, mfilename, 'nopml');
@@ -73,6 +89,23 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
     end
     validateattributes(options.num_pml_cells, {'numeric'}, ...
                         {'positive', 'integer', 'vector'}, mfilename, 'num_pml_cells');
+
+    if ~isempty(options.hires_box)
+        validateattributes(options.hires_box, {'cell'}, {'numel', 3}, ...
+                            mfilename, 'hires_box');
+
+        validateattributes(options.hires_box{1}, {'numeric'}, {'numel', 3, 'real'}, ...
+                            mfilename, 'center (hires_box param #1)');
+        validateattributes(options.hires_box{2}, {'numeric'}, ...
+                            {'numel', 3, 'real', 'positive'}, mfilename, ...
+                            'box_size (hires_box param #2)');
+        validateattributes(options.hires_box{3}, {'numeric'}, ...
+                            {'numel', 3, 'real', 'positive'}, mfilename, ...
+                            'delta (hires_box param #3)');
+    end
+
+    validateattributes(options.growth_rate, {'numeric'}, ...
+                    {'scalar', 'positive', 'real'}, mfilename, 'growth_rate');
 
  
         %
@@ -84,6 +117,17 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
                     'shape', [length(x), length(y), length(z)] - 1);
     grid.shape = grid.shape + (grid.shape == 0); % Correct for 2D case.
                     
+    if ~isempty(options.hires_box) % Take care of the high-resolution grid.
+        pos = {x(:), y(:), z(:)};
+        for k = 1 : 3
+            pos{k} = my_insert_hires(pos{k},    options.hires_box{1}(k), ...
+                                                options.hires_box{2}(k), ...
+                                                options.hires_box{3}(k), ...
+                                                options.growth_rate);
+        end
+        [x, y, z] = deal(pos{:});
+    end
+
 
         %
         % Compute the s-parameters for the grid (spacing between grid points).
