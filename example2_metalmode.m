@@ -11,7 +11,8 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
     options = my_parse_options(struct(  'delta', 20, ...
                                         'flatten', false, ...
                                         'hires_delta', [1 1 2], ...
-                                        'view_only', false), ...
+                                        'view_only', false, ...
+                                        'sim_only', false), ...
                                 varargin, mfilename);
 
 
@@ -20,9 +21,9 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         %
 
     omega = 2*pi/940;
-    x = -600 : options.delta : 600;
-    y = -600 : options.delta : 600;
-    z = -700 : options.delta : 500;
+    x = -400 : options.delta : 400;
+    y = -400 : options.delta : 400;
+    z = -500 : options.delta : 300;
     if options.flatten
         x = 0;
     end
@@ -46,7 +47,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         % Draw the GaAs and the silver shapes.
         %
 
-    fprintf('Building shapes...\n');
+    fprintf('Building shapes [%dx%dx%d grid]...\n', grid.shape);
 
     eps = maxwell_shape(grid, eps, silver, ...
                         maxwell_smooth_box([0 0 -height/2], [my_inf, my_inf, height], ...
@@ -57,7 +58,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
                                             'smooth_dist', smooth_dist), ...
                         'upsample_ratio', 1, 'f_avg', @my_pass);
     eps = maxwell_shape(grid, eps, gaas, ...
-                        maxwell_smooth_box([0 0 -2*height], [my_inf my_inf 2*height], ...
+                        maxwell_smooth_box([0 0 z(1)], [my_inf my_inf 2*(-z(1)-height)], ...
                                             'smooth_dist', smooth_dist), ...
                         'upsample_ratio', 1, 'f_avg', @my_pass);
 
@@ -89,7 +90,10 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
     end
     omega = grid.omega;
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J, 'vis_progress', 'both'); % Use this solution as an initial guess.
+    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-3, 'vis_progress', 'both'); % Use this solution as an initial guess.
+    if options.sim_only
+        return
+    end
     [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'eig_err_thresh', 1e-14); % Use this solution as an initial guess.
     fprintf('\n');
 end
