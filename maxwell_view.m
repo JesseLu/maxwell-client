@@ -32,6 +32,10 @@
 %
 % * |maxwell_view(..., 'reverse_structure', true)|
 %   allows the user to reverse the grayscale/shading used to draw the structure.
+%
+% * |maxwell_view(..., 'show_grid', true)|
+%   overlays the grid on top of the plot.
+%
 
 
 function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
@@ -69,7 +73,8 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
     options = my_parse_options(struct(  'grid_type', 'prim', ...
                                         'clims', [], ...
                                         'field_phase', 0, ...
-                                        'reverse_structure', false), ...
+                                        'reverse_structure', false, ...
+                                        'show_grid', false), ...
                                 varargin, mfilename);
 
     validateattributes(options.grid_type, {'char'}, {}, 'grid_type', mfilename);
@@ -82,6 +87,9 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
     validateattributes(options.reverse_structure, {'logical'}, {'binary'}, ...
                         'reverse_structure', mfilename);
+
+    validateattributes(options.show_grid, {'logical'}, {'binary'}, ...
+                        'show_grid', mfilename);
 
         %
         % Determine slice.
@@ -120,8 +128,8 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
     xyz = 'xyz';
     xlabel = xyz(perp_comp(1));
     ylabel = xyz(perp_comp(2));
-    x = pos{perp_comp(1)}(1:end-1); % Clip off extra position at end.
-    y = pos{perp_comp(2)}(1:end-1);
+    x = pos{perp_comp(1)}(1:end); % Clip off extra position at end.
+    y = pos{perp_comp(2)}(1:end);
     
 
         %
@@ -146,14 +154,14 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
         end
 
         % Prepare alpha data.
-        if isempty(mat) 
-            alpha_data = [];
-        else
+        if ~isempty(mat)
             alpha_data = m_data - min(m_data(:));
             if options.reverse_structure
                 alpha_data = 1 - alpha_data;
             end
             alpha_data = -alpha_data ./ max(alpha_data(:));
+        else
+            alpha_data = [];
         end
         
         % Allow for user-override of cmax.
@@ -163,16 +171,19 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
             clims = cmax * [-1 1];
         end
 
+        % Prepare drawing function.
+        my_plot = @(data) my_pcolor(x, y, data, alpha_data, ...
+                                    {xlabel, ylabel}, clims, options.show_grid);
+
         % Plot.
         if ~isinf(options.field_phase)
-            my_plot(x, y, data, alpha_data, {xlabel, ylabel}, clims);
+            my_plot(data);
             colormap('jet');
         else
             cnt = 0;
             while true
                 frame_start = tic;
-                my_plot(x, y, data{mod(cnt, num_frames)+1}, alpha_data, ...
-                        {xlabel, ylabel}, clims);
+                my_plot(data{mod(cnt, num_frames)+1})
                 colormap('jet');
                 pause_time = toc(frame_start) - 2 / num_frames;
                 if pause_time > 0
@@ -184,7 +195,8 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
         end
 
     elseif ~isempty(mat) && isempty(F) % Just material.
-        my_plot(x, y, m_data, [], {xlabel, ylabel}, options.clims);
+        my_pcolor(x, y, m_data, [], {xlabel, ylabel}, options.clims, ...
+                                                        options.show_grid);
         cmap = colormap('gray');
         if ~options.reverse_structure
             colormap(cmap(end:-1:1,:)); % Reversed grayscale colormap.
@@ -207,27 +219,34 @@ function [data] = my_slice(arr, comp, ind)
     end
 
 
-function my_plot(x, y, data, alpha_data, labels, clims)
+function my_pcolor(x, y, data, alpha_data, labels, clims, show_grid)
 % Plot that allows for variable grid spacing.
 
-    pcolor(x, y, data.');
+    
+    expand_by_1 = @(z) [z, ones(size(z, 1), 1); ones(1, size(z, 2)+1)];
+    h = pcolor(x, y, expand_by_1(data).');
 
     % Add transparency effect if needed.
     if ~isempty(alpha_data) && ~any(isnan(alpha_data(:)))
-        alpha(alpha_data(2:end, 2:end).'); % 2:end is because of pcolor function.
+        alpha(expand_by_1(alpha_data(2:end, 2:end)).'); % 2:end for weird pcolor function.
         set(gca, 'Color', 'black', 'Alim', [-4 0]);
     end
 
-   shading('flat');
-   xlabel(labels{1});
-   ylabel(labels{2});
-   colorbar();
-   axis equal tight;
-   set(gca, 'YDir', 'normal');
+    if show_grid
+       shading('faceted');
+    else
+        shading('flat');
+    end
 
-   if ~isempty(clims)
-       caxis(clims);
-   end
-   drawnow;
+    if ~isempty(clims)
+        caxis(clims);
+    end
+
+    xlabel(labels{1});
+    ylabel(labels{2});
+    colorbar();
+    axis equal tight;
+    set(gca, 'YDir', 'normal');
+    drawnow;
 
 

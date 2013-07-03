@@ -24,6 +24,14 @@ function [x] = my_wing(x, init_delta, rate)
 % Starts from x(1) and moves toward x(end).
 % Assumes that we taper from high to low resolution.
 
+    if length(x) == 1 % Don't need to add a wing if there's no room!
+        return
+    end
+
+    if x(2)-x(1) <= init_delta % No tapering needed.
+        return
+    end
+
     % Walk to find the end-point of the taper, 
     % as well as how many taper steps will be needed.
     cnt = 1;
@@ -50,7 +58,7 @@ function [x] = my_wing(x, init_delta, rate)
     end
 
     % Form polynomial equation to solve for our adjusted rate.
-    total_dist = x(last_ind) - x(1)
+    total_dist = x(last_ind) - x(1);
     c(1) = total_dist / init_delta;
     c(2) = - (init_delta + total_dist) / init_delta;
     c(wing_len+1) = 1;

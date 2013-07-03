@@ -112,11 +112,6 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
         % Initialize the grid structure.
         %
 
-    grid = struct(  'omega', omega, ...
-                    'origin', [x(1), y(1), z(1)], ...
-                    'shape', [length(x), length(y), length(z)] - 1);
-    grid.shape = grid.shape + (grid.shape == 0); % Correct for 2D case.
-                    
     if ~isempty(options.hires_box) % Take care of the high-resolution grid.
         pos = {x(:), y(:), z(:)};
         for k = 1 : 3
@@ -128,6 +123,11 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
         [x, y, z] = deal(pos{:});
     end
 
+    grid = struct(  'omega', omega, ...
+                    'origin', [x(1), y(1), z(1)], ...
+                    'shape', [length(x), length(y), length(z)] - 1);
+    grid.shape = grid.shape + (grid.shape == 0); % Correct for 2D case.
+                    
 
         %
         % Compute the s-parameters for the grid (spacing between grid points).

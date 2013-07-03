@@ -2,53 +2,73 @@
 % Mode of a metallic resonator
 
 function [omega, E, H, grid, eps] = example2_metalmode(varargin)
+
+
+        %
+        % Parse inputs.
+        %
+
+    options = my_parse_options(struct(  'delta', 25, ...
+                                        'flatten', false, ...
+                                        'hires_delta', [1 1 2], ...
+                                        'view_only', false), ...
+                                varargin, mfilename);
+
+
         %
         % Create grid.
         %
 
-    delta = 2;
-    [grid, eps, ~, J] = maxwell_grid(2*pi/940, 0, -200:delta:200, -300:delta:100);
-    % [grid, eps, ~, J] = maxwell_grid(2*pi/940, -200:delta:200, -200:delta:200, -300:delta:100);
-
-    if isempty(varargin)
-        % Structure constants.
-        radius = 100;
-        height = 200;
-        smooth_dist = 1e-5*delta;
-
-        gaas = 3.5^2;
-        silver = -40-4i;
-        air = 1;
-        my_inf = 1e4;
-
-
-            % 
-            % Draw the GaAs and the silver shapes.
-            %
-
-        fprintf('Building shapes...\n');
-
-        eps = maxwell_shape(grid, eps, silver, ...
-                            maxwell_smooth_box([0 0 -height/2], [my_inf, my_inf, height], ...
-                                                'smooth_dist', smooth_dist), ...
-                            'upsample_ratio', 1, 'f_avg', @my_pass);
-        eps = maxwell_shape(grid, eps, gaas, ...
-                            maxwell_smooth_cyl([0 0 -height], radius, 2*height, ...
-                                                'smooth_dist', smooth_dist), ...
-                            'upsample_ratio', 1, 'f_avg', @my_pass);
-        eps = maxwell_shape(grid, eps, gaas, ...
-                            maxwell_smooth_box([0 0 -2*height], [my_inf my_inf 2*height], ...
-                                                'smooth_dist', smooth_dist), ...
-                            'upsample_ratio', 1, 'f_avg', @my_pass);
-        maxwell_view(grid, eps, [], 'y', [0 nan nan]);
-%         omega = nan;
-%         E = nan;
-%         H = nan;
-%         return
-
-    else
-        eps = varargin{1};
+    omega = 2*pi/940;
+    x = -200 : options.delta : 200;
+    y = -200 : options.delta : 200;
+    z = -300 : options.delta : 100;
+    if options.flatten
+        x = 0;
     end
+
+    hires_option = {[0 0 -100], [100 100 200]-1, [options.hires_delta]};
+
+    [grid, eps, ~, J] = maxwell_grid(omega, x, y, z, 'hires_box', hires_option);
+
+    % Structure constants.
+    radius = 50;
+    height = 200;
+    smooth_dist = 1e-5;
+
+    gaas = 3.5^2;
+    silver = -40-4i;
+    air = 1;
+    my_inf = 1e4;
+
+
+        % 
+        % Draw the GaAs and the silver shapes.
+        %
+
+    fprintf('Building shapes...\n');
+
+    eps = maxwell_shape(grid, eps, silver, ...
+                        maxwell_smooth_box([0 0 -height/2], [my_inf, my_inf, height], ...
+                                            'smooth_dist', smooth_dist), ...
+                        'upsample_ratio', 1, 'f_avg', @my_pass);
+    eps = maxwell_shape(grid, eps, gaas, ...
+                        maxwell_smooth_cyl([0 0 -height], radius, 2*height, ...
+                                            'smooth_dist', smooth_dist), ...
+                        'upsample_ratio', 1, 'f_avg', @my_pass);
+    eps = maxwell_shape(grid, eps, gaas, ...
+                        maxwell_smooth_box([0 0 -2*height], [my_inf my_inf 2*height], ...
+                                            'smooth_dist', smooth_dist), ...
+                        'upsample_ratio', 1, 'f_avg', @my_pass);
+
+    if options.view_only
+        maxwell_view(grid, eps, [], 'y', [0 nan nan]);
+        omega = nan;
+        E = nan;
+        H = nan;
+        return
+    end
+
 
 
         %
