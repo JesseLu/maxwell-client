@@ -30,6 +30,9 @@
 %   allows the user to determine the minimum and maximum values of 
 %   the colorbar.
 %
+% * |maxwell_view(..., 'hide_pml', true)|
+%   removes the pml region from the plot.
+%
 % * |maxwell_view(..., 'reverse_structure', true)|
 %   allows the user to reverse the grayscale/shading used to draw the structure.
 %
@@ -74,6 +77,7 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
                                         'clims', [], ...
                                         'field_phase', 0, ...
                                         'reverse_structure', false, ...
+                                        'hide_pml', false, ...
                                         'show_grid', false), ...
                                 varargin, mfilename);
 
@@ -84,6 +88,9 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
     validateattributes(options.field_phase, {'numeric'}, {'scalar'}, ...
                         'field_phase', mfilename);
+
+    validateattributes(options.hide_pml, {'logical'}, {'binary'}, ...
+                        'hide_pml', mfilename);
 
     validateattributes(options.reverse_structure, {'logical'}, {'binary'}, ...
                         'reverse_structure', mfilename);
@@ -128,8 +135,21 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
     xyz = 'xyz';
     xlabel = xyz(perp_comp(1));
     ylabel = xyz(perp_comp(2));
-    x = pos{perp_comp(1)}(1:end); % Clip off extra position at end.
-    y = pos{perp_comp(2)}(1:end);
+    x = pos{perp_comp(1)};
+    y = pos{perp_comp(2)};
+
+    if options.hide_pml
+        for k = 1 : 2
+            clip{k}(1) = max([min(find(imag(grid.s_prim{perp_comp(k)}) == 0)), ...
+                            min(find(imag(grid.s_dual{perp_comp(k)}) == 0))]);
+            clip{k}(2) = min([max(find(imag(grid.s_prim{perp_comp(k)}) == 0)), ...
+                            max(find(imag(grid.s_dual{perp_comp(k)}) == 0))]);
+        end
+        x = x(clip{1}(1):clip{1}(2)+1);
+        y = y(clip{2}(1):clip{2}(2)+1);
+        m_data = m_data(clip{1}(1):clip{1}(2), clip{2}(1):clip{2}(2));
+        F_data = F_data(clip{1}(1):clip{1}(2), clip{2}(1):clip{2}(2));
+    end
     
 
         %

@@ -29,29 +29,31 @@ function [s_prim, s_dual] = make_scpml(omega, origin, s_prim, s_dual, num_cells)
 %% Source code
 
     % Position functions.
-    pos = origin + [0; cumsum(s_prim(:))]; % Position of grid points.
-    pos_prim = (pos(1:end-1) + pos(2:end)) ./ 2;
-    pos_dual = pos(2:end);
+    pos = origin + [0; cumsum(s_dual(:))]; % Position of grid points.
+    pos_prim = pos(1:end-1);
+    pos_dual = (pos(1:end-1) + pos(2:end)) ./ 2;
 
     border = [pos(1) pos(end)];
     bnd = [pos(num_cells+1), pos(end-num_cells)];
 
+    d = [bnd(1)-border(1), border(2)-bnd(2)];
+
     % Front PML.
     r = 1:num_cells;
     l_over_d = @(pos) (bnd(1) - pos) ./ (bnd(1) - border(1));
-    s_prim(r) = stretch_s(omega, s_prim(r), l_over_d(pos_prim(r)));
-    s_dual(r) = stretch_s(omega, s_dual(r), l_over_d(pos_dual(r)));
+    s_prim(r) = stretch_s(omega, s_prim(r), l_over_d(pos_prim(r)), d(1));
+    s_dual(r) = stretch_s(omega, s_dual(r), l_over_d(pos_dual(r)), d(1));
 
     % Back PML.
     r = length(s_prim) + [-num_cells+1:0];
     l_over_d = @(pos) (pos - bnd(2)) ./ (border(2) - bnd(2));
-    s_prim(r) = stretch_s(omega, s_prim(r), l_over_d(pos_prim(r)));
-    s_dual(r) = stretch_s(omega, s_dual(r), l_over_d(pos_dual(r)));
+    s_prim(r) = stretch_s(omega, s_prim(r), l_over_d(pos_prim(r)), d(2));
+    s_dual(r) = stretch_s(omega, s_dual(r), l_over_d(pos_dual(r)), d(2));
     return
 
-function [s] = stretch_s(omega, s, l_over_d)
+function [s] = stretch_s(omega, s, l_over_d, d)
 % We use the following formula for the imaginary part of s:
-% -4 / (delta * omega) * (l/d)^4
+% -40 / (d * omega) * (l/d)^4
 % where delta is the grid spacing, omega is the frequency,
 % l is the distance inside the pml, and d is the width of the pml.
-    s = s - (4i * l_over_d.^4) ./ (s * omega);
+    s = s .* (1 - (40i * l_over_d.^4) ./ (d * omega));

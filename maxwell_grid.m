@@ -133,6 +133,7 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
         % Compute the s-parameters for the grid (spacing between grid points).
         %
 
+
     % Obtain the s-parameters (real parts).
     [grid.s_prim, grid.s_dual] = my_pos2s({x(:), y(:), z(:)});
 

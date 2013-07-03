@@ -63,7 +63,7 @@ function [x] = my_wing(x, init_delta, rate)
     c(2) = - (init_delta + total_dist) / init_delta;
     c(wing_len+1) = 1;
     r = roots(c(end:-1:1));
-    adjusted_rate = max(r(find(imag(r) == 0 & real(r) > 1)))
+    adjusted_rate = max(r(find(imag(r) == 0 & real(r) > 1)));
 
     % Form tapered wing.
     wing_x(1) = x(1);
