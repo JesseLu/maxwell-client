@@ -12,7 +12,7 @@
 %
 % * |... = maxwell_solve(..., 'vis_progress', vis_opt)|
 %   controls the progress visualization where |vis_opt| can be
-%   |none|, |plot|, |text|, or |both|. Defaults to |plot|.
+%   |none|, |plot|, |text|, or |both|. Defaults to |both|.
 %
 % * |... = maxwell_solve(..., 'E0', E0)|
 %   allows one to control the initial value of E.

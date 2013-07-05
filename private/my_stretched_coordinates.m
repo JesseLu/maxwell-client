@@ -56,4 +56,4 @@ function [s] = stretch_s(omega, s, l_over_d, d)
 % -40 / (d * omega) * (l/d)^4
 % where delta is the grid spacing, omega is the frequency,
 % l is the distance inside the pml, and d is the width of the pml.
-    s = s .* (1 - (40i * l_over_d.^4) ./ (d * omega));
+    s = s .* (1 - (40i * l_over_d.^4) ./ (d * real(omega)));

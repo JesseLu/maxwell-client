@@ -82,14 +82,17 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
         %
 
     % Form the modified matrix and guess eigenvector. 
-    [A, v] = maxwell_axb(grid, [eps mu], E0, my_default_field(grid.shape, 0));
+    [A0, v] = maxwell_axb(grid, [eps mu], E0, my_default_field(grid.shape, 0), ...
+                            'functional', true);
     e = [eps{1}(:); eps{2}(:); eps{3}(:)];
-    A = A + spdiags(grid.omega^2 * e, 0, numel(e), numel(e)); % Remove a term.
+    function [z] = A(z)
+        z = A0(z) + grid.omega^2 * (e .* z);
+    end
     v = v .* sqrt(e); % Transform to "F-space".
 
     % Compose function handles.
-    mult_A = @(v) e.^-0.5 .* (A * (e.^-0.5 .* v));
-    mult_A_dag = @(v) (e.^-0.5 .* (A.' * (e.^-0.5 .* conj(v)))).';
+    mult_A = @(v) e.^-0.5 .* (A(e.^-0.5 .* v));
+    % mult_A_dag = @(v) (e.^-0.5 .* (A.' * (e.^-0.5 .* conj(v)))).';
     sAinv_err = @(l, v, w) norm(mult_A(w) - l * w - v); % Useful for checking.
 
     % Helper functions.

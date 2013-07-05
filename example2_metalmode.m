@@ -89,13 +89,14 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         %
 
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-6, 'vis_progress', 'both'); % Use this solution as an initial guess.
+    [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
     if options.sim_only
         omega = grid.omega;
         return
     end
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'err_thresh', 1e-6); % Use this solution as an initial guess.
-    fprintf('\n');
+
+    
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E); % Use this solution as an initial guess.
 end
 
 function [res] = my_pass(z, ~)

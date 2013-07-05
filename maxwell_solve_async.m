@@ -37,7 +37,6 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
         %
 
     my_axis = gca;
-    start_time = tic;
 
 
         %
@@ -57,7 +56,7 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
     % Optional parameter-value pairs.
     options = my_parse_options(struct(  'E0', {my_default_field(grid.shape, 0)}, ...
-                                        'vis_progress', 'plot', ...
+                                        'vis_progress', 'both', ...
                                         'max_iters', 1e5, ...
                                         'err_thresh', 1e-6), ...
                                 varargin, mfilename);
@@ -114,6 +113,7 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
     p_err = [];
     p_state = [];
     
+    start_time = tic;
     function [is_done, E, H, err] = maxwell_callback()
     % Queries server to inform user of the state of the simulation.
         if ~p_is_done % Not done, keep trying.

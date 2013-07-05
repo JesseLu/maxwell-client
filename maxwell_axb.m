@@ -15,7 +15,13 @@
 %
 % * |[A, x, b] = maxwell_axb(grid, [eps mu], [E H], J)| does the same for 
 %   |mu| not equal to 1.
-
+%
+% * |... = maxwell_axb(..., 'functional', true)|
+%   returns an A which is a function, not a matrix.
+%   Specifically, |A(x)| must be used in place of |A*x|.
+%   This may cut down the memory requirements that a full A-matrix requires
+%   for large simulations.
+%
 
 %%% Description
 % The electromagnetic wave equation for the E-field that Maxwell solves is
@@ -38,7 +44,7 @@
 % to speed up the solve process.
 
 
-function [A, x, b] = maxwell_axb(grid, eps_mu, E_H, J)
+function [A, x, b] = maxwell_axb(grid, eps_mu, E_H, J, varargin)
 
         %
         % Validate and parse input values.
@@ -55,6 +61,12 @@ function [A, x, b] = maxwell_axb(grid, eps_mu, E_H, J)
 
     my_validate_field(J, grid.shape, 'J', mfilename);
 
+    % Parse optional arguments.
+    options = my_parse_options(struct(  'functional', false), ...
+                                varargin, mfilename);
+
+    validateattributes(options.functional, {'logical'}, {'binary'}, ...
+                        'functional', mfilename);
 
 
         %
@@ -72,35 +84,44 @@ function [A, x, b] = maxwell_axb(grid, eps_mu, E_H, J)
         % (The matrices which will be used to build the large A matrix.)
         %
 
-    % Get the relevant derivative matrices.
-    [spx, spy, spz] = ndgrid(grid.s_prim{1}, grid.s_prim{2}, grid.s_prim{3});
-    [sdx, sdy, sdz] = ndgrid(grid.s_dual{1}, grid.s_dual{2}, grid.s_dual{3});
-    
-    % Derivative in x, y, and z directions.
-    Dx = deriv('x', dims); 
-    Dy = deriv('y', dims);
-    Dz = deriv('z', dims);
-    Z = sparse(N, N);
+    if ~options.functional % Build the full matrices.
 
-    % Forward differences (used to compute H from E).
-    Dfx = my_diag(sdx.^-1) * Dx;
-    Dfy = my_diag(sdy.^-1) * Dy;
-    Dfz = my_diag(sdz.^-1) * Dz;
+        % Get the relevant derivative matrices.
+        [spx, spy, spz] = ndgrid(grid.s_prim{1}, grid.s_prim{2}, grid.s_prim{3});
+        [sdx, sdy, sdz] = ndgrid(grid.s_dual{1}, grid.s_dual{2}, grid.s_dual{3});
+        
+        % Derivative in x, y, and z directions.
+        Dx = deriv('x', dims); 
+        Dy = deriv('y', dims);
+        Dz = deriv('z', dims);
+        Z = sparse(N, N);
 
-    % Backward differences (used to compute E from H).
-    Dbx = -my_diag(spx.^-1) * Dx';
-    Dby = -my_diag(spy.^-1) * Dy';
-    Dbz = -my_diag(spz.^-1) * Dz';
+        % Forward differences (used to compute H from E).
+        Dfx = my_diag(sdx.^-1) * Dx;
+        Dfy = my_diag(sdy.^-1) * Dy;
+        Dfz = my_diag(sdz.^-1) * Dz;
 
-    % Form curl matrices.
-    % A1 and A2 compute the curls of H- and E-fields respectively.
-    A1 = [  Z, -Dbz, Dby; ...
-            Dbz, Z, -Dbx; ...
-            -Dby, Dbx, Z];
+        % Backward differences (used to compute E from H).
+        Dbx = -my_diag(spx.^-1) * Dx';
+        Dby = -my_diag(spy.^-1) * Dy';
+        Dbz = -my_diag(spz.^-1) * Dz';
 
-    A2 = [  Z, -Dfz, Dfy; ...
-            Dfz, Z, -Dfx; ...
-            -Dfy, Dfx, Z];
+        % Form curl matrices.
+        % A1 and A2 compute the curls of H- and E-fields respectively.
+        A1 = [  Z, -Dbz, Dby; ...
+                Dbz, Z, -Dbx; ...
+                -Dby, Dbx, Z];
+
+        A2 = [  Z, -Dfz, Dfy; ...
+                Dfz, Z, -Dfx; ...
+                -Dfy, Dfx, Z];
+
+        % Dummy functional forms.
+        [A1_fun, A2_fun] = deal(@()[], @()[]);
+
+    else % Build the functional forms.
+        [A1_fun, A2_fun] = my_functional_A(grid);
+    end
 
     % Form vectors representing the permittivity and permeability.
     m = [mu{1}(:) ; mu{2}(:) ; mu{3}(:)];
@@ -111,17 +132,43 @@ function [A, x, b] = maxwell_axb(grid, eps_mu, E_H, J)
         % Form final output matrix and vectors..
         %
 
-    if isempty(H) % Wave equation in E.
-        A = A1 * my_diag(1./m) * A2 - grid.omega^2 * my_diag(e);
+    % Inline functions in case we need them.
+    function [z] = multA_E(x)
+        z = A1_fun((1./m) .* A2_fun(x)) - grid.omega^2 * (e .* x);
+    end
+
+    function [z] = multA_EH(x)
+        x1 = x(1:3*N);
+        x2 = x(3*N+1:end);
+        z = [   (A1_fun(x2) - 1i * grid.omega * (e .* x1)); ...
+                (A2_fun(x1) + 1i * grid.omega * (m .* x2))]; 
+    end
+
+    % Assign A appropriately.
+    if ~options.functional
+        if isempty(H) % Wave equation in E.
+            A = A1 * my_diag(1./m) * A2 - grid.omega^2 * my_diag(e);
+        else % Wave equation in E and H.
+            A = [-1i*grid.omega*my_diag(e), A1; A2, +1i*grid.omega*my_diag(m)];
+        end
+
+    else
+        if isempty(H) % Wave equation in E.
+            A = @multA_E;
+        else % Wave equation in E and H.
+            A = @multA_EH;
+        end
+    end
+
+    % Calculate x and b vectors.
+    if isempty(H)
         x = [E{1}(:) ; E{2}(:) ; E{3}(:)];
         b = -i * grid.omega * [J{1}(:) ; J{2}(:) ; J{3}(:)];
-
-    else % Wave equation in E and H.
-        A = [-1i*grid.omega*my_diag(e), A1; A2, +1i*grid.omega*my_diag(m)];
+    else
         x = [E{1}(:) ; E{2}(:) ; E{3}(:) ; H{1}(:) ; H{2}(:) ; H{3}(:)];
         b = [J{1}(:) ; J{2}(:) ; J{3}(:); zeros(3*N, 1)];
     end
-
+end
 
 
 function [D] = deriv(dir, shape)
@@ -145,3 +192,4 @@ function [D] = deriv(dir, shape)
     % Create the sparse matrix.
     D = sparse([i_ind(:); i_ind(:)], [i_ind(:), j_ind(:)], ...
                 [-ones(N,1); ones(N,1)], N, N);
+end
