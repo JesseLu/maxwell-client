@@ -1,13 +1,12 @@
 % Simulate L3 photonic crystal cavity.
 
-function [omega, E, H, grid, eps] = example3_L3cavity(varargin)
+function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
 
         %
         % Get optional parameters.
         %
 
     options = my_parse_options(struct(  'flatten', false, ...
-                                        'guess_omega', 0.078, ...
                                         'sim_only', false), ...
                                 varargin, mfilename);
 
@@ -16,17 +15,27 @@ function [omega, E, H, grid, eps] = example3_L3cavity(varargin)
         % Load the structure and create grid for it.
         %
 
-    omega = 0.0785;
-    omega = options.guess_omega;
-    eps = getfield(load('l3.mat'), 'eps');
+    switch cavity_type
+        case 'L3'
+            filename = 'l3.mat';
+            omega_guess = struct('D2', 0.063, 'D3', 0.078);
+        case 'beam'
+            filename = 'beam.mat';
+            omega_guess = struct('D2', 0.062, 'D3', 0.078);
+        otherwise
+            error('cavity_type must either be ''L3'' or ''beam''.');
+    end
+
+    eps = getfield(load(filename), 'eps');
+    omega = omega_guess.D3; % Guess frequency for 3D.
     dims = size(eps{1});
 
     if options.flatten % Make 2D, if needed.
         for k = 1 : 3
             eps{k} = eps{k}(:,:,round(dims(3)/2));
         end
+        omega = omega_guess.D2; % Guess frequency for 2D.
         dims(3) = 1;
-        omega = 0.063;
     end
         
 
@@ -37,11 +46,20 @@ function [omega, E, H, grid, eps] = example3_L3cavity(varargin)
 
     
         %
-        % Simulate with point source for initial guess field.
+        % Obtain initial field by doing a simulation!
         %
 
     c = round(dims/2);
-    J{2}(c(1), c(2), c(3)) = 1;
+    if options.flatten % Use point source to excite 2D mode.
+        J{2}(c(1), c(2), c(3)) = 1;
+        fprintf('=== 2D solve ===\n');
+    else
+        % To get the current excitation for 3D, use the 2D mode.
+        % We do this via a recursive call.
+        [~, E] = example3_cavitymode(cavity_type, 'flatten', true); 
+        J{2}(:,:,c(3)) = E{2};
+        fprintf('=== 3D solve ===\n');
+    end
 
     fprintf('Solving for initial field... ');
     [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
@@ -58,5 +76,5 @@ function [omega, E, H, grid, eps] = example3_L3cavity(varargin)
         % Find the eigenmode, using previous result as initial guess field.
         %
     
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'eig_max_iters', 2); 
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E);
 
