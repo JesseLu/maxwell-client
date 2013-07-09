@@ -7,6 +7,7 @@ function [omega, E, H, grid, eps] = example3_L3cavity(varargin)
         %
 
     options = my_parse_options(struct(  'flatten', false, ...
+                                        'guess_omega', 0.078, ...
                                         'sim_only', false), ...
                                 varargin, mfilename);
 
@@ -15,7 +16,8 @@ function [omega, E, H, grid, eps] = example3_L3cavity(varargin)
         % Load the structure and create grid for it.
         %
 
-    omega = 0.078;
+    omega = 0.0785;
+    omega = options.guess_omega;
     eps = getfield(load('l3.mat'), 'eps');
     dims = size(eps{1});
 
@@ -44,6 +46,8 @@ function [omega, E, H, grid, eps] = example3_L3cavity(varargin)
     fprintf('Solving for initial field... ');
     [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
 
+    maxwell_view(grid, eps, E, 'y', [nan nan 0]);
+
     if options.sim_only
         omega = grid.omega;
         return
@@ -54,5 +58,5 @@ function [omega, E, H, grid, eps] = example3_L3cavity(varargin)
         % Find the eigenmode, using previous result as initial guess field.
         %
     
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E); 
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'eig_max_iters', 2); 
 

@@ -25,6 +25,12 @@ function my_upload(filenames, local_dir, url)
             error('%s', char(urlConn{k}.getHeaderField(0)));
         end
     end
+
+    % Close connection.
+    for k = 1 : length(filenames)
+        outputStream{k}.close();
+        urlConn{k}.disconnect();
+    end
 end
 
 %% Open a connection (POST).

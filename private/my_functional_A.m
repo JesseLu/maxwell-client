@@ -2,17 +2,7 @@ function [A1, A2] = my_functional_A(grid)
 % Here, A1 referes to curl on H-fields, and A2 refers to curl on E-fields.
 
     n = prod(grid.shape);
-
-    % Inline functions to vectorize and unvectorize.
-    function [z] = vec(z)
-        z = [z{1}(:); z{2}(:); z{3}(:)];
-    end
-
-    function [z] = unvec(z0)
-        [z{1}, z{2}, z{3}] = deal(  reshape(z0(1:n), grid.shape), ...
-                                    reshape(z0(n+1:2*n), grid.shape), ...
-                                    reshape(z0(2*n+1:3*n), grid.shape));
-    end
+    [vec, unvec] = my_vec(grid.shape);
 
     % Inline function that takes (backward) derivatives of H.
     [spx, spy, spz] = ndgrid(grid.s_prim{1}, grid.s_prim{2}, grid.s_prim{3});

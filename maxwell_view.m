@@ -118,7 +118,7 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
     % Find index which is closest to the slice position.
     [~, ind] = min(abs(pos{slice_comp} - slice_ind(slice_comp)));
     if ind == length(pos{slice_comp}) % Special case related to extra pos.
-        ind = 1
+        ind = 1;
     end
 
     % Extract out the relevant slice.
