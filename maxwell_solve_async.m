@@ -178,6 +178,8 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
             hold off
         end
 
+        java.lang.System.gc(); % Request garbage collection for Java.
+        pause(0.1);
     end
 
     cb = @maxwell_callback;
