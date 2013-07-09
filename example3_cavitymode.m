@@ -7,6 +7,8 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         %
 
     options = my_parse_options(struct(  'flatten', false, ...
+                                        'omega_guess', [], ...
+                                        'central_Jy', [], ...
                                         'sim_only', false), ...
                                 varargin, mfilename);
 
@@ -21,7 +23,10 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
             omega_guess = struct('D2', 0.063, 'D3', 0.078);
         case 'beam'
             filename = 'beam.mat';
-            omega_guess = struct('D2', 0.062, 'D3', 0.078);
+            omega_guess = struct('D2', 0.062, 'D3', 0.083);
+        case 'beam2w'
+            filename = 'beam.mat';
+            omega_guess = struct('D2', 0.120, 'D3', 0.166);
         otherwise
             error('cavity_type must either be ''L3'' or ''beam''.');
     end
@@ -36,6 +41,10 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         end
         omega = omega_guess.D2; % Guess frequency for 2D.
         dims(3) = 1;
+    end
+
+    if ~isempty(options.omega_guess)
+        omega = options.omega_guess;
     end
         
 
@@ -59,6 +68,10 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         [~, E] = example3_cavitymode(cavity_type, 'flatten', true); 
         J{2}(:,:,c(3)) = E{2};
         fprintf('=== 3D solve ===\n');
+    end
+
+    if ~isempty(options.central_Jy)
+        J{2}(:,:,c(3)) = options.central_Jy;
     end
 
     fprintf('Solving for initial field... ');
