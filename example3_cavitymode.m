@@ -23,7 +23,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
             omega_guess = struct('D2', 0.063, 'D3', 0.078);
         case 'beam'
             filename = 'beam.mat';
-            omega_guess = struct('D2', 0.062, 'D3', 0.083);
+            omega_guess = struct('D2', 0.062, 'D3', 0.080);
         case 'beam2w'
             filename = 'beam.mat';
             omega_guess = struct('D2', 0.120, 'D3', 0.166);
