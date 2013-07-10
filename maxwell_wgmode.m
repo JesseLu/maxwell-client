@@ -21,6 +21,9 @@
 % * |... = maxwell_wgmode(..., 'mode_number', m)|
 %   returns the |m|-th order mode, where |m = 1| denotes the fundamental mode.
 %   Defaults to 1.
+%
+% * |... = maxwell_wgmode(..., 'view', true)|
+%   plots the fields of the waveguide mode.
 
 %% solve_waveguide_mode
 % Find the mode of a waveguide, as well as the current excitation for it.
@@ -87,11 +90,11 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
 
     % Optional arguments.
     options = my_parse_options(struct(  'mode_number', 1, ...
-                                        'pause_and_view', false), ...
+                                        'view', false), ...
                                 varargin, mfilename);
     validateattributes(options.mode_number, {'numeric'}, ...
                         {'positive', 'integer'}, mfilename, 'mode_number');
-    validateattributes(options.pause_and_view, {'logical'}, ...
+    validateattributes(options.view, {'logical'}, ...
                         {'binary'}, mfilename, 'pause_and_view');
 
 
@@ -169,6 +172,7 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
         %
 
     % Perform Rayleigh quotient iteration to get the mode of the full operator.
+    v_norqi = v;
     lambda = v' * A * v;
     rqi_done = false;
     for k = 1 : 40 
@@ -182,7 +186,8 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
         lambda = v' * A * v;
     end
     if ~rqi_done 
-        error('Did not converge to mode, rqi error: %e.', err(end));
+        warning('Did not converge to mode, rqi error: %e.', err(end));
+        v = v_norqi;
     end
 
 
@@ -250,7 +255,7 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
     for k = 1 : 3  
         J{k}(ps0(1):ps1(1), ps0(2):ps1(2), ps0(3):ps1(3)) = ...
             -1 * J{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3)) * ...
-            exp(coeff * i * beta * dl);
+            exp(-1i * beta * dl);
     end
 
     % Re-normalize so power flow is maintained at 1.
@@ -263,7 +268,7 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
         % Plot fields, if desired.
         %
 
-    if options.pause_and_view
+    if options.view
         f = {E_small{:}, H_small{:}};
         title_text = {'Ex', 'Ey', 'Ez', 'Hx', 'Hy', 'Hz'};
         for k = 1 : 6
@@ -271,7 +276,7 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
             my_plot(reshape(real(f{k}), sub_shape));
             title(title_text{k});
         end
-        pause
+        drawnow;
     end
 
 

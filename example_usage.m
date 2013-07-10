@@ -36,10 +36,7 @@ eps = maxwell_shape(grid, eps, 10, maxwell_box(box_pos, box_size));
 
 % Construct excitation source.
 [J, E1, H1] = maxwell_wgmode(grid, [eps, mu], [40 40 20], [+inf 50 50], ...
-                            'mode_number', 1, 'pause_and_view', false);
-
-[J, E1, H1] = maxwell_gaussian(grid, [eps, mu], [0 0 20], [80 80 -inf], ...
-                                'focus', [0 0 0], 'waist', 40);
+                            'mode_number', 1, 'view', false);
 
 % Solve.
 E = maxwell_solve(grid, eps, J);

@@ -1,6 +1,10 @@
 function [x] = my_insert_hires(x, center, width, delta, rate)
 % Insert hi-resolution grid.
 
+    if length(x) == 1 % Don't do anything for this case.
+        return
+    end
+
     % Determine index range to replace.
     ind0 = max([1; find(x <= center - width/2)]);
     ind1 = min([length(x); find(x >= center + width/2)]);

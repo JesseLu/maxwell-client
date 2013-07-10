@@ -37,7 +37,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     wg_width = 0.4;
     si_eps = 13;
 
-    % Draw ring.
+    % Draw waveguide.
     eps = maxwell_shape(grid, eps, si_eps, ...
                         maxwell_box([0 0 0], [inf wg_width wg_height]));
 
