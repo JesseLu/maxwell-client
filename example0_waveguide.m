@@ -2,7 +2,7 @@
 % Waveguide example.
 
 
-function [omega, E, H, grid, eps] = example0_waveguide(varargin)
+function [E, H, grid, eps] = example0_waveguide(varargin)
 
 
         %
@@ -29,18 +29,17 @@ function [omega, E, H, grid, eps] = example0_waveguide(varargin)
 
 
         %
-        % Setup the ring.
+        % Setup the waveguide.
         %
 
     % Structure constants.
     wg_height = 0.2;
     wg_width = 0.4;
     si_eps = 13;
-    air_eps = 1;
 
     % Draw ring.
-    eps = maxwell_shape(grid, eps, air_eps, ...
-                        maxwell_box([0 0 0], [inf wg_width wg_height);
+    eps = maxwell_shape(grid, eps, si_eps, ...
+                        maxwell_box([0 0 0], [inf wg_width wg_height]));
 
 
         %
@@ -53,4 +52,11 @@ function [omega, E, H, grid, eps] = example0_waveguide(varargin)
     fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
     maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
+
+
+        % 
+        % Measure the output powers.
+        %
+
+    maxwell_flux(grid, [E H], [0 0 0], [+inf 100 100])
 

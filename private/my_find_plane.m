@@ -34,9 +34,9 @@ function [p0, p1, prop_dir, prop_pos] = ...
                 p0(k) = ind;
 
                 if box{2}(k) >= pos{k}(end)
-                    ind = length(pos{k});
+                    ind = length(pos{k})-1;
                 else
-                    ind = min(find(pos{k} >= box{2}(k)));
+                    ind = min(find(pos{k}(1:end-1) >= box{2}(k)));
                 end
                 p1(k) = ind;
             end

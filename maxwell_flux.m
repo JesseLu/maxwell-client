@@ -59,7 +59,7 @@ function [P] = maxwell_flux(grid, E_H, varargin)
 
     function [F] = my_project(F1, F2)
     % Project z1 onto (normalized) z2.
-        F = unvec(vec(F1) * dot(vec(F1), vec(F2)) / norm(vec(F2));
+        F = unvec(vec(F1) * dot(vec(F1), vec(F2)) / norm(vec(F2)));
     end
 
     % Filter.
@@ -72,32 +72,75 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         %
         % Cut out slice, if needed.
         %
-
-    if ~isempty(plane_pos)
-        [p0, p1, prop_dir, prop_pos] = my_find_plane(grid, plane_pos, plane_size);
-
-        % Cut out the plane.
+    if ~isempty(E1) % Find prop_dir for filtered case.
         for k = 1 : 3
-            sp{k} = grid.s_prim{k}(p0(k):p1(k));
-            sd{k} = grid.s_dual{k}(p0(k):p1(k));
-            E{k} = E{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
-            H{k} = H{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
+            [ind{k}{1}, ind{k}{2}, ind{k}{3}] = ...
+                    ind2sub(size(E1{k}), find(E1{k} ~= 0)); 
         end
+        
+        for k = 1 : 3
+            ind1 = [ind{k}{1}(:); ind{k}{2}(:); ind{k}{3}(:)];
+            ind_range(k) = max(ind1) - min(ind1);
+        end
+        ind_range(find(grid.shape) == 1) = inf;
+
+        [pos, prop_ind] = min(ind_range);
+
+        plane_pos = zeros(3, 1);
+        plane_pos(p_dir) = pos;
+
+        plane_size = ones(3, 1);
+        plane_size(prop_ind) = +inf;
+    end
+     
+    [p0, p1, prop_dir, prop_in_pos_dir] = my_find_plane(grid, plane_pos, plane_size);
+
+    if ~isempty(E1)
+        for k = 1 : 3
+            if k ~= prop_dir
+                p0(k) = 1;
+                p1(k) = grid.shape(k);
+            end
+        end
+    end
+    p0
+    p1
+
+    % Cut out the plane.
+    for k = 1 : 3
+        sp{k} = grid.s_prim{k}(p0(k):p1(k));
+        sd{k} = grid.s_dual{k}(p0(k):p1(k));
+        E{k} = E{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
+        H{k} = H{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
     end
 
 
-    % TODO: Fix this, need to find prop_dir for filtered case.
     % Always need to ignore the field in the direction of propagation.
     a_dir = mod(prop_dir, 3) + 1;
     b_dir = mod(prop_dir+1, 3) + 1;
-    Ea = E{a_dir};
-    Ha = H{a_dir};
-    Eb = E{b_dir};
-    Hb = H{b_dir};
+
+    function [d] = s2d(s)
+        if numel(s) == 1 && isinf(s)
+            d = 1;
+        else
+            d = 1 ./ real(s);
+        end
+    end
+
+    [xa, ya, Ea, Ha] = deal(s2d(sd{a_dir}), ...
+                            s2d(sp{b_dir}), ...
+                            E{a_dir}, ...
+                            H{a_dir});
+
+    [xb, yb, Eb, Hb] = deal(s2d(sp{b_dir}), ...
+                            s2d(sd{a_dir}), ...
+                            E{b_dir}, ...
+                            H{b_dir});
 
 
         %
         % Calculate the power.
         %
 
-    P = dot(Ea(:), Ha(:)) + dot(Eb(:), Hb(:));
+    P = dot(xa .* ya .* Ea(:), Ha(:)) + dot(xb .* yb .* Eb(:), Hb(:));
+end
