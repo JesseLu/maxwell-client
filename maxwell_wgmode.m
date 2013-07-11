@@ -226,6 +226,11 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
 %     % TODO: Check is this correction is needed.
 %     E_small{prop_dir} = coeff * E_small{prop_dir};
 %     H_small{prop_dir} = coeff * H_small{prop_dir};
+    for k = 1 : 3
+        if k ~= prop_dir
+            H_small{k} = coeff * H_small{k};
+        end
+    end
 
     % Expand the fields to span the entire simulation space.
     for k = 1 : 3

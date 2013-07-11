@@ -47,8 +47,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
         %
 
     % Excitation for the fundamental mode (of the ring's waveguide).
-    [J, E1, H1] = maxwell_wgmode(grid, eps, [-2 0 0], [+inf 3 3], 'mode_number', mode_num);
-    [~, E1, H1] = maxwell_wgmode(grid, eps, [2 0 0], [+inf 3 3], 'mode_number', mode_num);
+    J = maxwell_wgmode(grid, eps, [-2 0 0], [+inf 3 3], 'mode_number', mode_num);
 
     fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
@@ -59,15 +58,12 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
         % Measure the output powers.
         %
 
-    xm = -3:0.1:3;
-    for k = 1 : length(xm)
-        P(k) = maxwell_flux(grid, [E H], [xm(k) 0 0], [+inf 100 100]);
-    end
+    % Solve wgmode for filtering out the mode we care about.
+    [~, E1, H1] = maxwell_wgmode(grid, eps, [0 0 0], [+inf 3 3], 'mode_number', 1);
 
-    P = P(:);
-    plot([real(P), imag(P)], '.-');
-    figure(1)
-    maxwell_flux(grid, [E H], [2 0 0], [+inf 100 100])
-    figure(2)
-    maxwell_flux(grid, [E H], [E1 H1])
+    P0 = maxwell_flux(grid, [E H], [0 0 0], [+inf 100 100]);
+    P1 = maxwell_flux(grid, [E H], [E1 H1]);
+    fprintf('Output powers at x = 2,\n');
+    fprintf('Total power: %1.5f\n', P0);
+    fprintf('Power in mode: %1.5f\n', P1);
 
