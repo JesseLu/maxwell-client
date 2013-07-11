@@ -59,7 +59,7 @@ function [P] = maxwell_flux(grid, E_H, varargin)
 
     function [F] = my_project(F1, F2)
     % Project z1 onto (normalized) z2.
-        F = unvec(vec(F1) * dot(vec(F1), vec(F2)) / norm(vec(F2)));
+        F = unvec(vec(F2) * dot(vec(F1), vec(F2)) / norm(vec(F2))^2);
     end
 
     % Filter.
@@ -72,24 +72,37 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         %
         % Cut out slice, if needed.
         %
+
     if ~isempty(E1) % Find prop_dir for filtered case.
         for k = 1 : 3
             [ind{k}{1}, ind{k}{2}, ind{k}{3}] = ...
-                    ind2sub(size(E1{k}), find(E1{k} ~= 0)); 
+                    ind2sub(size(E1{k}), find(E1{k}(:) ~= 0)); 
         end
         
         for k = 1 : 3
-            ind1 = [ind{k}{1}(:); ind{k}{2}(:); ind{k}{3}(:)];
-            ind_range(k) = max(ind1) - min(ind1);
+            ind1{k} = [ind{1}{k}(:); ind{2}{k}(:); ind{3}{k}(:)];
+            ind_range(k) = max(ind1{k}) - min(ind1{k});
         end
-        ind_range(find(grid.shape) == 1) = inf;
+        ind_range(find(grid.shape == 1)) = inf;
 
-        [pos, prop_ind] = min(ind_range);
+        [~, prop_ind] = min(ind_range);
+        pos = my_s2pos(grid); 
+        mode(ind1{prop_ind})
+        perp_ind = mod(prop_ind, 3) + 1;
+        prop_pos = pos{perp_ind}{prop_ind}(mode(ind1{prop_ind}))
 
-        plane_pos = zeros(3, 1);
-        plane_pos(p_dir) = pos;
+        for k = 1 : 3
+            grid_extent(k) = sum(real(grid.s_prim{k}));
+            if isinf(grid_extent(k))
+                grid_extent = realmax;
+            end
+        end
+        grid_center = grid.origin + grid_extent;
 
-        plane_size = ones(3, 1);
+        plane_pos = grid_center;
+        plane_pos(prop_ind) = prop_pos;
+
+        plane_size = 2 * grid_extent;
         plane_size(prop_ind) = +inf;
     end
      
@@ -111,7 +124,6 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         E{k} = E{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
         H{k} = H{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3));
     end
-
 
     % Always need to ignore the field in the direction of propagation.
     a_dir = mod(prop_dir, 3) + 1;
@@ -140,7 +152,7 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         % Calculate the power.
         %
 
-    P = dot(xa .* ya .* Ea(:), Ha(:)) + dot(xb .* yb .* Eb(:), Hb(:));
+    P = real(dot(xa .* ya .* Ea(:), Ha(:)) + dot(xb .* yb .* Eb(:), Hb(:)))/2;
 
     f = {Ea(:), Ha(:), Eb(:), Hb(:)};
     for k = 1 : length(f)
