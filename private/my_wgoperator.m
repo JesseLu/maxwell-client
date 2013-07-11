@@ -38,7 +38,6 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         [Dbx; Dby] * inv_mu_z * [Dfx, Dfy] * mu_xy;
 
     % Build secondary operator to compute full h-field.
-    % TODO: Hmmm.... Problem here with 2D...
     v2h = @(beta, v)  [v; ((inv_mu_z * [Dfx, Dfy] * mu_xy * v) ./ (-i * beta))];
 
     % Build secondary operator to compute the error in the wave equation.
@@ -94,7 +93,7 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         d_dual_x = my_s2d(s_dual_x);
         d_prim_y = my_s2d(s_prim_y);
         d_dual_y = my_s2d(s_dual_y);
-        norm_amplitude = abs(real(...
+        norm_amplitude = abs(0.5 * real(...
                 dot(d_prim_x.*d_dual_y.*e(1:n), h(n+1:2*n)) + ...
                 dot(d_dual_x.*d_prim_y.*e(n+1:2*n), -h(1:n))))^-0.5;
 
@@ -118,7 +117,8 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         H = vec2field(h);
 
         % Normalization factor for current excitation (some special sauce!).
-        nf_j = 2 * cos(beta/2 * prop_step) ;
+        % Result from a maximum beta of pi/prop_step for discretized grids.
+        nf_j = 1 + cos(real(beta)/2 * prop_step) ;
         J = vec2field(nf_j * v2j(v));
 
         % Error in waveguide mode equation.
