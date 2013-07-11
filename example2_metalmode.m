@@ -37,7 +37,6 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
     % Structure constants.
     radius = 50;
     height = 200;
-    smooth_dist = 1e-5;
 
     gaas = 3.5^2;
     silver = -40-4i;
@@ -52,14 +51,11 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
     fprintf('Building shapes [%dx%dx%d grid]...\n', grid.shape);
 
     eps = maxwell_shape(grid, eps, silver, ...
-                        maxwell_smooth_box([0 0 -height/2], [my_inf, my_inf, height], ...
-                                            'smooth_dist', smooth_dist));
+                    maxwell_box([0 0 -height/2], [my_inf, my_inf, height]));
     eps = maxwell_shape(grid, eps, gaas, ...
-                        maxwell_smooth_cyl([0 0 -height], radius, 2*height, ...
-                                            'smooth_dist', smooth_dist));
+                    maxwell_cyl([0 0 -height], radius, 2*height));
     eps = maxwell_shape(grid, eps, gaas, ...
-                        maxwell_smooth_box([0 0 z(1)], [my_inf my_inf 2*(-z(1)-height)], ...
-                                            'smooth_dist', smooth_dist));
+                    maxwell_box([0 0 z(1)], [my_inf my_inf 2*(-z(1)-height)]));
 
     if options.view_only
         maxwell_view(grid, eps, [], 'y', [0 nan nan]);
@@ -77,23 +73,28 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
 
     c = round(grid.shape/2); % Center.
     J{2}(:, :, end-12) = 1;
-    % J{1}(c(1), c(2), c(3)) = 1;
-    % J{1}(c(1)+[-5:5], c(2)+[-5:5], c(3)) = 1;
 
 
         %
-        % Solve.
+        % Solve initial simulation.
         %
 
-    function my_vis()
-    end
-    omega = grid.omega;
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-6, 'vis_progress', 'both'); % Use this solution as an initial guess.
+    [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
+
+    maxwell_view(grid, eps, E, 'y', [nan nan 0]);
+    
     if options.sim_only
+        omega = grid.omega;
         return
     end
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'err_thresh', 1e-6); % Use this solution as an initial guess.
+
+
+        % 
+        % Find the eigenmode, using the previous solution field as initial guess.
+        %
+
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E);
     fprintf('\n');
 end
 
