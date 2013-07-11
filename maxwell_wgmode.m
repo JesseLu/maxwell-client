@@ -119,8 +119,12 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
         % for the waveguide mode within the plane.
         %
 
+    % Step size in propagation direction.
+    prop_step = real(grid.s_dual{prop_dir}(p0(prop_dir))); 
+
     % Full complex operator.
-    [A, get_wg_fields] = my_wgoperator(grid.omega, sp, sd, e, m, prop_dir, sub_shape);
+    [A, get_wg_fields] = my_wgoperator(grid.omega, sp, sd, e, m, ...
+                                        prop_dir, prop_step, sub_shape);
 
     for k = 1 : 3
         sp_r{k} = real(sp{k});
@@ -130,7 +134,8 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
     end
 
     % Real-only operator.
-    A_r = my_wgoperator(real(grid.omega), sp_r, sd_r, e_r, m_r, prop_dir, sub_shape);
+    A_r = my_wgoperator(real(grid.omega), sp_r, sd_r, e_r, m_r, ...
+                                        prop_dir, prop_step, sub_shape);
 
 
         %

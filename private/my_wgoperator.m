@@ -1,6 +1,6 @@
 %% Private wg_operator function.
 function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ...
-                                            prop_dir, shape)
+                                            prop_dir, prop_step, shape)
 % Builds the operator (represented by matrix A), which defines the eigenmode 
 % problem.
 % Also provides the function get_wg_fields to obtain relevant parameters from
@@ -94,9 +94,9 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         d_dual_x = my_s2d(s_dual_x);
         d_prim_y = my_s2d(s_prim_y);
         d_dual_y = my_s2d(s_dual_y);
-        norm_amplitude = abs(...
+        norm_amplitude = abs(real(...
                 dot(d_prim_x.*d_dual_y.*e(1:n), h(n+1:2*n)) + ...
-                dot(d_dual_x.*d_prim_y.*-e(n+1:2*n), h(1:n)))^-0.5;
+                dot(d_dual_x.*d_prim_y.*e(n+1:2*n), -h(1:n))))^-0.5;
 
         % Use the element of the E-field with largest magnitude as a phase reference.
         % Actually, only use the first element...
@@ -118,7 +118,7 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         H = vec2field(h);
 
         % Normalization factor for current excitation (some special sauce!).
-        nf_j = 2 * cos(beta/2) ;
+        nf_j = 2 * cos(beta/2 * prop_step) ;
         J = vec2field(nf_j * v2j(v));
 
         % Error in waveguide mode equation.

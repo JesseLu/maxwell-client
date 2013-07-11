@@ -103,8 +103,6 @@ function [P] = maxwell_flux(grid, E_H, varargin)
             end
         end
     end
-    p0
-    p1
 
     % Cut out the plane.
     for k = 1 : 3
@@ -123,19 +121,19 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         if numel(s) == 1 && isinf(s)
             d = 1;
         else
-            d = 1 ./ real(s);
+            d = 1 ./ real(s(:));
         end
     end
 
     [xa, ya, Ea, Ha] = deal(s2d(sd{a_dir}), ...
                             s2d(sp{b_dir}), ...
                             E{a_dir}, ...
-                            H{a_dir});
+                            H{b_dir});
 
     [xb, yb, Eb, Hb] = deal(s2d(sp{b_dir}), ...
                             s2d(sd{a_dir}), ...
                             E{b_dir}, ...
-                            H{b_dir});
+                            -H{a_dir});
 
 
         %
@@ -143,4 +141,10 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         %
 
     P = dot(xa .* ya .* Ea(:), Ha(:)) + dot(xb .* yb .* Eb(:), Hb(:));
+
+    f = {Ea(:), Ha(:), Eb(:), Hb(:)};
+    for k = 1 : length(f)
+        subplot(1, length(f), k);
+        plot([real(f{k}), imag(f{k})], '.-');
+    end
 end
