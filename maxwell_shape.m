@@ -11,7 +11,7 @@
 %   modifies both |eps| and |mu|.
 %
 % * |... = maxwell_shape(..., 'upsample_ratio', ratio)|
-%   allows for an upsampling ratio of |ratio|, defaults to |ratio = 6|.
+%   allows for an upsampling ratio of |ratio|, defaults to |ratio = 1|.
 %
 % * |... = maxwell_shape(..., 'f_avg', f_avg, 'f_rep', f_rep)|
 %   allows for custom functions which determine the averaging function
@@ -78,7 +78,7 @@ function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
     validateattributes(f, {'function_handle'}, {}, mfilename, 'f');
 
     % Optional arguments.
-    options = my_parse_options(struct(  'upsample_ratio', 6, ...
+    options = my_parse_options(struct(  'upsample_ratio', 1, ...
                                         'f_avg', @default_f_avg, ...
                                         'f_rep', @default_f_rep), ...
                                 varargin, mfilename);

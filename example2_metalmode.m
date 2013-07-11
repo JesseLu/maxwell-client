@@ -20,12 +20,10 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         % Create grid.
         %
 
-    omega = 2*pi/900;
-    extra = 400;
-    % extra = 0;
-    x = -200-extra : options.delta : 200+extra;
-    y = -200-extra : options.delta : 200+extra;
-    z = -300-extra : options.delta : 100+extra;
+    omega = 2*pi/940;
+    x = -600 : options.delta : 600;
+    y = -600 : options.delta : 600;
+    z = -700 : options.delta : 500;
     if options.flatten
         x = 0;
     end
@@ -34,8 +32,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
 
     [grid, eps, ~, J] = maxwell_grid(omega, x, y, z, ...
                                         'hires_box', hires_option, ...
-                                        'growth_rate', 1.3);
-
+                                        'growth_rate', 1.1);
 
     % Structure constants.
     radius = 50;
@@ -56,16 +53,13 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
 
     eps = maxwell_shape(grid, eps, silver, ...
                         maxwell_smooth_box([0 0 -height/2], [my_inf, my_inf, height], ...
-                                            'smooth_dist', smooth_dist), ...
-                        'upsample_ratio', 1, 'f_avg', @my_pass);
+                                            'smooth_dist', smooth_dist));
     eps = maxwell_shape(grid, eps, gaas, ...
                         maxwell_smooth_cyl([0 0 -height], radius, 2*height, ...
-                                            'smooth_dist', smooth_dist), ...
-                        'upsample_ratio', 1, 'f_avg', @my_pass);
+                                            'smooth_dist', smooth_dist));
     eps = maxwell_shape(grid, eps, gaas, ...
                         maxwell_smooth_box([0 0 z(1)], [my_inf my_inf 2*(-z(1)-height)], ...
-                                            'smooth_dist', smooth_dist), ...
-                        'upsample_ratio', 1, 'f_avg', @my_pass);
+                                            'smooth_dist', smooth_dist));
 
     if options.view_only
         maxwell_view(grid, eps, [], 'y', [0 nan nan]);
@@ -78,38 +72,29 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
 
 
         %
-        % Get excitation.
+        % Point excitation in center for initial excitation.
         %
 
-    c = round(grid.shape/2);
-    if options.flatten % Use plane wave to solve 2D mode.
-        J{2}(:, :, end-12) = 1;
-        J{2}(c(1), c(2), c(3)) = 1;
-        % J = maxwell_wgmode(grid, eps, [0 0 100], [1e4 1e4 -inf], 'mode_number', 2, 'view', true);
-        fprintf('=== 2D solve ===\n');
-    else
-        % To get the current excitation for 3D, use the 2D mode.
-        % We do this via a recursive call.
-        [~, E] = example2_metalmode('flatten', true); 
-        J{2}(:,round(grid.shape(2)/2), :) = E{2};
-        fprintf('=== 3D solve ===\n');
-    end
+    c = round(grid.shape/2); % Center.
+    J{2}(:, :, end-12) = 1;
+    % J{1}(c(1), c(2), c(3)) = 1;
+    % J{1}(c(1)+[-5:5], c(2)+[-5:5], c(3)) = 1;
 
 
         %
         % Solve.
         %
 
+    function my_vis()
+    end
+    omega = grid.omega;
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
-    maxwell_view(grid, eps, E, 'y', [0 nan nan]);
-
+    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-6, 'vis_progress', 'both'); % Use this solution as an initial guess.
     if options.sim_only
-        omega = grid.omega;
         return
     end
-
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'eig_err_thresh', 1e-10); % Use this solution as an initial guess.
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'err_thresh', 1e-6); % Use this solution as an initial guess.
+    fprintf('\n');
 end
 
 function [res] = my_pass(z, ~)

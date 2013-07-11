@@ -85,8 +85,9 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
     [A0, v] = maxwell_axb(grid, [eps mu], E0, my_default_field(grid.shape, 0), ...
                             'functional', true);
     e = [eps{1}(:); eps{2}(:); eps{3}(:)];
+    omega0 = grid.omega; % Constant omega for the inline function!!
     function [z] = A(z)
-        z = A0(z) + grid.omega^2 * (e .* z);
+        z = A0(z) + omega0^2 * (e .* z);
     end
     v = v .* sqrt(e); % Transform to "F-space".
 
