@@ -18,14 +18,19 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
         %
 
     % Make a grid for a wavelength of 1550 nm.
+    omega = 2 * pi/1.55;
+    x = -2 : 0.05 : 2;
+    y = -1 : 0.05 : 1;
+    z = -1 : 0.05 : 1;
     if options.flatten
-        [grid, eps] = maxwell_grid(2*pi/1.55, -2:0.05:2, -2:0.05:2, 0); % Use this for 2D.
-        mode_num = 2;
+        z = 0;
+        mode_num = 1;
     else
-        [grid, eps] = maxwell_grid(2*pi/1.55, -2:0.05:2, -1:0.05:1, -1:0.05:1);
         mode_num = 1;
     end
 
+    [grid, eps] = maxwell_grid(omega, x, y, z);
+                            % 'hires_box', {[0 -.4 0], [1 .4 1], [.05 .05 .05]});
 
 
         %
@@ -35,12 +40,12 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     % Structure constants.
     wg_height = 0.2;
     wg_width = 0.4;
-    si_eps = 15;
+    si_eps = 13;
 
     % Draw waveguide.
     eps = maxwell_shape(grid, eps, si_eps, ...
-                        maxwell_box([0 0 0], [inf wg_width wg_height]));
-
+                        maxwell_smooth_box([0 0 0], [1e9 wg_width wg_height], ...
+                                            'smooth_dist', 0.02));
 
         %
         % Solve for initial excitation.
@@ -69,5 +74,5 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     fprintf('Total power: %1.5f\n', P0);
     fprintf('Power in mode: %1.5f\n', P1);
 
-    figure(1); maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan);
-    figure(2); maxwell_view(grid, eps, E1, 'y', [nan nan 0], 'field_phase', nan);
+    params = {'field_phase', nan, 'show_grid', true};
+    maxwell_view(grid, eps, E, 'y', [nan nan 0], params{:});

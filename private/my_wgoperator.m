@@ -93,7 +93,7 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         d_dual_x = my_s2d(s_dual_x);
         d_prim_y = my_s2d(s_prim_y);
         d_dual_y = my_s2d(s_dual_y);
-        d_factor = [d_prim_x.*d_dual_y; d_dual_x.*d_prim_y];
+        d_factor = [d_dual_x.*d_prim_y; d_prim_x.*d_dual_y];
         norm_amplitude = abs(0.5 * real(...
                 dot(d_factor(1:n).*e(1:n), h(n+1:2*n)) + ...
                 dot(d_factor(n+1:2*n).*e(n+1:2*n), -h(1:n))))^-0.5;
@@ -122,7 +122,9 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         % Normalization factor for current excitation (some special sauce!).
         % Result from a maximum beta of pi/prop_step for discretized grids.
         nf_j = 1 + cos(real(beta)/2 * prop_step);
-        J = vec2field(nf_j * v2j(v./d_factor));
+        v_factor = [d_factor(1:n)./d_prim_y; d_factor(n+1:2*n)./d_prim_x];
+        v = v ./ prop_step;
+        J = vec2field(nf_j * v2j(v));
         % d_factor(1)
 
         % Error in waveguide mode equation.

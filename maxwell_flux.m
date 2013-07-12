@@ -120,7 +120,7 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         H1{prop_dir} = 0 * H1{prop_dir};
         E = my_project(E, E1);
         H = my_project(H, H1);
-        [E, H] = deal(E1, H1);
+        % [E, H] = deal(E1, H1); % Debugging purposes only.
     end
 
 
