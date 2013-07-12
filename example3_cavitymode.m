@@ -26,7 +26,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
             omega_guess = struct('D2', 0.062, 'D3', 0.080);
         case 'beam2w'
             filename = 'beam.mat';
-            omega_guess = struct('D2', 0.120, 'D3', 0.166);
+            omega_guess = struct('D2', 0.118, 'D3', 0.166);
         otherwise
             error('cavity_type must either be ''L3'' or ''beam''.');
     end
@@ -59,8 +59,14 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         %
 
     c = round(dims/2);
-    if options.flatten % Use point source to excite 2D mode.
-        J{2}(c(1), c(2), c(3)) = 1;
+    if options.flatten 
+        if strcmp(cavity_type, 'beam2w')
+            [~, E] = example3_cavitymode('beam', 'flatten', true);
+            J{2} = abs(E{2});
+        else
+            % Use point source to excite 2D mode.
+            J{2}(c(1), c(2), c(3)) = 1;
+        end
         fprintf('=== 2D solve ===\n');
     else
         % To get the current excitation for 3D, use the 2D mode.

@@ -19,9 +19,9 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
 
     % Make a grid for a wavelength of 1550 nm.
     omega = 2 * pi/1.55;
-    x = -2 : 0.05 : 2;
-    y = -1 : 0.05 : 1;
-    z = -1 : 0.05 : 1;
+    x = -2 : 0.025 : 2;
+    y = -1 : 0.025 : 1;
+    z = -1 : 0.025 : 1;
     if options.flatten
         z = 0;
         mode_num = 1;
@@ -52,12 +52,9 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
         %
 
     [J, ~, ~, beta]  = maxwell_wgmode(grid, eps, [-1 0 0], [+inf 3 3], 'mode_number', mode_num);
-    beta
 
     fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
-    [A, x, b] = maxwell_axb(grid, eps, E, J);
-    norm(A*x - b) / norm(b)
     maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
 
 
