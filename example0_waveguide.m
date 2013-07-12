@@ -19,10 +19,10 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
 
     % Make a grid for a wavelength of 1550 nm.
     if options.flatten
-        [grid, eps] = maxwell_grid(2*pi/1.55, -3:0.05:3, -2:0.05:2, 0); % Use this for 2D.
+        [grid, eps] = maxwell_grid(2*pi/1.55, -2:0.05:2, -2:0.05:2, 0); % Use this for 2D.
         mode_num = 2;
     else
-        [grid, eps] = maxwell_grid(2*pi/1.55, -3:0.05:3, -1:0.05:1, -1:0.05:1);
+        [grid, eps] = maxwell_grid(2*pi/1.55, -2:0.05:2, -1:0.05:1, -1:0.05:1);
         mode_num = 1;
     end
 
@@ -35,7 +35,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     % Structure constants.
     wg_height = 0.2;
     wg_width = 0.4;
-    si_eps = 3;
+    si_eps = 10;
 
     % Draw waveguide.
     eps = maxwell_shape(grid, eps, si_eps, ...
@@ -46,8 +46,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
         % Solve for initial excitation.
         %
 
-    % Excitation for the fundamental mode (of the ring's waveguide).
-    J = maxwell_wgmode(grid, eps, [-2 0 0], [+inf 3 3], 'mode_number', mode_num);
+    J = maxwell_wgmode(grid, eps, [-1 0 0], [+inf 3 3], 'mode_number', mode_num);
 
     fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
@@ -67,3 +66,5 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     fprintf('Total power: %1.5f\n', P0);
     fprintf('Power in mode: %1.5f\n', P1);
 
+    figure(1); maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan);
+    figure(2); maxwell_view(grid, eps, E1, 'y', [nan nan 0], 'field_phase', nan);

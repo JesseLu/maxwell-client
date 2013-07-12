@@ -108,24 +108,11 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         %
 
     [vec, unvec] = my_vec(grid.shape);
-    function [z] = svec(Z)
-        z = [vec(Z(1:3)); vec(Z(4:6))];
-    end
-    function [Z0, Z1] = sunvec(z)
-        n = length(z)/2;
-        Z0 = unvec(z(1:n));
-        Z1 = unvec(z(n+1:end));
-    end
 
     function [F] = my_project(F1, F2)
     % Project z1 onto (normalized) z2.
         F = unvec(vec(F2) * dot(vec(F1), vec(F2)) / norm(vec(F2))^2);
     end
-%     function [Fa, Fb] = my_project(F, F1)
-%     % Project z onto (normalized) z1.
-%         [Fa, Fb] = sunvec(svec(F1) * dot(svec(F), svec(F1)) / norm(svec(F1))^2);
-%         % [Fa, Fb] = sunvec(svec(F1));
-%     end
 
     % Filter.
     if ~isempty(E1)
@@ -133,13 +120,12 @@ function [P] = maxwell_flux(grid, E_H, varargin)
         H1{prop_dir} = 0 * H1{prop_dir};
         E = my_project(E, E1);
         H = my_project(H, H1);
-        % [E, H] = my_project([E H], [E1 H1]);
-        % [E, H] = deal(E1, H1);
+        [E, H] = deal(E1, H1);
     end
 
 
         %
-        % Cut out slice, if needed.
+        % Cut out slice.
         %
 
     % Cut out the plane.
@@ -186,6 +172,8 @@ function [P] = my_calc_power(prop_dir, sp, sd, E, H)
                             my_s2d(sd{a_dir}), ...
                             E{b_dir}, ...
                             -H{a_dir});
-
-    P = real(dot(xa .* ya .* Ea(:), Ha(:)) + dot(xb .* yb .* Eb(:), Hb(:)))/2;
+    [xa, ya] = ndgrid(xa, ya);
+    [xb, yb] = ndgrid(xb, yb);
+    P = 0.5 * real( dot(xa(:) .* ya(:) .* Ea(:), Ha(:)) + ...
+                    dot(xb(:) .* yb(:) .* Eb(:), Hb(:)));
 end

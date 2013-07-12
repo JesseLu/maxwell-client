@@ -97,6 +97,8 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         norm_amplitude = abs(0.5 * real(...
                 dot(d_factor(1:n).*e(1:n), h(n+1:2*n)) + ...
                 dot(d_factor(n+1:2*n).*e(n+1:2*n), -h(1:n))))^-0.5;
+%                 dot(e(1:n), h(n+1:2*n)) + ...
+%                 dot(e(n+1:2*n), -h(1:n))))^-0.5;
 
         % Use the element of the E-field with largest magnitude as a phase reference.
         % Actually, only use the first element...
@@ -111,7 +113,7 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         % Poynting vector of 1.
         e = norm_factor * e;
         h = norm_factor * h;
-        v = norm_factor * v;
+        % v = norm_factor * v;
 
         % Fields in vector-field form.
         E = vec2field(e);
@@ -121,6 +123,8 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         % Result from a maximum beta of pi/prop_step for discretized grids.
         nf_j = 1 + cos(real(beta)/2 * prop_step) ;
         J = vec2field(nf_j * v2j(v./d_factor));
+        % J = vec2field(nf_j * v2j(v));
+        d_factor(1)
 
         % Error in waveguide mode equation.
         % Note that this may increase because of the correction to the beta term,
