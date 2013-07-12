@@ -103,7 +103,8 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
         %
 
     % Determine desired direction of propagation.
-    [p0, p1, prop_dir, prop_in_pos_dir] = my_find_plane(grid, plane_pos, plane_size);
+    [p0, p1, prop_dir, prop_in_pos_dir] = ...
+                                    my_find_plane(grid, plane_pos, plane_size);
 
     % Cut out the bounded plane.
     sub_shape = p1 - p0 + 1;

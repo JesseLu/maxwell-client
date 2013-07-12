@@ -65,7 +65,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
 
     P0 = maxwell_flux(grid, [E H], [0 0 0], [+inf 100 100]);
     P1 = maxwell_flux(grid, [E H], [E1 H1]);
-    fprintf('Output powers at x = 2,\n');
+    fprintf('Output powers at x = 0,\n');
     fprintf('Total power: %1.5f\n', P0);
     fprintf('Power in mode: %1.5f\n', P1);
 

@@ -121,9 +121,8 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
 
         % Normalization factor for current excitation (some special sauce!).
         % Result from a maximum beta of pi/prop_step for discretized grids.
-        nf_j = 1 + cos(real(beta)/2 * prop_step) ;
+        nf_j = 1 + cos(real(beta)/2 * prop_step);
         J = vec2field(nf_j * v2j(v./d_factor));
-        % J = vec2field(nf_j * v2j(v));
         % d_factor(1)
 
         % Error in waveguide mode equation.
