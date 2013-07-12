@@ -35,7 +35,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     % Structure constants.
     wg_height = 0.2;
     wg_width = 0.4;
-    si_eps = 10;
+    si_eps = 15;
 
     % Draw waveguide.
     eps = maxwell_shape(grid, eps, si_eps, ...
@@ -46,10 +46,13 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
         % Solve for initial excitation.
         %
 
-    J = maxwell_wgmode(grid, eps, [-1 0 0], [+inf 3 3], 'mode_number', mode_num);
+    [J, ~, ~, beta]  = maxwell_wgmode(grid, eps, [-1 0 0], [+inf 3 3], 'mode_number', mode_num);
+    beta
 
     fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
+    [A, x, b] = maxwell_axb(grid, eps, E, J);
+    norm(A*x - b) / norm(b)
     maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
 
 

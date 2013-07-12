@@ -113,7 +113,7 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         % Poynting vector of 1.
         e = norm_factor * e;
         h = norm_factor * h;
-        % v = norm_factor * v;
+        v = norm_factor * v;
 
         % Fields in vector-field form.
         E = vec2field(e);
@@ -124,7 +124,7 @@ function [A, get_wg_fields] = wg_operator(omega, s_prim, s_dual, epsilon, mu, ..
         nf_j = 1 + cos(real(beta)/2 * prop_step) ;
         J = vec2field(nf_j * v2j(v./d_factor));
         % J = vec2field(nf_j * v2j(v));
-        d_factor(1)
+        % d_factor(1)
 
         % Error in waveguide mode equation.
         % Note that this may increase because of the correction to the beta term,
