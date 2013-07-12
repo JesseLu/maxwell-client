@@ -32,7 +32,7 @@ function [x] = my_wing(x, init_delta, rate)
         return
     end
 
-    if x(2)-x(1) <= init_delta % No tapering needed.
+    if x(2)-x(1) <= init_delta*rate % No tapering needed.
         return
     end
 
@@ -61,6 +61,10 @@ function [x] = my_wing(x, init_delta, rate)
 
     end
 
+%     if cnt == 2 % Special case where we shouldn't need tapering.
+%         return
+%     end
+
     % Form polynomial equation to solve for our adjusted rate.
     total_dist = x(last_ind) - x(1);
     c(1) = total_dist / init_delta;
@@ -68,6 +72,10 @@ function [x] = my_wing(x, init_delta, rate)
     c(wing_len+1) = 1;
     r = roots(c(end:-1:1));
     adjusted_rate = max(r(find(imag(r) == 0 & real(r) > 1)));
+
+%     if isempty(adjusted_rate)
+%         adjusted_rate = rate;
+%     end
 
     % Form tapered wing.
     wing_x(1) = x(1);
