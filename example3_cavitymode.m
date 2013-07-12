@@ -81,7 +81,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     end
 
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
+    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-2); % Use this solution as an initial guess.
 
     maxwell_view(grid, eps, E, 'y', [nan nan 0]);
 
@@ -95,5 +95,5 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         % Find the eigenmode, using previous result as initial guess field.
         %
     
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E);
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'err_thresh', 1e-2);
 

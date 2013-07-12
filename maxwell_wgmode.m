@@ -95,7 +95,7 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
     validateattributes(options.mode_number, {'numeric'}, ...
                         {'positive', 'integer'}, mfilename, 'mode_number');
     validateattributes(options.view, {'logical'}, ...
-                        {'binary'}, mfilename, 'pause_and_view');
+                        {'binary'}, mfilename, 'view');
 
 
         %

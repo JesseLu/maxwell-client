@@ -38,6 +38,9 @@ eps = maxwell_shape(grid, eps, 10, maxwell_box(box_pos, box_size));
 [J, E1, H1] = maxwell_wgmode(grid, [eps, mu], [40 40 20], [+inf 50 50], ...
                             'mode_number', 1, 'view', false);
 
+J = maxwell_fpmode(grid, [eps, mu], [40 40 20], [+inf 50 50], mode_fun, ...
+                            'focal_length', 10);
+
 % Solve.
 E = maxwell_solve(grid, eps, J);
 
