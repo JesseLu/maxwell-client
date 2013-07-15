@@ -89,7 +89,8 @@ function [J] = maxwell_fpmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
     omega_eff = real(grid.omega) * sqrt(real(eps_val) * real(mu_val));
     E = my_propagate_beam(omega_eff, prop_dir, ...
                                 -options.focal_length, E, pos);
-
+    J = nan;
+    return
 
         %
         % Form current source.
