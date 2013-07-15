@@ -46,5 +46,6 @@ function [fun] = gaussian(center, fwhm, pol)
     end
 
     fun = @mode_fun;
+    fun = @(w, x, y, z) (w == pol) * ones(size(x));
 end
         
