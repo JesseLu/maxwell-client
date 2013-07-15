@@ -13,7 +13,7 @@ function example4_focusedbeam(varargin)
         %
 
     % Make a grid for a wavelength of 1550 nm.
-    omega = 2 * pi/1.55;
+    omega = 2 * pi/0.55;
     x = -3 : 0.1 : 3;
     y = -3 : 0.1 : 3;
     z = -4 : 0.1 : 1;
@@ -27,11 +27,14 @@ function example4_focusedbeam(varargin)
     [grid, eps] = maxwell_grid(omega, x, y, z);
                             % 'hires_box', {[0 -.4 0], [1 .4 1], [.05 .05 .05]});
 
-    mode_fun = gaussian([0 0 0], 2, 2);
-    J = maxwell_fpmode(grid, eps, [0 0 0], [5 5 +inf], mode_fun);
+    mode_fun = gaussian([0 0 0], 0.1, 2);
+    J = maxwell_fpmode(grid, eps, [0 0 0], [5 5 +inf], mode_fun, 'focal_length', 1e-10);
 
     [E, H] =  maxwell_solve(grid, eps, J);
+    subplot 211;
     maxwell_view(grid, eps, E, 'y', [0 nan nan], 'field_phase', 0); % Visualize the excited waveguide.
+    subplot 212;
+    maxwell_view(grid, eps, E, 'z', [0 nan nan], 'field_phase', 0); % Visualize the excited waveguide.
 end
 
 function [fun] = gaussian(center, fwhm, pol)
