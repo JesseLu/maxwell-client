@@ -30,7 +30,7 @@ function [E] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E, pos)
 
     % Obtain the polarizations.
     p{1} = [-k(:,2), k(:,1), zeros(size(k, 1), 1)];
-    p{2} = [-k(:,1).*sin(k(:,3)), -k(:,2).*sin(k(:,3)), cos(k(:,3))];
+    p{2} = [-k(:,1).*k(:,3), -k(:,2).*k(:,3), (k(:,1).^2+k(:,2).^2)];
     p{3} = k;
 
     % Normalize the magnitudes (of the polarizations).
@@ -51,7 +51,8 @@ function [E] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E, pos)
     % Check orthogonatlity.
     size(p{1})
     any(([sum(p{1}.*p{2}, 2); sum(p{2}.*p{3}, 2); sum(p{1}.*p{3}, 2)]) ~= 0)
-    [sum(p{1}.*p{2}, 2); sum(p{2}.*p{3}, 2); sum(p{1}.*p{3}, 2)]'
+    a = [sum(p{1}.*p{2}, 2), sum(p{2}.*p{3}, 2), sum(p{1}.*p{3}, 2)]
+    max(a(:))
 
         %
         % Convert to plane-wave basis.
