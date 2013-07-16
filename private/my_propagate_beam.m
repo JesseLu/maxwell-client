@@ -118,12 +118,10 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         %
 
     if prop_dist ~= 0
-        exp(-1i * k(:,prop_dir) * prop_dist) .* is_prop(:)
-        sum(k.^2, 2)
         mag{1} = mag{1}(:) .* exp(-1i * k(:,prop_dir) * prop_dist) .* is_prop(:);
         mag{2} = mag{2}(:) .* exp(-1i * k(:,prop_dir) * prop_dist) .* is_prop(:);
         mag{3} = 0 * mag{3}(:);
-    else
+    else % Special no-propagation case, keep evanescent waves.
         for i = 1 : 3
             mag{i} = mag{i}(:);
         end
@@ -150,57 +148,62 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         %
 
     E1 = my_interp(pos_up, E1_up, pos);
-    for i = 1 : 3
-        subplot(2, 3, i);
-        plot(abs([E0{i}(:), E1{i}(:)]), '.-')
-        subplot(2, 3, i+3);
-        plot(angle([E0{i}(:), E1{i}(:)]), '.-')
-    end
-    for i = 1 : 3
-        subplot(2, 3, i);
-        plot(real([E0{i}(:), E1{i}(:)]), '.-')
-        subplot(2, 3, i+3);
-        plot(imag([E0{i}(:), E1{i}(:)]), '.-')
-%         E1{i} = real(E1{i});
-%         if i == 2
-%             E1{i} = real(E1{i});
-%         elseif i == 3
-%             E1{i} = imag(E1{i});
-%         else
-%             E1{i} = 0 * E1{i};
-%         end
-    end
-    pause
+%     for i = 1 : 3
+%         subplot(2, 3, i);
+%         plot(abs([E0{i}(:), E1{i}(:)]), '.-')
+%         subplot(2, 3, i+3);
+%         plot(angle([E0{i}(:), E1{i}(:)]), '.-')
+%     end
+%     for i = 1 : 3
+%         subplot(2, 3, i);
+%         plot(real([E0{i}(:), E1{i}(:)]), '.-')
+%         subplot(2, 3, i+3);
+%         plot(imag([E0{i}(:), E1{i}(:)]), '.-')
+%     end
 
 
 
 
 function [E_up] = my_interp(pos, E, pos_up)
+% Custom interpolation function.
     for i = 1 : 3
         up_shape(i) = length(pos_up{1}{i});
     end
+
+    my_shape = [size(E{1}), ones(1, 3-ndims(E{i}))];
 
     % Obtain upsampled field values.
     for i = 1 : 3
         [u0{1}, u0{2}, u0{3}] = ndgrid(pos{i}{1}, pos{i}{2}, pos{i}{3});
         [u1{1}, u1{2}, u1{3}] = ndgrid(pos_up{i}{1}, pos_up{i}{2}, pos_up{i}{3});
 
-        my_shape = [size(E{i}), ones(1, 3-ndims(E{i}))];
         u0(find(my_shape == 1)) = [];
         u1(find(my_shape == 1)) = [];
+
+        u0 = my_squeeze(u0);
+        u1 = my_squeeze(u1);
+        E = my_squeeze(E);
 
         switch length(u0)
             case 1
                 interp_fun = @interp1;
+%                 u0{1} = u0{1}(:).';
+%                 u1{1} = u1{1}(:).';
+%                 for j = 1 : 3
+%                     E{j} = E{j}(:).'; % Need to be a row vector...
+%                 end
             case 2
                 interp_fun = @interp2;
             case 3
                 interp_fun = @interp3;
         end
-
         E_up{i} = interp_fun(u0{:}, E{i}, u1{:}, 'spline');
         E_up{i} = reshape(E_up{i}, up_shape);
     end
 
 
-
+function [z] = my_squeeze(z)
+% Squeeze all arrays in a cell.
+    for i = 1 : length(z)
+        z{i} = squeeze(z{i});
+    end

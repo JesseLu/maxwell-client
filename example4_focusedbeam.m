@@ -17,9 +17,9 @@ function example4_focusedbeam(varargin)
     omega = 2 * pi/1.55;
     x = -3 : 0.1 : 3;
     y = -3 : 0.1 : 3;
-    z = -4 : 0.1 : 1;
+    z = -3 : 0.1 : 3;
     if options.flatten
-        x = 0;
+        y = 0;
         mode_num = 1;
     else
         mode_num = 1;
@@ -28,14 +28,14 @@ function example4_focusedbeam(varargin)
     [grid, eps] = maxwell_grid(omega, x, y, z);
                             % 'hires_box', {[0 -.4 0], [1 .4 1], [.05 .05 .05]});
 
-    mode_fun = gaussian([0 0 0], 1, 2);
-    J = maxwell_fpmode(grid, eps, [0 0 0], [5 5 +inf], mode_fun, 'focal_length', options.flen);
+    mode_fun = gaussian([0 0 0], 0.3, 3);
+    J = maxwell_fpmode(grid, eps, [0 0 0], [+inf  5 5], mode_fun, 'focal_length', options.flen);
 
     [E, H] =  maxwell_solve(grid, eps, J);
     subplot 211;
-    maxwell_view(grid, eps, E, 'y', [0 nan nan], 'field_phase', 0); % Visualize the excited waveguide.
+    maxwell_view(grid, eps, E, 'x', [nan 0 nan], 'field_phase', 0); % Visualize the excited waveguide.
     subplot 212;
-    maxwell_view(grid, eps, E, 'z', [0 nan nan], 'field_phase', 0); % Visualize the excited waveguide.
+    maxwell_view(grid, eps, E, 'z', [nan 0 nan], 'field_phase', 0); % Visualize the excited waveguide.
 end
 
 function [fun] = gaussian(center, fwhm, pol)
