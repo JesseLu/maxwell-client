@@ -30,7 +30,7 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         if length(pos{1}{i}) >  1
             n = upsample_factor * round(pos_range(i) ./ min_delta);
             delta(i) = pos_range(i) / n;
-            pos_up{i} = min_pos(i) : delta(i) : max_pos(i);
+            pos_up{i} = [min_pos(i) : delta(i) : max_pos(i)].';
         else 
             pos_up{i} = mean([min_pos(i), max_pos(i)]);
         end
@@ -54,11 +54,16 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
             k_range{i}(1:floor(end/2)) = k_range{i}(1:floor(end/2)) - 2 * pi / delta(i);
         end
     end
+%     imagesc(k_range{2}(:) * k_range{3}(:).')
+%     pause
 
     % Determine k's in propagation direction.
     k_range{prop_dir} = 0;
     [k{1}, k{2}, k{3}] = ndgrid(k_range{1}, k_range{2}, k_range{3});
-    k{prop_dir} = sqrt(omega_eff^2 - (k{1}.^2 + k{2}.^2 + k{3}.^2 - k{prop_dir}.^2));
+    k{prop_dir} = -sqrt(omega_eff^2 - (k{1}.^2 + k{2}.^2 + k{3}.^2 - k{prop_dir}.^2));
+    if prop_dist > 0
+        k{prop_dir} = -k{prop_dir};
+    end
     k = [k{1}(:), k{2}(:), k{3}(:)];
 
     % Determine which k-vectors are non-evanescent (propagating).
@@ -69,10 +74,19 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
 
     % k_tot = sqrt(k(:,1).^2 + k(:,2).^2 + k(:,3).^2) % Debug.
 
+    % Rearrange collumns so that prop_dir now is in z-direction.
+    k(:,mod([0:2]+prop_dir,3)+1) = k;
+
     % Obtain the polarizations.
     p{1} = [-k(:,2), k(:,1), zeros(size(k, 1), 1)];
     p{2} = [-k(:,1).*conj(k(:,3)), -k(:,2).*conj(k(:,3)), (k(:,1).^2+k(:,2).^2)];
     p{3} = k;
+
+    % Undo the rearranging.
+    k(:,mod([0:2]+(3-prop_dir),3)+1) = k;
+    for i = 1 : 3
+        p{i}(:,mod([0:2]+(3-prop_dir),3)+1) = p{i};
+    end
 
     % Normalize the magnitudes (of the polarizations).
     for i = 1 : length(p) 
@@ -91,6 +105,7 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
 %     size(p{1})
 %     any(([sum(p{1}.*p{2}, 2); sum(p{2}.*p{3}, 2); sum(p{1}.*p{3}, 2)]) ~= 0)
 %     a = [sum(conj(p{1}).*p{2}, 2), sum(conj(p{2}).*p{3}, 2), sum(conj(p{1}).*p{3}, 2)]
+%     % a = [p{2}, p{3}, sum(conj(p{2}).*p{3}, 2)]
 %     max(a(:))
 %     return
 
@@ -118,8 +133,8 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         %
 
     if prop_dist ~= 0
-        mag{1} = mag{1}(:) .* exp(-1i * k(:,prop_dir) * prop_dist) .* is_prop(:);
-        mag{2} = mag{2}(:) .* exp(-1i * k(:,prop_dir) * prop_dist) .* is_prop(:);
+        mag{1} = mag{1}(:) .* exp(1i * k(:,prop_dir) * (prop_dist)) .* is_prop(:);
+        mag{2} = mag{2}(:) .* exp(1i * k(:,prop_dir) * (prop_dist)) .* is_prop(:);
         mag{3} = 0 * mag{3}(:);
     else % Special no-propagation case, keep evanescent waves.
         for i = 1 : 3
@@ -136,10 +151,11 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         % E1_f(i,:) = mag{1}(i) * p{1}(i,:) + mag{2}(i) * p{2}(i,:);
         E1_f(i,:) = mag{1}(i) * p{1}(i,:) + mag{2}(i) * p{2}(i,:) + mag{3}(i) * p{3}(i,:);
     end
-    % norm(E1_f(:) - E0_f(:)) % Debug.
+%     norm(E1_f(:) - E0_f(:)) % Debug.
+%     pause
 
     for i = 1 : 3
-        E1_up{i} = ifft(ifftshift(reshape(E1_f(:,i), up_shape)));
+        E1_up{i} = ifftn(ifftshift(reshape(E1_f(:,i), up_shape)));
     end
 
 
@@ -148,18 +164,16 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         %
 
     E1 = my_interp(pos_up, E1_up, pos);
+
+%     % Debug.
+%     my_plot = @(data) imagesc(squeeze(abs(data)));
 %     for i = 1 : 3
 %         subplot(2, 3, i);
-%         plot(abs([E0{i}(:), E1{i}(:)]), '.-')
+%         my_plot(E0{i});
 %         subplot(2, 3, i+3);
-%         plot(angle([E0{i}(:), E1{i}(:)]), '.-')
+%         my_plot(E1{i});
 %     end
-%     for i = 1 : 3
-%         subplot(2, 3, i);
-%         plot(real([E0{i}(:), E1{i}(:)]), '.-')
-%         subplot(2, 3, i+3);
-%         plot(imag([E0{i}(:), E1{i}(:)]), '.-')
-%     end
+% %     pause
 
 
 
@@ -170,7 +184,8 @@ function [E_up] = my_interp(pos, E, pos_up)
         up_shape(i) = length(pos_up{1}{i});
     end
 
-    my_shape = [size(E{1}), ones(1, 3-ndims(E{i}))];
+    my_shape = [size(E{1}), ones(1, 3-ndims(E{1}))];
+    E = my_squeeze(E);
 
     % Obtain upsampled field values.
     for i = 1 : 3
@@ -182,7 +197,6 @@ function [E_up] = my_interp(pos, E, pos_up)
 
         u0 = my_squeeze(u0);
         u1 = my_squeeze(u1);
-        E = my_squeeze(E);
 
         switch length(u0)
             case 1
@@ -197,13 +211,18 @@ function [E_up] = my_interp(pos, E, pos_up)
             case 3
                 interp_fun = @interp3;
         end
+        for j = 1 : length(u0)
+            u0{j} = u0{j};
+            u1{j} = u1{j};
+        end
+       
         E_up{i} = interp_fun(u0{:}, E{i}, u1{:}, 'spline');
-        E_up{i} = reshape(E_up{i}, up_shape);
+        E_up{i} = reshape(E_up{i}.', up_shape);
     end
 
 
 function [z] = my_squeeze(z)
 % Squeeze all arrays in a cell.
     for i = 1 : length(z)
-        z{i} = squeeze(z{i});
+        z{i} = squeeze(z{i}).';
     end

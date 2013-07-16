@@ -1,4 +1,4 @@
-function example4_focusedbeam(varargin)
+function [E, H, grid, eps] = example4_focusedbeam(varargin)
 
         %
         % Parse inputs.
@@ -29,7 +29,7 @@ function example4_focusedbeam(varargin)
                             % 'hires_box', {[0 -.4 0], [1 .4 1], [.05 .05 .05]});
 
     mode_fun = gaussian([0 0 0], 0.3, 3);
-    J = maxwell_fpmode(grid, eps, [0 0 0], [+inf  5 5], mode_fun, 'focal_length', options.flen);
+    J = maxwell_fpmode(grid, eps, [0 0 0], [+inf 4 5], mode_fun, 'focal_length', options.flen);
 
     [E, H] =  maxwell_solve(grid, eps, J);
     subplot 211;
