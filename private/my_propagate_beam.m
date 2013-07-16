@@ -1,6 +1,7 @@
 function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
+% Propagate a free-space beam forward.
  
-
+    % Upsampling factor. Upsample by (atleast) 2x.
     upsample_factor = 2;
 
 
@@ -54,25 +55,18 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
             k_range{i}(1:floor(end/2)) = k_range{i}(1:floor(end/2)) - 2 * pi / delta(i);
         end
     end
-%     imagesc(k_range{2}(:) * k_range{3}(:).')
-%     pause
 
-    % Determine k's in propagation direction.
+    % Determine wave-vectors in propagation direction.
     k_range{prop_dir} = 0;
     [k{1}, k{2}, k{3}] = ndgrid(k_range{1}, k_range{2}, k_range{3});
-    k{prop_dir} = -sqrt(omega_eff^2 - (k{1}.^2 + k{2}.^2 + k{3}.^2 - k{prop_dir}.^2));
-    if prop_dist > 0
+    k{prop_dir} = sqrt(omega_eff^2 - (k{1}.^2 + k{2}.^2 + k{3}.^2 - k{prop_dir}.^2));
+    if prop_dist < 0
         k{prop_dir} = -k{prop_dir};
     end
     k = [k{1}(:), k{2}(:), k{3}(:)];
 
     % Determine which k-vectors are non-evanescent (propagating).
     is_prop = imag(k(:,prop_dir)) == 0;
-
-%     % Eliminate k-vectors which are outside the light-cone
-%     k(find(imag(k(:,prop_dir))), :) = [];
-
-    % k_tot = sqrt(k(:,1).^2 + k(:,2).^2 + k(:,3).^2) % Debug.
 
     % Rearrange collumns so that prop_dir now is in z-direction.
     k(:,mod([0:2]+prop_dir,3)+1) = k;
@@ -151,8 +145,6 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         % E1_f(i,:) = mag{1}(i) * p{1}(i,:) + mag{2}(i) * p{2}(i,:);
         E1_f(i,:) = mag{1}(i) * p{1}(i,:) + mag{2}(i) * p{2}(i,:) + mag{3}(i) * p{3}(i,:);
     end
-%     norm(E1_f(:) - E0_f(:)) % Debug.
-%     pause
 
     for i = 1 : 3
         E1_up{i} = ifftn(ifftshift(reshape(E1_f(:,i), up_shape)));
@@ -201,11 +193,6 @@ function [E_up] = my_interp(pos, E, pos_up)
         switch length(u0)
             case 1
                 interp_fun = @interp1;
-%                 u0{1} = u0{1}(:).';
-%                 u1{1} = u1{1}(:).';
-%                 for j = 1 : 3
-%                     E{j} = E{j}(:).'; % Need to be a row vector...
-%                 end
             case 2
                 interp_fun = @interp2;
             case 3

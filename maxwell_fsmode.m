@@ -1,8 +1,11 @@
-%% maxwell_fpmode
+%% maxwell_fsmode
 % Excite general free-space modes.
 
+%%% Syntax
+%
 
-function [J] = maxwell_fpmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
+
+function [J] = maxwell_fsmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
                                 varargin)
 
 
@@ -21,6 +24,7 @@ function [J] = maxwell_fpmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
 
     validateattributes(plane_pos, {'numeric'}, ...
                 {'nonnan', 'finite', 'numel', 3}, mfilename, 'plane_pos');
+
     validateattributes(plane_size, {'numeric'}, ...
                 {'nonnan', 'numel', 3}, mfilename, 'plane_size');
     if length(find(isinf(plane_size))) ~= 1
@@ -71,6 +75,10 @@ function [J] = maxwell_fpmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
     % Step size in propagation direction.
     prop_step = real(grid.s_dual{prop_dir}(p0(prop_dir))); 
 
+    % Helps us decide direction related signs.
+    coeff = + 1 * (prop_in_pos_dir == true) - 1 * (prop_in_pos_dir == false);
+    coeff = coeff * sign(options.focal_length);
+
 
         %
         % Get the mode shape.
@@ -87,9 +95,8 @@ function [J] = maxwell_fpmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
         %
 
     omega_eff = real(grid.omega) * sqrt(real(eps_val) * real(mu_val));
-
-    E = my_propagate_beam(omega_eff, prop_dir, ...
-                                -options.focal_length, E, pos);
+    adj_prop_len = coeff * (abs(options.focal_length) + 0.5 * prop_step);
+    E = my_propagate_beam(omega_eff, prop_dir, -adj_prop_len, E, pos);
 
 
 
@@ -98,6 +105,48 @@ function [J] = maxwell_fpmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
         %
 
     J = my_default_field(grid.shape, 0);
-    for k = 1 : 3
-        J{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3)) = E{k};
+
+    if p0(prop_dir) ~= 1 && p0(prop_dir) ~= grid.shape(prop_dir)
+        % Shifted positions for directionality
+        ps0 = p0;
+        ps1 = p1;
+        ps0(prop_dir) = ps0(prop_dir) - coeff;
+        ps1(prop_dir) = ps1(prop_dir) - coeff;
+
+        for k = 1 : 3
+            J{k}(p0(1):p1(1), p0(2):p1(2), p0(3):p1(3)) = E{k};
+            if coeff ~= 0
+                J{k}(ps0(1):ps1(1), ps0(2):ps1(2), ps0(3):ps1(3)) = -E{k} * ...
+                        exp(-1i * prop_step * omega_eff);
+            end 
+        end
     end
+    
+
+        %
+        % Plot fields, if desired.
+        %
+
+    if options.view
+        f = {E{:}};
+        title_text = {'Ex', 'Ey', 'Ez'};
+        for k = 1 : 3
+            subplot(1, 3, k);
+            my_plot(reshape(real(f{k}), sub_shape));
+            title(title_text{k});
+        end
+        drawnow;
+    end
+
+
+function my_plot(x)
+% Helps with plotting.
+    if numel(find(size(x) ~= 1)) == 1 % Detect 1D data.
+        plot([real(x(:)), imag(x(:))], '.-');
+    else
+        imagesc(squeeze(x).', (max(abs(x(:))) + eps) * [-1 1]);
+        colorbar 
+        axis equal tight;
+        set(gca, 'YDir', 'normal');
+    end
+    colormap('jet');
