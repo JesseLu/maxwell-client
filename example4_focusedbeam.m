@@ -4,7 +4,8 @@ function example4_focusedbeam(varargin)
         % Parse inputs.
         %
 
-    options = my_parse_options(struct(  'flatten', false), ...
+    options = my_parse_options(struct(  'flatten', false, ...
+                                        'flen', 0), ...
                                 varargin, mfilename);
 
 
@@ -13,7 +14,7 @@ function example4_focusedbeam(varargin)
         %
 
     % Make a grid for a wavelength of 1550 nm.
-    omega = 2 * pi/0.55;
+    omega = 2 * pi/1.55;
     x = -3 : 0.1 : 3;
     y = -3 : 0.1 : 3;
     z = -4 : 0.1 : 1;
@@ -27,8 +28,8 @@ function example4_focusedbeam(varargin)
     [grid, eps] = maxwell_grid(omega, x, y, z);
                             % 'hires_box', {[0 -.4 0], [1 .4 1], [.05 .05 .05]});
 
-    mode_fun = gaussian([0 0 0], 0.1, 2);
-    J = maxwell_fpmode(grid, eps, [0 0 0], [5 5 +inf], mode_fun, 'focal_length', 1e-10);
+    mode_fun = gaussian([0 0 0], 1, 2);
+    J = maxwell_fpmode(grid, eps, [0 0 0], [5 5 +inf], mode_fun, 'focal_length', options.flen);
 
     [E, H] =  maxwell_solve(grid, eps, J);
     subplot 211;

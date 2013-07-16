@@ -24,25 +24,13 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         end
     end
     pos_range = max_pos - min_pos;
-
-%     % Determine the upsampled spacing.
-%     n = upsample_factor * round(pos_range ./ min_delta);
-%     delta = pos_range ./ n;
-%     for i = 1 : 3 % Detect flats.
-%         if length(pos{1}{i}) == 1
-%             n(i) = 1;
-%             delta(i) = 0;
-%         end
-%     end
-%     up_shape = n; % Upsampling shape.
-% 
+ 
     % Obtain upsampled positions.
     for i = 1 : 3
         if length(pos{1}{i}) >  1
             n = upsample_factor * round(pos_range(i) ./ min_delta);
-            delta = pos_range(i) / n;
-            % pos_up{i} = [min_pos(i), min_pos(i)+delta(i)*[1:up_shape(i)-2], max_pos(i)];
-            pos_up{i} = min_pos(i) : delta : max_pos(i);
+            delta(i) = pos_range(i) / n;
+            pos_up{i} = min_pos(i) : delta(i) : max_pos(i);
         else 
             pos_up{i} = mean([min_pos(i), max_pos(i)]);
         end
@@ -62,7 +50,8 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         if up_shape(i) == 1
             k_range{i} = 0;
         else
-            k_range{i} = fftshift(2*pi / up_shape(i) * [0:up_shape(i)-1]);
+            k_range{i} = fftshift((2*pi / delta(i)) .* ([0:up_shape(i)-1] ./ up_shape(i)));
+            k_range{i}(1:floor(end/2)) = k_range{i}(1:floor(end/2)) - 2 * pi / delta(i);
         end
     end
 
@@ -71,7 +60,6 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
     [k{1}, k{2}, k{3}] = ndgrid(k_range{1}, k_range{2}, k_range{3});
     k{prop_dir} = sqrt(omega_eff^2 - (k{1}.^2 + k{2}.^2 + k{3}.^2 - k{prop_dir}.^2));
     k = [k{1}(:), k{2}(:), k{3}(:)];
-    size(k)
 
     % Determine which k-vectors are non-evanescent (propagating).
     is_prop = imag(k(:,prop_dir)) == 0;
@@ -130,6 +118,8 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         %
 
     if prop_dist ~= 0
+        exp(-1i * k(:,prop_dir) * prop_dist) .* is_prop(:)
+        sum(k.^2, 2)
         mag{1} = mag{1}(:) .* exp(-1i * k(:,prop_dir) * prop_dist) .* is_prop(:);
         mag{2} = mag{2}(:) .* exp(-1i * k(:,prop_dir) * prop_dist) .* is_prop(:);
         mag{3} = 0 * mag{3}(:);
@@ -171,6 +161,14 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         plot(real([E0{i}(:), E1{i}(:)]), '.-')
         subplot(2, 3, i+3);
         plot(imag([E0{i}(:), E1{i}(:)]), '.-')
+%         E1{i} = real(E1{i});
+%         if i == 2
+%             E1{i} = real(E1{i});
+%         elseif i == 3
+%             E1{i} = imag(E1{i});
+%         else
+%             E1{i} = 0 * E1{i};
+%         end
     end
     pause
 
@@ -178,9 +176,6 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
 
 
 function [E_up] = my_interp(pos, E, pos_up)
-    pos{1}
-    pos_up{1}
-    size(E{1})
     for i = 1 : 3
         up_shape(i) = length(pos_up{1}{i});
     end
