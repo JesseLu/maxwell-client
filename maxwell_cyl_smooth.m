@@ -1,5 +1,18 @@
+%% maxwell_cyl_smooth
+% Cylinder of constant epsilon/mu within the simulation grid with smoothed boundaries.
 
-function [cyl_fun] = maxwell_smooth_cyl(center, radius, height, varargin)
+%%% Syntax
+%
+% * |f = maxwell_cyl(center, radius, height)|
+%   produces function handle |f| which defines a cylinder centered at |center|
+%   of dimensions |radius| and |height|.
+%
+% * |f = maxwell_cyl_smooth(..., 'smooth_dist', d)|
+%   smoothes the edges of the cylinder over a distance |d| from its boundary.
+%
+
+%%% Source code
+function [cyl_fun] = maxwell_cyl_smooth(center, radius, height, varargin)
 
 
         %

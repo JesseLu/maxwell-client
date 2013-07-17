@@ -1,3 +1,24 @@
+%% example4_focusedbeam
+% Excite Gaussian or donut free-space modes.
+
+%%% Syntax
+%
+% * |[E, H, grid, eps] = example4_focusedbeam('gaussian')| 
+%   excites a Gaussian mode.
+%
+% * |... = example4_focusedbeam('donut')| 
+%   excites a donut-mode (with radial H-field).
+%
+% * |... = example4_focusedbeam(..., 'flatten', true)| 
+%   runs the example in 2D.
+%   This is very useful for quick tests.
+%
+% * |... = example4_focusedbeam(..., 'flen', flen)| 
+%   sets the focal length for the beam.
+%   Defaults to |flen = 2|.
+%
+
+%%% Source code
 function [E, H, grid, eps] = example4_focusedbeam(type, varargin)
 
         %
@@ -5,7 +26,7 @@ function [E, H, grid, eps] = example4_focusedbeam(type, varargin)
         %
 
     options = my_parse_options(struct(  'flatten', false, ...
-                                        'flen', 0), ...
+                                        'flen', 2), ...
                                 varargin, mfilename);
 
 
@@ -25,8 +46,18 @@ function [E, H, grid, eps] = example4_focusedbeam(type, varargin)
         mode_num = 1;
     end
 
+
+        %
+        % Build simulation grid.
+        %
+
     [grid, eps] = maxwell_grid(omega, x, y, z, ...
                             'hires_box', {[0 0 0], [1 .4 1], [.02 .02 .02]});
+
+        %
+        % Build excitation source.
+        %
+
     switch type
         case 'gaussian'
             J = maxwell_gaussian(grid, eps, [0 0 2], [8 8 -inf], 'y', options.flen, 0.9);
@@ -37,6 +68,10 @@ function [E, H, grid, eps] = example4_focusedbeam(type, varargin)
             error('Type must either ''gaussian'' or ''donut''.');
     end
    
+    
+        %
+        % Solve simulation.
+        %
 
     [E, H] =  maxwell_solve(grid, eps, J);
     maxwell_view(grid, eps, E, 'y', [nan 0 nan], 'field_phase', nan); % Visualize the excited waveguide.
@@ -44,8 +79,10 @@ end
 
 
 function [fun] = zdonut(center, width)
+% Generates the donut-mode excitation profile.
 
     function [E] = mode_fun(w, x, y, z)
+    % Function for the donut-mode excitation.
         r = sqrt(   (x - center(1)).^2 + ...
                     (y - center(2)).^2) + 1e-10;
         E = (w == 1) .* (y./r) .* sin(pi*r/width/2) .* (r < 2*width) + ...

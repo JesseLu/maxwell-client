@@ -1,5 +1,5 @@
 %% maxwell_flux
-% Computes the Poynting vector through a finite plane of the simulation.
+% Electromagnetic power passing through a finite plane of the simulation.
 
 %%% Syntax
 %

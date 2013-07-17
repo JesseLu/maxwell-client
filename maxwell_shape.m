@@ -1,5 +1,5 @@
 %% maxwell_shape
-% Generic function to add constant material shapes to the simulation domain.
+% Add shapes of constant material to the simulation domain.
 
 %%% Syntax
 %

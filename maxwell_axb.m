@@ -1,5 +1,5 @@
 %% maxwell_axb
-% Get the matrices and vectors associated with the electromagnetic wave equation.
+% Matrices and vectors associated with the electromagnetic wave equation.
 
 %%% Syntax
 %

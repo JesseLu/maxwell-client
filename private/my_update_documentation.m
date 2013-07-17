@@ -12,10 +12,12 @@ function my_update_documentation()
     example_files = {};
     for k = 1 : length(files)
         if strfind(files(k).name, 'maxwell_') == 1 & ...
-            files(k).name(end-1:end) == '.m'
+                files(k).name(end-1:end) == '.m' & ...
+                ~strcmp(files(k).name, 'maxwell_help.m')
             maxwell_files{end+1} = files(k).name;
+
         elseif strfind(files(k).name, 'example') == 1 & ...
-            files(k).name(end-1:end) == '.m'
+                files(k).name(end-1:end) == '.m'
             example_files{end+1} = files(k).name;
         end
     end

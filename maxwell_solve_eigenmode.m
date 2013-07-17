@@ -1,5 +1,5 @@
 %% maxwell_solve_eigenmode
-% Find the eigenmode based on an initial guess for E.
+% Eigenmode based on an initial guess for E.
 
 %%% Syntax
 %
@@ -11,9 +11,8 @@
 %
 % * |... = maxwell_solve_eigenmode(grid, [eps mu], E0)|
 %   does the same except for |mu ~= 1|.
-
-% * |... = maxwell_solve_eigenmode(..., 'eig_max_iters', eig_n, ...
-%                                       'eig_err_thresh', eig_err)|
+%
+% * |... = maxwell_solve_eigenmode(..., 'eig_max_iters', eig_n, 'eig_err_thresh', eig_err)|
 %   sets the termination conditions for the eigenmode algorithm 
 %   (Rayleigh quotient iteration).
 %   Defaults to |eig_n = 20|, and |eig_err = 1e-6|.

@@ -1,5 +1,5 @@
 %% maxwell_grid
-% Create a simulation domain.
+% Initialize a simulation domain.
 
 %%% Syntax
 %
@@ -38,7 +38,7 @@
 % * |... = maxwell_grid(..., 'growth_rate', rate)|
 %   determines the growth rate of the grid, when using the |'hires_box'| option.
 %   In other words, it determines how fast the resolution changes.
-%   Defaults to 1.1.
+%   Defaults to 1.05.
 %
 
 %%% Description

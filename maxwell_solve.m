@@ -1,5 +1,5 @@
 %% maxwell_solve
-% Solves the electromagnetic wave equation.
+% Solve the electromagnetic wave equation.
 
 %%% Syntax
 % 

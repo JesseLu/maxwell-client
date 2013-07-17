@@ -1,5 +1,24 @@
-% Simulate L3 photonic crystal cavity.
+%% example3_cavitymode
+% Solve for the eigenmodes of dielectric resonators.
 
+%%% Syntax
+%
+% * |[omega, E, H, grid, eps] = example3_cavitymode('L3')| 
+%   finds the cavity mode of an L3 photonic crystal resonator.
+%
+% * |... = example3_cavitymode('beam')| 
+%   finds the cavity mode of a nanophotonic beam resonator.
+%
+% * |... = example3_cavitymode(..., 'flatten', true)| 
+%   runs the example in 2D.
+%   This is very useful for quick tests.
+%
+% * |... = example3_cavitymode(..., 'sim_only', true)| 
+%   Only performs the initial simulation and 
+%   does not perform the eigenmode solve.
+%
+
+%%% Source code
 function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
 
         %
@@ -96,4 +115,5 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         %
     
     [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'err_thresh', 1e-2);
+    maxwell_view(grid, eps, E, 'y', [nan nan 0]);
 

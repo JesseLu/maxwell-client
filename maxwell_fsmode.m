@@ -1,5 +1,5 @@
 %% maxwell_fsmode
-% Excite general free-space modes.
+% Excitation source for arbitrary free-space modes.
 
 %%% Syntax
 %
@@ -8,9 +8,8 @@
 %   The mode is determined via the user-supplied function handle |mode_fun|.
 %   |mode_fun| must be of the form |E = mode_fun(w, x, y, z)| where
 %   |E| is the E-field of the desired mode for a polarization of |w|
-%   (which can be |1|, |2|, or |3| for x-, y-, of z-components of the E-field)
+%   (which can be |1|, |2|, or |3| for x-, y-, or z-components of the E-field)
 %   at the position |(x, y, z)|.
-%
 %   Similar to the |maxwell_wgmode| function, the excitation is provided 
 %   at the finite plane located at |plane_pos|, 
 %   which is of size |plane_size|.

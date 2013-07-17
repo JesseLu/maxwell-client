@@ -1,5 +1,5 @@
 %% maxwell_cyl
-% Used to define a cylinder of a constant epsilon/mu in the simulation domain.
+% Cylinder of constant epsilon/mu within the simulation grid.
 
 %%% Syntax
 %

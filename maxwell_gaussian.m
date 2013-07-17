@@ -1,6 +1,5 @@
 %% maxwell_gaussian
-% Free-space Gaussian mode (0th-order).
-
+% Excitation source for free-space Gaussian modes.
 
 %%% Syntax
 %
@@ -11,7 +10,6 @@
 %   which must be |'x'|, |'y'|, or |'z'|.
 %   The Gaussian beam's diameter (full-width half-maximum) is determined 
 %   by |beam_diameter|.
-%
 %   Similar to the |maxwell_wgmode| function, the excitation is provided 
 %   at the finite plane located at |plane_pos|, 
 %   which is of size |plane_size|.

@@ -1,5 +1,5 @@
 %% maxwell_wgmode
-% Solve for a waveguide mode.
+% Excite a waveguide mode. Can also used to filter for a particular mode.
 
 %%% Syntax
 %
