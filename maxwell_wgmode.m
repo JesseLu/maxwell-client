@@ -1,9 +1,9 @@
 %% maxwell_wgmode
-% Solve for a waveguide mode.
+% Excite a waveguide mode. Can also used to filter for a particular mode.
 
 %%% Syntax
 %
-% * |[J, E, H, beta] = maxwell_wgmode(grid, eps, plane_size, plane_pos)|
+% * |[J, E, H, beta] = maxwell_wgmode(grid, eps, plane_pos, plane_size)|
 %   computes the fundamental waveguide mode 
 %   at the finite plane located at |plane_pos|, 
 %   and of size |plane_size|.
@@ -25,46 +25,15 @@
 % * |... = maxwell_wgmode(..., 'view', true)|
 %   plots the fields of the waveguide mode.
 
-%% solve_waveguide_mode
-% Find the mode of a waveguide, as well as the current excitation for it.
-
-%% Description
-% Computes the propagation mode for a nanophotonic waveguide structure
+%%% Description
+% |maxwell_wgmode| computes the propagation mode for a nanophotonic waveguide structure
 % including the wave-vector, E- and H-fields, as well as the current excitation
 % needed for uni-directional excitation.
+% The current excitation can be used for near-perfect excitation of a waveguide,
+% while the mode fields can be used for filtering out powers at output waveguides.
 %
-% Theoretically, the excited wave should be of power 1.
-% In practice, there is some error, although this is almost always less than 1%.
 
-%% Input parameters
-% The input parameters are very similar to those which describe a simulation,
-% with the exception that most of the parameters are in two-dimensions (x and y)
-% only.
-%
-% Additionally, parameters describing the location, direction, and order of
-% the waveguide mode are included.
-%
-% * |omega|, |s_prim|, |s_dual|, |mu|, and |epsilon| should be identical
-%   to the values used to desribe any simulation.
-% * |pos| is a cell array of 2 three-element vectors describing the bounded
-%   plane on which to excite the waveguide mode. 
-%   Specifically, |pos| should look like |{[x0 y0 z0], [x1 y1 z1]}|.
-%   Note that if propagation in the x-direction is desired, then |x0| should
-%   equal |x1|.
-% * |dir| is a string denoting the direction of propagation for the waveguide.
-%   Possible values include |'x+'|, |'x-'|, |'y+'|, |'y-'|, |'z+'|, and |'z-'|.
-% * |mode_num| is the order of the mode to compute where |1| denotes the
-%   fundamental mode, |2| denotes the second order mode and so on.
-
-%% Output parameters
-% * |beta| is the wavevector of the mode.
-% * |E| and |H| are the E- and H-fields of the mode, and
-% * |J| is the current excitation needed for the mode.
-%   All three parameters span the entire simulation space and |J| includes
-%   a plane in-front of the bounded plane in order to enable a unidirectional
-%   source.
-
-
+%%% Source code
 function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, varargin)
 
         %
@@ -95,7 +64,7 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
     validateattributes(options.mode_number, {'numeric'}, ...
                         {'positive', 'integer'}, mfilename, 'mode_number');
     validateattributes(options.view, {'logical'}, ...
-                        {'binary'}, mfilename, 'pause_and_view');
+                        {'binary'}, mfilename, 'view');
 
 
         %
@@ -222,11 +191,8 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
         coeff = +1;
     end
 
-%     % Make the components of the E and H fields match the propagation
-%     % direction.
-%     % TODO: Check is this correction is needed.
-%     E_small{prop_dir} = coeff * E_small{prop_dir};
-%     H_small{prop_dir} = coeff * H_small{prop_dir};
+    % Make the components of the E and H fields match the propagation
+    % direction.
     for k = 1 : 3
         if k ~= prop_dir
             H_small{k} = coeff * H_small{k};
@@ -250,11 +216,6 @@ function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, var
 
     dl = real(sp{prop_dir}); % Distance separating J and J_adj planes.
 
-%     if prop_in_pos_dir
-%         coeff = 1;
-%     else
-%         coeff = -1;
-%     end
 
     % Shift indices for the propagation direction.
     ps0 = p0;

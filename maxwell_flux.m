@@ -1,6 +1,5 @@
 %% maxwell_flux
-% Computes the Poynting vector through a finite plane of the simulation.
-% TODO: Not working yet!
+% Electromagnetic power passing through a finite plane of the simulation.
 
 %%% Syntax
 %
@@ -16,6 +15,14 @@
 %   only a single mode.
 %   Note that this may fail if large evanescent fields are present.
 
+%%% Description
+% |maxwell_flux| calculates the integrated Poynting vector across
+% a simulation plane. 
+% It can alternatively be used to calculate the power in a single 
+% waveguide mode, while filtering out the power in other modes.
+%
+
+%%% Source code
 function [P] = maxwell_flux(grid, E_H, varargin)
 
         %

@@ -1,5 +1,5 @@
 %% maxwell_grid
-% Create a simulation domain.
+% Initialize a simulation domain.
 
 %%% Syntax
 %
@@ -38,7 +38,7 @@
 % * |... = maxwell_grid(..., 'growth_rate', rate)|
 %   determines the growth rate of the grid, when using the |'hires_box'| option.
 %   In other words, it determines how fast the resolution changes.
-%   Defaults to 1.5.
+%   Defaults to 1.05.
 %
 
 %%% Description
@@ -58,6 +58,7 @@
 %   This is a natural result of wrap-around boundaries.
 %   
 
+%%% Source code
 function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
 
         %
@@ -79,7 +80,7 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
     options = my_parse_options(struct(  'nopml', '', ...
                                         'num_pml_cells', 10, ...
                                         'hires_box', [], ...
-                                        'growth_rate', 1.5), ...
+                                        'growth_rate', 1.05), ...
                                 varargin, mfilename);
 
     validateattributes(options.nopml, {'char'}, {}, mfilename, 'nopml');

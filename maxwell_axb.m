@@ -1,5 +1,5 @@
 %% maxwell_axb
-% Get the matrices and vectors associated with the electromagnetic wave equation.
+% Matrices and vectors associated with the electromagnetic wave equation.
 
 %%% Syntax
 %
@@ -33,7 +33,7 @@
 % $$ \nabla \times E - i \omega \mu H = 0, \quad \nabla \times H + i \omega \epsilon E = J. $$
 %
 %
-% |maxwell_axb| composes systems of equations, in matrix form $ Ax = b $, 
+% |maxwell_axb| composes systems of equations, in matrix form $$ Ax = b $$, 
 % to represent either of these equations 
 % (depending on the user's input parameters).
 %
@@ -43,7 +43,7 @@
 % during the solve process because of various "tricks" Maxwell uses
 % to speed up the solve process.
 
-
+%%% Source code
 function [A, x, b] = maxwell_axb(grid, eps_mu, E_H, J, varargin)
 
         %

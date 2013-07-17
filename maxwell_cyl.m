@@ -1,5 +1,5 @@
 %% maxwell_cyl
-% Used to define a cylinder of a constant epsilon/mu in the simulation domain.
+% Cylinder of constant epsilon/mu within the simulation grid.
 
 %%% Syntax
 %
@@ -7,6 +7,7 @@
 %   produces function handle |f| which defines a cylinder centered at |center|
 %   of dimensions |radius| and |height|.
 
+%%% Source code
 function [cyl_fun] = maxwell_cyl(center, radius, height)
 
     validateattributes(center, {'double'}, ...

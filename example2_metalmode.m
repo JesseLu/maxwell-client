@@ -1,6 +1,22 @@
 %% example2_metalmode.m
-% Mode of a metallic resonator
+% Solve for the resonant mode of a metallic resonator.
 
+%%% Syntax
+%
+% * |[omega, E, H, grid, eps] = example2_metalmode()| 
+%   runs the example in 3D and
+%   returns the (complex) frequency of the eigenmode as |omega|.
+%
+% * |... = example2_metalmode('flatten', true)| 
+%   runs the example in 2D.
+%   This is very useful for quick tests.
+%
+% * |... = example2_metalmode('sim_only', true)| 
+%   Only performs the initial simulation and 
+%   does not perform the eigenmode solve.
+%
+
+%%% Source code
 function [omega, E, H, grid, eps] = example2_metalmode(varargin)
 
 
@@ -95,13 +111,8 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         %
 
     [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E);
+    maxwell_view(grid, eps, E, 'y', [nan nan 0]);
     fprintf('\n');
 end
 
-function [res] = my_pass(z, ~)
-    res = z;
-end
 
-function [res] = staircase_fun(z, dir)
-    res = round(sum(z(:))/numel(z)); % Staircase the following calls.
-end

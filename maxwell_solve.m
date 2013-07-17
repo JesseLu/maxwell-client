@@ -1,5 +1,5 @@
 %% maxwell_solve
-% Solves the electromagnetic wave equation.
+% Solve the electromagnetic wave equation.
 
 %%% Syntax
 % 
@@ -45,6 +45,7 @@
 % are available for the user to tweak.
 
 
+%%% Source code
 function [E, H, err] = maxwell_solve(grid, eps_mu, J, varargin)
 
         %

@@ -1,15 +1,28 @@
 %% example1_ring.m
-% Waveguide-coupled ring resonator.
+% Excite the clock-wise mode of a ring resonator.
 
+%%% Syntax
+%
+% * |[E, H, grid, eps] = example1_ring()| 
+%   runs the example in 3D and
+%   returns the E- and H-field (|E|, |H|),
+%   as well as |grid| and |eps| which are useful for visualizing 
+%   the result with |maxwell_view|.
+%
+% * |... = example1_ring('flatten', true)| 
+%   runs the example in 2D.
+%   This is very useful for quick tests.
+%
 
-function [omega, E, H, grid, eps] = example1_ring(varargin)
+%%% Source code
+function [E, H, grid, eps] = example1_ring(varargin)
 
 
         %
         % Parse inputs.
         %
 
-    options = my_parse_options(struct('sim_only', false), ...
+    options = my_parse_options(struct('flatten', false), ...
                                 varargin, mfilename);
 
 
@@ -53,15 +66,5 @@ function [omega, E, H, grid, eps] = example1_ring(varargin)
 
     fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
+
     maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
-
-    if options.sim_only
-        omega = grid.omega;
-        return
-    end
-
-
-        % 
-        % Solve for the eigenmode.
-        %
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E); % Use this solution as an initial guess.

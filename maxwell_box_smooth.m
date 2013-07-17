@@ -1,5 +1,19 @@
+%% maxwell_box_smooth
+% Box of constant epsilon/mu within the simulation grid with smoothed boundaries.
 
-function [box_fun] = maxwell_smooth_box(center, box_size, varargin)
+%%% Syntax
+%
+% * |fun = maxwell_box_smooth(center, box_size)| 
+%   returns function handle |fun| which describes a rectangular prism 
+%   centered at |center| and of size |box_size|.
+%
+% * |fun = maxwell_box_smooth(..., 'smooth_dist', d)| 
+%   smoothes the edges of the box over a distance |d|.
+%
+
+
+%%% Source code
+function [box_fun] = maxwell_box_smooth(center, box_size, varargin)
 
 
         %

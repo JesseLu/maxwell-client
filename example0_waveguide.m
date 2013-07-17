@@ -1,7 +1,20 @@
-%% example0_waveguide.m
-% Waveguide example.
+%% example0_waveguide
+% Excite the fundamental mode of a waveguide and measure output power.
 
+%%% Syntax
+%
+% * |[E, H, grid, eps] = example0_waveguide()| 
+%   runs the example in 3D and
+%   returns the E- and H-field (|E|, |H|),
+%   as well as |grid| and |eps| which are useful for visualizing 
+%   the result with |maxwell_view|.
+%
+% * |... = example0_waveguide('flatten', true)| 
+%   runs the example in 2D.
+%   This is very useful for quick tests.
+%
 
+%%% Source code
 function [E, H, grid, eps] = example0_waveguide(varargin)
 
 
@@ -19,9 +32,9 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
 
     % Make a grid for a wavelength of 1550 nm.
     omega = 2 * pi/1.55;
-    x = -2 : 0.05 : 2;
-    y = -1 : 0.05 : 1;
-    z = -1 : 0.05 : 1;
+    x = -2 : 0.025 : 2;
+    y = -1 : 0.025 : 1;
+    z = -1 : 0.025 : 1;
     if options.flatten
         z = 0;
         mode_num = 1;
@@ -30,7 +43,6 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     end
 
     [grid, eps] = maxwell_grid(omega, x, y, z);
-                            % 'hires_box', {[0 -.4 0], [1 .4 1], [.05 .05 .05]});
 
 
         %
@@ -44,7 +56,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
 
     % Draw waveguide.
     eps = maxwell_shape(grid, eps, si_eps, ...
-                        maxwell_smooth_box([0 0 0], [1e9 wg_width wg_height], ...
+                        maxwell_box_smooth([0 0 0], [1e9 wg_width wg_height], ...
                                             'smooth_dist', 0.02));
 
         %
@@ -52,13 +64,12 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
         %
 
     [J, ~, ~, beta]  = maxwell_wgmode(grid, eps, [-1 0 0], [+inf 3 3], 'mode_number', mode_num);
-    beta
 
     fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
-    [A, x, b] = maxwell_axb(grid, eps, E, J);
-    norm(A*x - b) / norm(b)
-    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
+
+    % Visualize the excited waveguide.
+    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); 
 
 
         % 
@@ -73,6 +84,3 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     fprintf('Output powers at x = 0,\n');
     fprintf('Total power: %1.5f\n', P0);
     fprintf('Power in mode: %1.5f\n', P1);
-
-    params = {'field_phase', nan, 'show_grid', true};
-    maxwell_view(grid, eps, E, 'y', [nan nan 0], params{:});

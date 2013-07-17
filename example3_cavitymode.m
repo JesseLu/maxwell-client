@@ -1,5 +1,24 @@
-% Simulate L3 photonic crystal cavity.
+%% example3_cavitymode
+% Solve for the eigenmodes of dielectric resonators.
 
+%%% Syntax
+%
+% * |[omega, E, H, grid, eps] = example3_cavitymode('L3')| 
+%   finds the cavity mode of an L3 photonic crystal resonator.
+%
+% * |... = example3_cavitymode('beam')| 
+%   finds the cavity mode of a nanophotonic beam resonator.
+%
+% * |... = example3_cavitymode(..., 'flatten', true)| 
+%   runs the example in 2D.
+%   This is very useful for quick tests.
+%
+% * |... = example3_cavitymode(..., 'sim_only', true)| 
+%   Only performs the initial simulation and 
+%   does not perform the eigenmode solve.
+%
+
+%%% Source code
 function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
 
         %
@@ -26,7 +45,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
             omega_guess = struct('D2', 0.062, 'D3', 0.080);
         case 'beam2w'
             filename = 'beam.mat';
-            omega_guess = struct('D2', 0.120, 'D3', 0.166);
+            omega_guess = struct('D2', 0.118, 'D3', 0.166);
         otherwise
             error('cavity_type must either be ''L3'' or ''beam''.');
     end
@@ -59,8 +78,14 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         %
 
     c = round(dims/2);
-    if options.flatten % Use point source to excite 2D mode.
-        J{2}(c(1), c(2), c(3)) = 1;
+    if options.flatten 
+        if strcmp(cavity_type, 'beam2w')
+            [~, E] = example3_cavitymode('beam', 'flatten', true);
+            J{2} = abs(E{2});
+        else
+            % Use point source to excite 2D mode.
+            J{2}(c(1), c(2), c(3)) = 1;
+        end
         fprintf('=== 2D solve ===\n');
     else
         % To get the current excitation for 3D, use the 2D mode.
@@ -75,7 +100,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     end
 
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
+    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-2); % Use this solution as an initial guess.
 
     maxwell_view(grid, eps, E, 'y', [nan nan 0]);
 
@@ -89,5 +114,6 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         % Find the eigenmode, using previous result as initial guess field.
         %
     
-    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E);
+    [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E, 'err_thresh', 1e-2);
+    maxwell_view(grid, eps, E, 'y', [nan nan 0]);
 

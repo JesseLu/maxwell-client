@@ -1,5 +1,5 @@
 %% maxwell_view
-% Slice view of a field and/or structure.
+% View a slice of the field and/or structure.
 
 %%% Syntax
 %
@@ -41,6 +41,7 @@
 %
 
 
+%%% Source code
 function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
         %

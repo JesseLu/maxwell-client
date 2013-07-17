@@ -1,5 +1,5 @@
 %% maxwell_solve_async
-% Initiate an electromagnetic solve and immediately return a callback function.
+% Electromagnetic solve without waiting for completion.
 
 %%% Syntax
 % * |cb_fun = maxwell_solve_async(grid, eps, J)|
@@ -21,7 +21,7 @@
 % For this reason, instead of returning the solution fields,
 % a callback function is returned which is used to query the
 % progress of the simulation and to obtain the solution fields.
-% The callback function can be used in this simple way:
+% The callback function can be used in this simple way (|maxwell_solve| does this):
 %
 %   while ~cb_fun(); end; % Wait until simulation finishes.
 %   [~, E, H] = cb_fun(); % Get solution fields.
@@ -30,6 +30,7 @@
 % to perform additional work.
 %
 
+%%% Source code
 function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
         %

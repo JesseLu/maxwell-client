@@ -73,9 +73,9 @@ function [x] = my_wing(x, init_delta, rate)
     r = roots(c(end:-1:1));
     adjusted_rate = max(r(find(imag(r) == 0 & real(r) > 1)));
 
-%     if isempty(adjusted_rate)
-%         adjusted_rate = rate;
-%     end
+    if isempty(adjusted_rate) % Safety catch.
+        adjusted_rate = rate;
+    end
 
     % Form tapered wing.
     wing_x(1) = x(1);

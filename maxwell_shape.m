@@ -1,5 +1,5 @@
 %% maxwell_shape
-% Generic function to add constant material shapes to the simulation domain.
+% Add shapes of constant material to the simulation domain.
 
 %%% Syntax
 %
@@ -54,6 +54,7 @@
 % There will be slight differences at the edge of the shape.
 % 
 
+%%% Source code
 function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
 
 
