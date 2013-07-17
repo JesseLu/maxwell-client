@@ -5,7 +5,7 @@
 %   eval(urlread('http://this-file-right-here-that-you-uploaded-to-the-web'))
 %
 
-version = '1.0';
+version = 'dev';
 
 %% Generic install script.
 fprintf('Loading maxwell-client (version %s)...', version);
