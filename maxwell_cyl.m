@@ -7,6 +7,7 @@
 %   produces function handle |f| which defines a cylinder centered at |center|
 %   of dimensions |radius| and |height|.
 
+%%% Source code
 function [cyl_fun] = maxwell_cyl(center, radius, height)
 
     validateattributes(center, {'double'}, ...

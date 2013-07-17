@@ -58,6 +58,7 @@
 %   This is a natural result of wrap-around boundaries.
 %   
 
+%%% Source code
 function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
 
         %

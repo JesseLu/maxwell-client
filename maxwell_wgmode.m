@@ -33,6 +33,7 @@
 % while the mode fields can be used for filtering out powers at output waveguides.
 %
 
+%%% Source code
 function [J, E, H, beta] = solve_wgmode(grid, eps_mu, plane_pos, plane_size, varargin)
 
         %

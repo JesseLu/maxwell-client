@@ -1,4 +1,15 @@
+%% maxwell_smooth_box
+% Used to insert a "smoothed" box of constant epsilon/mu into the simulation grid.
 
+%%% Syntax
+%
+% * |fun = maxwell_smooth_box(center, box_size)| 
+%   returns function handle |fun| which describes a rectangular prism 
+%   centered at |center| and of size |box_size|.
+%
+
+
+%%% Source code
 function [box_fun] = maxwell_smooth_box(center, box_size, varargin)
 
 

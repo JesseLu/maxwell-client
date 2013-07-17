@@ -41,6 +41,7 @@
 %
 
 
+%%% Source code
 function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
         %

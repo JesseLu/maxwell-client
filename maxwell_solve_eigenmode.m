@@ -46,6 +46,7 @@
 % (real-part) of the previously computed eigenmode frequency.
 %
 
+%%% Source code
 function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin) 
 
         %

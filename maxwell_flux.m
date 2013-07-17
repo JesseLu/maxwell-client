@@ -22,6 +22,7 @@
 % waveguide mode, while filtering out the power in other modes.
 %
 
+%%% Source code
 function [P] = maxwell_flux(grid, E_H, varargin)
 
         %

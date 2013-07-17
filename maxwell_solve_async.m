@@ -30,6 +30,7 @@
 % to perform additional work.
 %
 
+%%% Source code
 function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
         %

@@ -54,6 +54,7 @@
 % There will be slight differences at the edge of the shape.
 % 
 
+%%% Source code
 function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
 
 

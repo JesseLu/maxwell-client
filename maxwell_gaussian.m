@@ -30,6 +30,7 @@
 % across the excitation plane.
 %
 
+%%% Source code
 function [J] = maxwell_gaussian(grid, eps_mu, plane_pos, plane_size, ...
                                 polarization, focal_length, beam_diameter)
 

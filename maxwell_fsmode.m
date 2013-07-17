@@ -40,7 +40,7 @@
 % this does not yet work quite as well as |maxwell_wgmode|, which is near perfect.
 %
 
-
+%%% Source code
 function [J] = maxwell_fsmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
                                 varargin)
 
