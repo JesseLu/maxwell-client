@@ -1,11 +1,10 @@
-function [E, H, grid, eps] = example4_focusedbeam(varargin)
+function [E, H, grid, eps] = example4_focusedbeam(type, varargin)
 
         %
         % Parse inputs.
         %
 
-    options = my_parse_options(struct(  'type', 'gaussian', ...
-                                        'flatten', false, ...
+    options = my_parse_options(struct(  'flatten', false, ...
                                         'flen', 0), ...
                                 varargin, mfilename);
 
@@ -26,10 +25,9 @@ function [E, H, grid, eps] = example4_focusedbeam(varargin)
         mode_num = 1;
     end
 
-    [grid, eps] = maxwell_grid(omega, x, y, z);
-                            % 'hires_box', {[0 -.4 0], [1 .4 1], [.05 .05 .05]});
-
-    switch options.type
+    [grid, eps] = maxwell_grid(omega, x, y, z, ...
+                            'hires_box', {[0 0 0], [1 .4 1], [.02 .02 .02]});
+    switch type
         case 'gaussian'
             J = maxwell_gaussian(grid, eps, [0 0 2], [8 8 -inf], 'y', options.flen, 0.9);
         case 'donut'
@@ -39,8 +37,6 @@ function [E, H, grid, eps] = example4_focusedbeam(varargin)
             error('Type must either ''gaussian'' or ''donut''.');
     end
    
-%     mode_fun = gaussian([0 0 0], 0.2, 1);
-%     J = maxwell_fsmode(grid, eps, [0 0 2], [8 8 -inf], mode_fun, 'focal_length', options.flen);
 
     [E, H] =  maxwell_solve(grid, eps, J);
     maxwell_view(grid, eps, E, 'y', [nan 0 nan], 'field_phase', nan); % Visualize the excited waveguide.
@@ -57,6 +53,5 @@ function [fun] = zdonut(center, width)
     end
 
     fun = @mode_fun;
-    % fun = @(w, x, y, z) (w == pol) * ones(size(x));
 end
         

@@ -3,6 +3,42 @@
 
 %%% Syntax
 %
+% * |J = maxwell_fsmode(grid, eps, plane_size, plane_pos, mode_fun)|
+%   computes the current source needed to excite an arbitrary free-space mode.
+%   The mode is determined via the user-supplied function handle |mode_fun|.
+%   |mode_fun| must be of the form |E = mode_fun(w, x, y, z)| where
+%   |E| is the E-field of the desired mode for a polarization of |w|
+%   (which can be |1|, |2|, or |3| for x-, y-, of z-components of the E-field)
+%   at the position |(x, y, z)|.
+%
+%   Similar to the |maxwell_wgmode| function, the excitation is provided 
+%   at the finite plane located at |plane_pos|, 
+%   which is of size |plane_size|.
+%   One of the elements of |plane_size| must be either |+inf| or |-inf|
+%   in order to denote the directionality of the desired waveguide mode.
+%
+% * |... = maxwell_fsmode(grid, [eps mu], ...)|
+%   allows for |mu| not equal to 1.
+%
+% * |... = maxwell_fsmode(..., 'focal_length', flen)|
+%   will attempt to produce the desired mode at a distance |flen|
+%   away from the original excitation plane. 
+%   If |flen| is non-zero, then the evanescent (non-propagating) components
+%   are eliminated from the mode.
+%   |flen| defaults to |0|.
+%
+
+%%% Description
+% |maxwell_fsmode| allows the user to generate arbitrary free-space modes
+% and even to produce them at a distance away from the excitation plane.
+% It is able to do so by converting the mode into the plane-wave basis
+% and back-propagating the mode by the appropriate distance.
+% 
+% Note that |maxwell_fsmode| requires that the material parameters be uniform 
+% across the excitation plane. 
+% Lastly, although the source is attempted to be made single-directional,
+% this does not yet work quite as well as |maxwell_wgmode|, which is near perfect.
+%
 
 
 function [J] = maxwell_fsmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
@@ -84,9 +120,24 @@ function [J] = maxwell_fsmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
         % Get the mode shape.
         %
 
+    % Test if we can give multiple points to f.
+    try 
+        out = mode_fun(1, [0 1], [2 3], [4 5]);
+        multipoint = true;
+    catch
+        multipoint = false;
+    end
+
     for k = 1 : 3
         [x, y, z] = ndgrid(pos{k}{1}, pos{k}{2}, pos{k}{3});
-        E{k} = mode_fun(k, x, y, z);
+        if multipoint
+            E{k} = mode_fun(k, x, y, z);
+        else
+            for cnt = 1 : numel(x)
+                E{k}(cnt) = mode_fun(k, x(cnt), y(cnt), z(cnt));
+            end
+            E{k} = reshape(E{k}, size(x));
+        end
     end
 
         
@@ -119,6 +170,7 @@ function [J] = maxwell_fsmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
                 J{k}(ps0(1):ps1(1), ps0(2):ps1(2), ps0(3):ps1(3)) = -E{k} * ...
                         exp(-1i * prop_step * omega_eff);
             end 
+            J{k} = J{k} ./ prop_step; % Scale with prop_step.
         end
     end
     

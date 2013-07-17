@@ -141,9 +141,9 @@ function [E1] = my_propagate_beam(omega_eff, prop_dir, prop_dist, E0, pos)
         % Convert back to real-space basis.
         %
 
-    for i = 1 : size(mag{1}, 1)
-        % E1_f(i,:) = mag{1}(i) * p{1}(i,:) + mag{2}(i) * p{2}(i,:);
-        E1_f(i,:) = mag{1}(i) * p{1}(i,:) + mag{2}(i) * p{2}(i,:) + mag{3}(i) * p{3}(i,:);
+    E1_f = 0;
+    for i = 1 : 3
+        E1_f = E1_f + (mag{i} * ones(1, 3)) .* p{i};
     end
 
     for i = 1 : 3

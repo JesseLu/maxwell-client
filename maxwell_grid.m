@@ -38,7 +38,7 @@
 % * |... = maxwell_grid(..., 'growth_rate', rate)|
 %   determines the growth rate of the grid, when using the |'hires_box'| option.
 %   In other words, it determines how fast the resolution changes.
-%   Defaults to 1.5.
+%   Defaults to 1.1.
 %
 
 %%% Description
@@ -79,7 +79,7 @@ function [grid, eps, mu, J] = maxwell_grid(omega, x, y, z, varargin)
     options = my_parse_options(struct(  'nopml', '', ...
                                         'num_pml_cells', 10, ...
                                         'hires_box', [], ...
-                                        'growth_rate', 1.5), ...
+                                        'growth_rate', 1.05), ...
                                 varargin, mfilename);
 
     validateattributes(options.nopml, {'char'}, {}, mfilename, 'nopml');
