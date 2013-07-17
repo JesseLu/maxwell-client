@@ -22,6 +22,6 @@ end
 mkdir(maxwelldir);
 
 % Get the zip files.
-unzip(['http://codeload.github.com/JesseLu/maxwell-client/zip/', version], maxwelldir);
+unzip(['https://codeload.github.com/JesseLu/maxwell-client/zip/', version], maxwelldir);
 path(genpath(maxwelldir), path);
 fprintf('done\n');
