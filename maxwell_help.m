@@ -25,6 +25,8 @@
 %
 % * <maxwell_grid.html maxwell_grid> - Initialize a simulation domain.
 %
+% * <maxwell_pos2ind.html maxwell_pos2ind> - Translate from position to array indices.
+%
 % * <maxwell_shape.html maxwell_shape> - Add shapes of constant material to the simulation domain.
 %
 % * <maxwell_solve.html maxwell_solve> - Solve the electromagnetic wave equation.
@@ -49,6 +51,8 @@
 % * <example3_cavitymode.html example3_cavitymode> - Solve for the eigenmodes of dielectric resonators.
 %
 % * <example4_focusedbeam.html example4_focusedbeam> - Excite Gaussian or donut free-space modes.
+%
+% * <example5_hiresmetal.html example5_hiresmetal> - Solve for the resonant mode of a metallic resonator.
 
 
 % Allows the user to get here just by typing 'maxwell_help' in the command line.
