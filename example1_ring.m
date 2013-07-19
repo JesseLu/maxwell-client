@@ -51,10 +51,18 @@ function [E, H, grid, eps] = example1_ring(varargin)
     air_eps = 1;
 
     % Draw ring.
-    eps = maxwell_shape(grid, eps, si_eps, ...
-                        maxwell_cyl([0 0 0], ring_radii(1), height));
-    eps = maxwell_shape(grid, eps, air_eps, ...
-                        maxwell_cyl([0 0 0], ring_radii(2), height));
+    function [out] = custom_ring(x, y, z)
+        r = sqrt(x.^2 + y.^2);
+        out = (r < ring_radii(1) & r > ring_radii(2)) & (abs(z) < height/2);
+    end
+
+    eps = maxwell_shape(grid, eps, si_eps, @custom_ring); % Insert ring.
+
+%     % Alternatively, use two cylinders
+%     eps = maxwell_shape(grid, eps, si_eps, ...
+%                         maxwell_cyl([0 0 0], ring_radii(1), height));
+%     eps = maxwell_shape(grid, eps, air_eps, ...
+%                         maxwell_cyl([0 0 0], ring_radii(2), height));
 
 
         %
@@ -67,4 +75,5 @@ function [E, H, grid, eps] = example1_ring(varargin)
     fprintf('Initial excitation -- ');
     [E, H] =  maxwell_solve(grid, eps, J);
 
-    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
+    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', inf); % Visualize the excited waveguide.
+end
