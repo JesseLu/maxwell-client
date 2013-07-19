@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxwell_view</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-17"><meta name="DC.source" content="maxwell_view.m"><style type="text/css">
+      --><title>maxwell_view</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-19"><meta name="DC.source" content="maxwell_view.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -65,7 +65,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>maxwell_view</h1><!--introduction--><p>View a slice of the field and/or structure.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Source code</a></li></ul></div><h2>Syntax<a name="1"></a></h2><div><ul><li><tt>maxwell_view(grid, eps, E, 'x', [nan 50 nan])</tt>   visualizes the <tt>y = 50</tt> slice of the x-components of <tt>eps</tt> and <tt>E</tt>.</li></ul></div><div><ul><li><tt>maxwell_view(grid, eps, [], 'x', [nan 50 nan])</tt>   visualizes only the structure.</li></ul></div><div><ul><li><tt>maxwell_view(grid, [], E, 'x', [nan 50 nan])</tt>   visualizes only the field.</li></ul></div><div><ul><li><tt>maxwell_view(grid, mu, H, 'x', [nan 50 nan], 'grid_type', 'dual');   allows for |mu</tt> and <tt>H</tt> to be visualized in their correct locations,   accounting for the proper shift in the Yee cell.   <tt>'grid_type'</tt> defaults to <tt>'prim'</tt>, which assumes we are visualizing   E or eps.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'field_phase', phase)</tt>   allows one to adjust the phase of the field,   where <tt>phase = 0</tt> is the real component,   <tt>phase = pi/2</tt> is the imaginary component,   <tt>phase = nan</tt> denotes the absolute value of the field,   and <tt>phase = inf</tt> will play a movie.   Defaults to 0.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'clims', clims)</tt>   allows the user to determine the minimum and maximum values of   the colorbar.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'hide_pml', true)</tt>   removes the pml region from the plot.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'reverse_structure', true)</tt>   allows the user to reverse the grayscale/shading used to draw the structure.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'show_grid', true)</tt>   overlays the grid on top of the plot.</li></ul></div><h2>Source code<a name="2"></a></h2><pre class="codeinput"><span class="keyword">function</span> maxwell_view(grid, mat, F, dir, slice_ind, varargin)
+  </style></head><body><div class="content"><h1>maxwell_view</h1><!--introduction--><p>View a slice of the field and/or structure.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Source code</a></li></ul></div><h2>Syntax<a name="1"></a></h2><div><ul><li><tt>maxwell_view(grid, eps, E, 'x', [nan 50 nan])</tt>   visualizes the <tt>y = 50</tt> slice of the x-components of <tt>eps</tt> and <tt>E</tt>.</li></ul></div><div><ul><li><tt>maxwell_view(grid, eps, [], 'x', [nan 50 nan])</tt>   visualizes only the structure.</li></ul></div><div><ul><li><tt>maxwell_view(grid, [], E, 'x', [nan 50 nan])</tt>   visualizes only the field.</li></ul></div><div><ul><li><tt>maxwell_view(grid, mu, H, 'x', [nan 50 nan], 'grid_type', 'dual')</tt>   allows for <tt>mu</tt> and <tt>H</tt> to be visualized in their correct locations,   accounting for the proper shift in the Yee cell.   <tt>'grid_type'</tt> defaults to <tt>'prim'</tt>, which assumes we are visualizing   E or eps.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'field_phase', phase)</tt>   allows one to adjust the phase of the field,   where <tt>phase = 0</tt> is the real component,   <tt>phase = pi/2</tt> is the imaginary component,   <tt>phase = nan</tt> denotes the absolute value of the field,   and <tt>phase = inf</tt> will play a movie.   Defaults to 0.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'clims', clims)</tt>   allows the user to determine the minimum and maximum values of   the colorbar.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'hide_pml', true)</tt>   removes the pml region from the plot.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'reverse_structure', true)</tt>   allows the user to reverse the grayscale/shading used to draw the structure.</li></ul></div><div><ul><li><tt>maxwell_view(..., 'show_grid', true)</tt>   overlays the grid on top of the plot.</li></ul></div><h2>Source code<a name="2"></a></h2><pre class="codeinput"><span class="keyword">function</span> maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
         <span class="comment">%</span>
         <span class="comment">% Validate and parse inputs.</span>
@@ -156,9 +156,11 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
     <span class="comment">% Determine grids which will be used for plotting the slice.</span>
     perp_comp = find(isnan(slice_ind));
+    title_dir = find(~isnan(slice_ind));
     xyz = <span class="string">'xyz'</span>;
     xlabel = xyz(perp_comp(1));
     ylabel = xyz(perp_comp(2));
+    titletext = [xyz(title_dir), <span class="string">' = '</span>, num2str(slice_ind(title_dir))];
     x = pos{perp_comp(1)};
     y = pos{perp_comp(2)};
 
@@ -217,7 +219,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
         <span class="comment">% Prepare drawing function.</span>
         my_plot = @(data) my_pcolor(x, y, data, alpha_data, <span class="keyword">...</span>
-                                    {xlabel, ylabel}, clims, options.show_grid);
+                                    {titletext, xlabel, ylabel}, <span class="keyword">...</span>
+                                    clims, options.show_grid);
 
         <span class="comment">% Plot.</span>
         <span class="keyword">if</span> ~isinf(options.field_phase)
@@ -286,8 +289,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
         caxis(clims);
     <span class="keyword">end</span>
 
-    xlabel(labels{1});
-    ylabel(labels{2});
+    title(labels{1});
+    xlabel(labels{2});
+    ylabel(labels{3});
     colorbar();
     axis <span class="string">equal</span> <span class="string">tight</span>;
     set(gca, <span class="string">'YDir'</span>, <span class="string">'normal'</span>);
@@ -308,7 +312,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 % * |maxwell_view(grid, [], E, 'x', [nan 50 nan])|
 %   visualizes only the field.
 %
-% * |maxwell_view(grid, mu, H, 'x', [nan 50 nan], 'grid_type', 'dual');
+% * |maxwell_view(grid, mu, H, 'x', [nan 50 nan], 'grid_type', 'dual')|
 %   allows for |mu| and |H| to be visualized in their correct locations,
 %   accounting for the proper shift in the Yee cell.
 %   |'grid_type'| defaults to |'prim'|, which assumes we are visualizing
@@ -429,9 +433,11 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
     % Determine grids which will be used for plotting the slice.
     perp_comp = find(isnan(slice_ind));
+    title_dir = find(~isnan(slice_ind));
     xyz = 'xyz';
     xlabel = xyz(perp_comp(1));
     ylabel = xyz(perp_comp(2));
+    titletext = [xyz(title_dir), ' = ', num2str(slice_ind(title_dir))];
     x = pos{perp_comp(1)};
     y = pos{perp_comp(2)};
 
@@ -490,7 +496,8 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
         % Prepare drawing function.
         my_plot = @(data) my_pcolor(x, y, data, alpha_data, ...
-                                    {xlabel, ylabel}, clims, options.show_grid);
+                                    {titletext, xlabel, ylabel}, ...
+                                    clims, options.show_grid);
 
         % Plot.
         if ~isinf(options.field_phase)
@@ -559,8 +566,9 @@ function my_pcolor(x, y, data, alpha_data, labels, clims, show_grid)
         caxis(clims);
     end
 
-    xlabel(labels{1});
-    ylabel(labels{2});
+    title(labels{1});
+    xlabel(labels{2});
+    ylabel(labels{3});
     colorbar();
     axis equal tight;
     set(gca, 'YDir', 'normal');

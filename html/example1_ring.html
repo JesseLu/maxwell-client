@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>example1_ring.m</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-17"><meta name="DC.source" content="example1_ring.m"><style type="text/css">
+      --><title>example1_ring.m</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-19"><meta name="DC.source" content="example1_ring.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -101,10 +101,18 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     air_eps = 1;
 
     <span class="comment">% Draw ring.</span>
-    eps = maxwell_shape(grid, eps, si_eps, <span class="keyword">...</span>
-                        maxwell_cyl([0 0 0], ring_radii(1), height));
-    eps = maxwell_shape(grid, eps, air_eps, <span class="keyword">...</span>
-                        maxwell_cyl([0 0 0], ring_radii(2), height));
+    <span class="keyword">function</span> [out] = custom_ring(x, y, z)
+        r = sqrt(x.^2 + y.^2);
+        out = (r &lt; ring_radii(1) &amp; r &gt; ring_radii(2)) &amp; (abs(z) &lt; height/2);
+    <span class="keyword">end</span>
+
+    eps = maxwell_shape(grid, eps, si_eps, @custom_ring); <span class="comment">% Insert ring.</span>
+
+<span class="comment">%     % Alternatively, use two cylinders</span>
+<span class="comment">%     eps = maxwell_shape(grid, eps, si_eps, ...</span>
+<span class="comment">%                         maxwell_cyl([0 0 0], ring_radii(1), height));</span>
+<span class="comment">%     eps = maxwell_shape(grid, eps, air_eps, ...</span>
+<span class="comment">%                         maxwell_cyl([0 0 0], ring_radii(2), height));</span>
 
 
         <span class="comment">%</span>
@@ -117,7 +125,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     fprintf(<span class="string">'Initial excitation -- '</span>);
     [E, H] =  maxwell_solve(grid, eps, J);
 
-    maxwell_view(grid, eps, E, <span class="string">'y'</span>, [nan nan 0], <span class="string">'field_phase'</span>, 0); <span class="comment">% Visualize the excited waveguide.</span>
+    maxwell_view(grid, eps, E, <span class="string">'y'</span>, [nan nan 0], <span class="string">'field_phase'</span>, inf); <span class="comment">% Visualize the excited waveguide.</span>
+<span class="keyword">end</span>
 </pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% example1_ring.m
@@ -173,10 +182,18 @@ function [E, H, grid, eps] = example1_ring(varargin)
     air_eps = 1;
 
     % Draw ring.
-    eps = maxwell_shape(grid, eps, si_eps, ...
-                        maxwell_cyl([0 0 0], ring_radii(1), height));
-    eps = maxwell_shape(grid, eps, air_eps, ...
-                        maxwell_cyl([0 0 0], ring_radii(2), height));
+    function [out] = custom_ring(x, y, z)
+        r = sqrt(x.^2 + y.^2);
+        out = (r < ring_radii(1) & r > ring_radii(2)) & (abs(z) < height/2);
+    end
+
+    eps = maxwell_shape(grid, eps, si_eps, @custom_ring); % Insert ring.
+
+%     % Alternatively, use two cylinders
+%     eps = maxwell_shape(grid, eps, si_eps, ...
+%                         maxwell_cyl([0 0 0], ring_radii(1), height));
+%     eps = maxwell_shape(grid, eps, air_eps, ...
+%                         maxwell_cyl([0 0 0], ring_radii(2), height));
 
 
         %
@@ -189,7 +206,8 @@ function [E, H, grid, eps] = example1_ring(varargin)
     fprintf('Initial excitation REPLACE_WITH_DASH_DASH ');
     [E, H] =  maxwell_solve(grid, eps, J);
 
-    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize the excited waveguide.
+    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', inf); % Visualize the excited waveguide.
+end
 
 ##### SOURCE END #####
 --></body></html>
