@@ -19,7 +19,7 @@
 %%
 % * |... = maxwell_solve_eigenmode(..., 'vis_progress', vis_opt)|
 %   controls the progress visualization for individual calls to |maxwell_solve|.
-%   Defaults to |plot|.
+%   Defaults to |both|.
 %
 % * |... = maxwell_solve_eigenmode(..., 'max_iters', n, 'err_thresh', err)|
 %   sets the termination conditions for the underlying calls to |maxwell_solve|,
