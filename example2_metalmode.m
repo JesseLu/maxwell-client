@@ -111,7 +111,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
         %
 
     [omega, E, H] =  maxwell_solve_eigenmode(grid, eps, E);
-    maxwell_view(grid, eps, E, 'y', [nan nan 0]);
+    % maxwell_view(grid, eps, E, 'y', [nan nan 0]);
     fprintf('\n');
 end
 

@@ -12,7 +12,7 @@
 % * |maxwell_view(grid, [], E, 'x', [nan 50 nan])|
 %   visualizes only the field.
 %
-% * |maxwell_view(grid, mu, H, 'x', [nan 50 nan], 'grid_type', 'dual');
+% * |maxwell_view(grid, mu, H, 'x', [nan 50 nan], 'grid_type', 'dual')|
 %   allows for |mu| and |H| to be visualized in their correct locations,
 %   accounting for the proper shift in the Yee cell.
 %   |'grid_type'| defaults to |'prim'|, which assumes we are visualizing
