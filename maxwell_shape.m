@@ -175,14 +175,18 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
     end
     inside_shape = reshape(inside_shape, size(x));
 
-    % Downsample results by averaging.
-    for i = 1 : (s{2}(1) - s{1}(1))
-        for j = 1 : (s{2}(2) - s{1}(2))
-            for k = 1 : (s{2}(3) - s{1}(3))
-                fill_fraction(i, j, k) = f_avg(inside_shape(...
-                                    (i-1)*up_ratio+[1:up_ratio], ...
-                                    (j-1)*up_ratio+[1:up_ratio], ...
-                                    (k-1)*up_ratio+[1:up_ratio]), dir);
+    if up_ratio == 1
+        fill_fraction = inside_shape;
+    else
+        % Downsample results by averaging.
+        for i = 1 : (s{2}(1) - s{1}(1))
+            for j = 1 : (s{2}(2) - s{1}(2))
+                for k = 1 : (s{2}(3) - s{1}(3))
+                    fill_fraction(i, j, k) = f_avg(inside_shape(...
+                                        (i-1)*up_ratio+[1:up_ratio], ...
+                                        (j-1)*up_ratio+[1:up_ratio], ...
+                                        (k-1)*up_ratio+[1:up_ratio]), dir);
+                end
             end
         end
     end
