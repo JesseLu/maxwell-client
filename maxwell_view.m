@@ -219,7 +219,7 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
         end
 
     elseif ~isempty(mat) && isempty(F) % Just material.
-        my_pcolor(x, y, m_data, [], {xlabel, ylabel}, options.clims, ...
+        my_pcolor(x, y, m_data, [], {titletext, xlabel, ylabel}, options.clims, ...
                                                         options.show_grid);
         cmap = colormap('gray');
         if ~options.reverse_structure
