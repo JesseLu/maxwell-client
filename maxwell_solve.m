@@ -59,7 +59,6 @@ function [E, H, err] = maxwell_solve(grid, eps_mu, J, varargin)
         % Monitor simulation progress.
         %
 
-    text_output = strcmp(vis_progress, 'text') || strcmp(vis_progress, 'both');
     while ~cb(); end
 
 
@@ -68,5 +67,4 @@ function [E, H, err] = maxwell_solve(grid, eps_mu, J, varargin)
         %
 
     [~, E, H, err] = cb();
-    if text_output; fprintf('\n'); end
     

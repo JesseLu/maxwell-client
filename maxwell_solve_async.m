@@ -73,7 +73,20 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
         %
         % Check if the simulation is 2D (can be solved locally).
         %
-   
+     
+    no_print = false;
+    function [varargout] = my_simple_callback(vis_progress, varargin)
+        if strcmp(vis_progress, 'text') || strcmp(vis_progress, 'both') && ...
+            ~no_print
+            progress_text = '[finished] 2D problem solved locally';
+            norm_p_text = [progress_text, ...
+                    repmat(' ', 1, 60 - length(progress_text)), '\n'];
+            fprintf(norm_p_text);
+            no_print = true;
+        end
+        varargout = varargin;
+    end
+  
     if any(grid.shape == 1)
         % Compute E-field.
         [A, ~, b] = maxwell_axb(grid, [eps mu], options.E0, J);
@@ -115,6 +128,7 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
     p_H = [];
     p_err = [];
     p_state = [];
+    no_print = false;
     
     start_time = tic;
     function [is_done, E, H, err] = maxwell_callback()
@@ -140,8 +154,13 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
                                     state, toc(start_time));
         else 
             if is_done % Simulation complete.
-                progress_text = sprintf('[%s] err: %e, iter: %d', ...
-                                        state, err(end), length(err));
+                if ~no_print
+                    progress_text = sprintf('[%s] err: %e, iter: %d\n', ...
+                                            state, err(end), length(err));
+                    no_print = true;
+                end
+
+                
             else % Simulation in progress.
                 progress_text = sprintf('[%s] err: %e, iter: %d, seconds: %1.1f', ...
                                         state, err(end), length(err), toc(start_time));
@@ -192,14 +211,4 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
     cb = @maxwell_callback;
 end
 
-
-function [varargout] = my_simple_callback(vis_progress, varargin)
-    if strcmp(vis_progress, 'text') || strcmp(vis_progress, 'both')
-        progress_text = '[finished] 2D problem solved locally';
-        norm_p_text = [progress_text, ...
-                repmat(' ', 1, 60 - length(progress_text))];
-        fprintf(norm_p_text);
-    end
-    varargout = varargin;
-end
 
