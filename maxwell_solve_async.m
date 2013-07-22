@@ -149,16 +149,15 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
         state = p_state;
 
         % Show the progress.
+        last_print = false;
         if isempty(err) % Simulation not yet started.
             progress_text = sprintf('[%s] err: ----, iter: 0, seconds: %1.1f', ...
                                     state, toc(start_time));
         else 
             if is_done % Simulation complete.
-                if ~no_print
-                    progress_text = sprintf('[%s] err: %e, iter: %d\n', ...
-                                            state, err(end), length(err));
-                    no_print = true;
-                end
+                progress_text = sprintf('[%s] err: %e, iter: %d\n', ...
+                                        state, err(end), length(err));
+                last_print = true; % Make this the last line we print.
 
                 
             else % Simulation in progress.
@@ -171,11 +170,20 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
             % Normalized text progress output prints constant length of 60.
             norm_p_text = [progress_text, ...
                     repmat(' ', 1, line_length - length(progress_text))];
-            if ~first_time
+
+            if ~first_time % If not first time, remove previous line.
                 norm_p_text = [repmat('\b', 1, line_length), norm_p_text];
             end
-            first_time = false;
-            fprintf(norm_p_text);
+
+            if ~no_print % Only print if this flag is false.
+                fprintf(norm_p_text);
+            end
+
+            if last_print % No more printing!
+                no_print = true;
+            end
+
+            first_time = false; % Denote that we've definitely printed once.
         end
 
         if strcmp(vis_progress, 'plot') | strcmp(vis_progress, 'both')
