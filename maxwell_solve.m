@@ -60,12 +60,7 @@ function [E, H, err] = maxwell_solve(grid, eps_mu, J, varargin)
         %
 
     text_output = strcmp(vis_progress, 'text') || strcmp(vis_progress, 'both');
-    while ~cb()
-        if text_output
-            fprintf(repmat('\b', 1, 60)); 
-        end
-    end
-    if text_output; fprintf(repmat('\b', 1, 60)); end
+    while ~cb(); end
 
 
         %

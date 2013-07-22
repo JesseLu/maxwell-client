@@ -109,6 +109,8 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
     % Persistent variables for the callback function.
     p_is_done = false;
+    first_time = true;
+    line_length = 60;
     p_E = [];
     p_H = [];
     p_err = [];
@@ -149,7 +151,11 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
         if strcmp(vis_progress, 'text') | strcmp(vis_progress, 'both')
             % Normalized text progress output prints constant length of 60.
             norm_p_text = [progress_text, ...
-                    repmat(' ', 1, 60 - length(progress_text))];
+                    repmat(' ', 1, line_length - length(progress_text))];
+            if ~first_time
+                norm_p_text = [repmat('\b', 1, line_length), norm_p_text];
+            end
+            first_time = false;
             fprintf(norm_p_text);
         end
 
