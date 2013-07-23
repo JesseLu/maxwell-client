@@ -135,6 +135,8 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
     for k = 1 : 3
         if box{1}(k) <= pos{k}(1)
             ind = 1;
+        elseif box{1}(k) > pos{k}(end) % Not in the space.
+            return
         else
             ind = max(find(pos{k} <= box{1}(k)));
         end
@@ -142,6 +144,8 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
 
         if box{2}(k) >= pos{k}(end)
             ind = length(pos{k});
+        elseif box{2}(k) < pos{k}(1) % Not in the space.
+            return
         else
             ind = min(find(pos{k} >= box{2}(k)));
         end
