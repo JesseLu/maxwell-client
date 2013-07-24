@@ -168,8 +168,11 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
         if strcmp(vis_progress, 'text') | strcmp(vis_progress, 'both')
             % Normalized text progress output prints constant length of 60.
-            norm_p_text = [progress_text, ...
-                    repmat(' ', 1, line_length - length(progress_text))];
+            norm_p_text = progress_text;
+            if ~is_done
+                norm_p_text = [norm_p_text, ...
+                        repmat(' ', 1, line_length - length(progress_text))];
+            end
 
             if ~first_time % If not first time, remove previous line.
                 norm_p_text = [repmat('\b', 1, line_length), norm_p_text];
