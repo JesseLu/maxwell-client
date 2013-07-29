@@ -27,6 +27,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
 
     options = my_parse_options(struct(  'flatten', false, ...
                                         'omega_guess', [], ...
+                                        'added_loss', 0, ...
                                         'central_Jy', [], ...
                                         'sim_only', false), ...
                                 varargin, mfilename);
@@ -39,6 +40,9 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     switch cavity_type
         case 'L3'
             filename = 'l3.mat';
+            omega_guess = struct('D2', 0.063, 'D3', 0.078);
+        case 'L3_sic'
+            filename = 'l3_sic.mat';
             omega_guess = struct('D2', 0.063, 'D3', 0.078);
         case 'beam'
             filename = 'beam.mat';
@@ -100,7 +104,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     end
 
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-2); % Use this solution as an initial guess.
+    [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
 
     maxwell_view(grid, eps, E, 'y', [nan nan 0]);
 

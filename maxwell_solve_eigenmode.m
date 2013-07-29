@@ -116,8 +116,8 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
     function my_vis(lambda, b, err)
         % Progress function.
         omega = sqrt(lambda);
-        fprintf('wvlen: %1.3f, omega: %1.1e + i%1.1e, err: %1.1e -- ', ...
-                2*pi/real(omega), real(omega), imag(omega), err);
+        fprintf('wvlen: %1.3f, Q: %1.2e, omega: %1.1e + i%1.1e, err: %1.1e -- ', ...
+                2*pi/real(omega), real(omega)/(imag(omega)/pi), real(omega), imag(omega), err);
     end
 
 
