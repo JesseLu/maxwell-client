@@ -169,7 +169,7 @@ function [J] = maxwell_fsmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
                 J{k}(ps0(1):ps1(1), ps0(2):ps1(2), ps0(3):ps1(3)) = -E{k} * ...
                         exp(-1i * prop_step * omega_eff);
             end 
-            J{k} = J{k} ./ prop_step; % Scale with prop_step.
+            J{k} = J{k} ./ (1i * prop_step); % Scale with prop_step.
         end
     end
     

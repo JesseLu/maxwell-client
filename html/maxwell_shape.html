@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxwell_shape</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-17"><meta name="DC.source" content="maxwell_shape.m"><style type="text/css">
+      --><title>maxwell_shape</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-22"><meta name="DC.source" content="maxwell_shape.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -185,14 +185,18 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     <span class="keyword">end</span>
     inside_shape = reshape(inside_shape, size(x));
 
-    <span class="comment">% Downsample results by averaging.</span>
-    <span class="keyword">for</span> i = 1 : (s{2}(1) - s{1}(1))
-        <span class="keyword">for</span> j = 1 : (s{2}(2) - s{1}(2))
-            <span class="keyword">for</span> k = 1 : (s{2}(3) - s{1}(3))
-                fill_fraction(i, j, k) = f_avg(inside_shape(<span class="keyword">...</span>
-                                    (i-1)*up_ratio+[1:up_ratio], <span class="keyword">...</span>
-                                    (j-1)*up_ratio+[1:up_ratio], <span class="keyword">...</span>
-                                    (k-1)*up_ratio+[1:up_ratio]), dir);
+    <span class="keyword">if</span> up_ratio == 1
+        fill_fraction = inside_shape;
+    <span class="keyword">else</span>
+        <span class="comment">% Downsample results by averaging.</span>
+        <span class="keyword">for</span> i = 1 : (s{2}(1) - s{1}(1))
+            <span class="keyword">for</span> j = 1 : (s{2}(2) - s{1}(2))
+                <span class="keyword">for</span> k = 1 : (s{2}(3) - s{1}(3))
+                    fill_fraction(i, j, k) = f_avg(inside_shape(<span class="keyword">...</span>
+                                        (i-1)*up_ratio+[1:up_ratio], <span class="keyword">...</span>
+                                        (j-1)*up_ratio+[1:up_ratio], <span class="keyword">...</span>
+                                        (k-1)*up_ratio+[1:up_ratio]), dir);
+                <span class="keyword">end</span>
             <span class="keyword">end</span>
         <span class="keyword">end</span>
     <span class="keyword">end</span>
@@ -387,14 +391,18 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
     end
     inside_shape = reshape(inside_shape, size(x));
 
-    % Downsample results by averaging.
-    for i = 1 : (s{2}(1) - s{1}(1))
-        for j = 1 : (s{2}(2) - s{1}(2))
-            for k = 1 : (s{2}(3) - s{1}(3))
-                fill_fraction(i, j, k) = f_avg(inside_shape(...
-                                    (i-1)*up_ratio+[1:up_ratio], ...
-                                    (j-1)*up_ratio+[1:up_ratio], ...
-                                    (k-1)*up_ratio+[1:up_ratio]), dir);
+    if up_ratio == 1
+        fill_fraction = inside_shape;
+    else
+        % Downsample results by averaging.
+        for i = 1 : (s{2}(1) - s{1}(1))
+            for j = 1 : (s{2}(2) - s{1}(2))
+                for k = 1 : (s{2}(3) - s{1}(3))
+                    fill_fraction(i, j, k) = f_avg(inside_shape(...
+                                        (i-1)*up_ratio+[1:up_ratio], ...
+                                        (j-1)*up_ratio+[1:up_ratio], ...
+                                        (k-1)*up_ratio+[1:up_ratio]), dir);
+                end
             end
         end
     end

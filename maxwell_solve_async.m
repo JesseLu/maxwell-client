@@ -73,7 +73,20 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
         %
         % Check if the simulation is 2D (can be solved locally).
         %
-   
+     
+    no_print = false;
+    function [varargout] = my_simple_callback(vis_progress, varargin)
+        if strcmp(vis_progress, 'text') || strcmp(vis_progress, 'both') && ...
+            ~no_print
+            progress_text = '[finished] 2D problem solved locally';
+            norm_p_text = [progress_text, ...
+                    repmat(' ', 1, 60 - length(progress_text)), '\n'];
+            fprintf(norm_p_text);
+            no_print = true;
+        end
+        varargout = varargin;
+    end
+  
     if any(grid.shape == 1)
         % Compute E-field.
         [A, ~, b] = maxwell_axb(grid, [eps mu], options.E0, J);
@@ -109,10 +122,13 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
     % Persistent variables for the callback function.
     p_is_done = false;
+    first_time = true;
+    line_length = 60;
     p_E = [];
     p_H = [];
     p_err = [];
     p_state = [];
+    no_print = false;
     
     start_time = tic;
     function [is_done, E, H, err] = maxwell_callback()
@@ -133,13 +149,17 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
         state = p_state;
 
         % Show the progress.
+        last_print = false;
         if isempty(err) % Simulation not yet started.
             progress_text = sprintf('[%s] err: ----, iter: 0, seconds: %1.1f', ...
                                     state, toc(start_time));
         else 
             if is_done % Simulation complete.
-                progress_text = sprintf('[%s] err: %e, iter: %d', ...
+                progress_text = sprintf('[%s] err: %e, iter: %d\n', ...
                                         state, err(end), length(err));
+                last_print = true; % Make this the last line we print.
+
+                
             else % Simulation in progress.
                 progress_text = sprintf('[%s] err: %e, iter: %d, seconds: %1.1f', ...
                                         state, err(end), length(err), toc(start_time));
@@ -148,9 +168,25 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
 
         if strcmp(vis_progress, 'text') | strcmp(vis_progress, 'both')
             % Normalized text progress output prints constant length of 60.
-            norm_p_text = [progress_text, ...
-                    repmat(' ', 1, 60 - length(progress_text))];
-            fprintf(norm_p_text);
+            norm_p_text = progress_text;
+            if ~is_done
+                norm_p_text = [norm_p_text, ...
+                        repmat(' ', 1, line_length - length(progress_text))];
+            end
+
+            if ~first_time % If not first time, remove previous line.
+                norm_p_text = [repmat('\b', 1, line_length), norm_p_text];
+            end
+
+            if ~no_print % Only print if this flag is false.
+                fprintf(norm_p_text);
+            end
+
+            if last_print % No more printing!
+                no_print = true;
+            end
+
+            first_time = false; % Denote that we've definitely printed once.
         end
 
         if strcmp(vis_progress, 'plot') | strcmp(vis_progress, 'both')
@@ -186,14 +222,4 @@ function [cb, vis_progress] = maxwell_solve_async(grid, eps_mu, J, varargin)
     cb = @maxwell_callback;
 end
 
-
-function [varargout] = my_simple_callback(vis_progress, varargin)
-    if strcmp(vis_progress, 'text') || strcmp(vis_progress, 'both')
-        progress_text = '[finished] 2D problem solved locally';
-        norm_p_text = [progress_text, ...
-                repmat(' ', 1, 60 - length(progress_text))];
-        fprintf(norm_p_text);
-    end
-    varargout = varargin;
-end
 

@@ -15,7 +15,7 @@
 function [server_url, name, vis_progress] = maxwell_upload(grid, eps, mu, J, ...
                                         E0, max_iters, err_thresh, vis_progress)
 
-    server_url = 'http://raven1.stanford.edu:8008/';
+    server_url = 'http://raven1.stanford.edu/';
     modify_javapath();
  
 %     % Parse input and option parameters.

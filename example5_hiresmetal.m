@@ -1,23 +1,23 @@
-%% example2_metalmode.m
+%% example5_hiresmetal.m
 % Solve for the resonant mode of a metallic resonator.
 
 %%% Syntax
 %
-% * |[omega, E, H, grid, eps] = example2_metalmode()| 
+% * |[omega, E, H, grid, eps] = example5_hiresmetal()| 
 %   runs the example in 3D and
 %   returns the (complex) frequency of the eigenmode as |omega|.
 %
-% * |... = example2_metalmode('flatten', true)| 
+% * |... = example5_hiresmetal('flatten', true)| 
 %   runs the example in 2D.
 %   This is very useful for quick tests.
 %
-% * |... = example2_metalmode('sim_only', true)| 
+% * |... = example5_hiresmetal('sim_only', true)| 
 %   Only performs the initial simulation and 
 %   does not perform the eigenmode solve.
 %
 
 %%% Source code
-function [omega, E, H, grid, eps] = example2_metalmode(varargin)
+function [omega, E, H, grid, eps] = example5_hiresmetal(varargin)
 
 
         %
@@ -26,7 +26,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
 
     options = my_parse_options(struct(  'delta', 25, ...
                                         'flatten', false, ...
-                                        'hires_delta', [3 3 6], ...
+                                        'hires_delta', [1 1 2], ...
                                         'view_only', false, ...
                                         'sim_only', false), ...
                                 varargin, mfilename);
@@ -84,7 +84,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
 
 
         %
-        % Point excitation in center for initial excitation.
+        % Focused Gaussian for excitation
         %
 
     c = round(grid.shape/2); % Center.
@@ -98,7 +98,7 @@ function [omega, E, H, grid, eps] = example2_metalmode(varargin)
     fprintf('Solving for initial field... ');
     [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
 
-    maxwell_view(grid, eps, E, 'y', [nan nan 0]);
+    maxwell_view(grid, eps, E, 'y', [0 nan nan]);
     
     if options.sim_only
         omega = grid.omega;

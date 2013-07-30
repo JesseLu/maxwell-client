@@ -74,7 +74,7 @@ function [E, H, grid, eps] = example4_focusedbeam(type, varargin)
         %
 
     [E, H] =  maxwell_solve(grid, eps, J);
-    maxwell_view(grid, eps, E, 'y', [nan 0 nan], 'field_phase', nan); % Visualize the excited waveguide.
+    maxwell_view(grid, eps, E, 'y', [nan 0 nan], 'field_phase', inf); % Visualize the excited waveguide.
 end
 
 

@@ -12,7 +12,7 @@
 % * |maxwell_view(grid, [], E, 'x', [nan 50 nan])|
 %   visualizes only the field.
 %
-% * |maxwell_view(grid, mu, H, 'x', [nan 50 nan], 'grid_type', 'dual');
+% * |maxwell_view(grid, mu, H, 'x', [nan 50 nan], 'grid_type', 'dual')|
 %   allows for |mu| and |H| to be visualized in their correct locations,
 %   accounting for the proper shift in the Yee cell.
 %   |'grid_type'| defaults to |'prim'|, which assumes we are visualizing
@@ -133,9 +133,11 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
     % Determine grids which will be used for plotting the slice.
     perp_comp = find(isnan(slice_ind));
+    title_dir = find(~isnan(slice_ind));
     xyz = 'xyz';
     xlabel = xyz(perp_comp(1));
     ylabel = xyz(perp_comp(2));
+    titletext = [xyz(title_dir), ' = ', num2str(slice_ind(title_dir))];
     x = pos{perp_comp(1)};
     y = pos{perp_comp(2)};
 
@@ -194,7 +196,8 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
 
         % Prepare drawing function.
         my_plot = @(data) my_pcolor(x, y, data, alpha_data, ...
-                                    {xlabel, ylabel}, clims, options.show_grid);
+                                    {titletext, xlabel, ylabel}, ...
+                                    clims, options.show_grid);
 
         % Plot.
         if ~isinf(options.field_phase)
@@ -216,7 +219,7 @@ function maxwell_view(grid, mat, F, dir, slice_ind, varargin)
         end
 
     elseif ~isempty(mat) && isempty(F) % Just material.
-        my_pcolor(x, y, m_data, [], {xlabel, ylabel}, options.clims, ...
+        my_pcolor(x, y, m_data, [], {titletext, xlabel, ylabel}, options.clims, ...
                                                         options.show_grid);
         cmap = colormap('gray');
         if ~options.reverse_structure
@@ -263,8 +266,9 @@ function my_pcolor(x, y, data, alpha_data, labels, clims, show_grid)
         caxis(clims);
     end
 
-    xlabel(labels{1});
-    ylabel(labels{2});
+    title(labels{1});
+    xlabel(labels{2});
+    ylabel(labels{3});
     colorbar();
     axis equal tight;
     set(gca, 'YDir', 'normal');

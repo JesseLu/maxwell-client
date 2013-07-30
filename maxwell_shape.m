@@ -135,6 +135,8 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
     for k = 1 : 3
         if box{1}(k) <= pos{k}(1)
             ind = 1;
+        elseif box{1}(k) > pos{k}(end) % Not in the space.
+            return
         else
             ind = max(find(pos{k} <= box{1}(k)));
         end
@@ -142,6 +144,8 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
 
         if box{2}(k) >= pos{k}(end)
             ind = length(pos{k});
+        elseif box{2}(k) < pos{k}(1) % Not in the space.
+            return
         else
             ind = min(find(pos{k} >= box{2}(k)));
         end
@@ -175,14 +179,18 @@ function [mat] = my_update(pos, mat, dir, val, box, f, ...
     end
     inside_shape = reshape(inside_shape, size(x));
 
-    % Downsample results by averaging.
-    for i = 1 : (s{2}(1) - s{1}(1))
-        for j = 1 : (s{2}(2) - s{1}(2))
-            for k = 1 : (s{2}(3) - s{1}(3))
-                fill_fraction(i, j, k) = f_avg(inside_shape(...
-                                    (i-1)*up_ratio+[1:up_ratio], ...
-                                    (j-1)*up_ratio+[1:up_ratio], ...
-                                    (k-1)*up_ratio+[1:up_ratio]), dir);
+    if up_ratio == 1
+        fill_fraction = inside_shape;
+    else
+        % Downsample results by averaging.
+        for i = 1 : (s{2}(1) - s{1}(1))
+            for j = 1 : (s{2}(2) - s{1}(2))
+                for k = 1 : (s{2}(3) - s{1}(3))
+                    fill_fraction(i, j, k) = f_avg(inside_shape(...
+                                        (i-1)*up_ratio+[1:up_ratio], ...
+                                        (j-1)*up_ratio+[1:up_ratio], ...
+                                        (k-1)*up_ratio+[1:up_ratio]), dir);
+                end
             end
         end
     end
