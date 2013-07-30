@@ -63,7 +63,7 @@ function [server_url, name, vis_progress] = maxwell_upload(grid, eps, mu, J, ...
     % Upload a (empty) request file.
     request_file = fopen([prefix, 'request'], 'w');
     fprintf(request_file, 'all files uploaded');
-    my_upload({strrep([prefix, 'request'], '/tmp/', '')}, tempdir, server_url);
+    my_upload({strrep([prefix, 'request'], tempdir, '')}, tempdir, server_url);
     
     % Delete files.
     for f = 'eJmE'

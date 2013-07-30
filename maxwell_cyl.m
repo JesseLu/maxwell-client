@@ -18,16 +18,12 @@ function [cyl_fun] = maxwell_cyl(center, radius, height)
         {'scalar', 'positive',}, mfilename, 'height');
 
     box_size = [2*radius, 2*radius, height];
-    bounding_box = {center - box_size/2, ...
-                    center + box_size/2};
         
-    function [out] = f(x, y, z)
-        if nargin == 0 % Asking for bounding box.
-            out = bounding_box;
-        else
-            out =   ((x-center(1)).^2 + (y-center(2)).^2 < radius^2) & ...
-                    (abs(z-center(3)) < height/2);
-        end
+    function [is_in, bounding_box] = f(x, y, z)
+        bounding_box = {center - box_size/2, ...
+                        center + box_size/2};
+        is_in = ((x-center(1)).^2 + (y-center(2)).^2 < radius^2) & ...
+                (abs(z-center(3)) < height/2);
     end
 
     cyl_fun = @f;

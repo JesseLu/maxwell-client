@@ -93,7 +93,7 @@ function [eps, mu] = maxwell_shape(grid, eps_mu, val, f, varargin)
     % Test if we can get a bounding box.
     % TODO: Check bounding box has non-zero (positive) volume.
     try 
-        bnd_box = f();
+        [~, bnd_box] = f(0, 0, 0);
         validateattributes(bnd_box, {'cell'}, {'numel', 2});
         validateattributes(bnd_box{1}, {'numeric'}, {'numel', 3});
         validateattributes(bnd_box{2}, {'numeric'}, {'numel', 3});
