@@ -37,7 +37,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
     z = -1 : 0.025 : 1;
     if options.flatten
         z = 0;
-        mode_num = 1;
+        mode_num = 2;
     else
         mode_num = 1;
     end
@@ -77,7 +77,7 @@ function [E, H, grid, eps] = example0_waveguide(varargin)
         %
 
     % Solve wgmode for filtering out the mode we care about.
-    [~, E1, H1] = maxwell_wgmode(grid, eps, [0 0 0], [+inf 3 3], 'mode_number', 1);
+    [~, E1, H1] = maxwell_wgmode(grid, eps, [0 0 0], [+inf 3 3], 'mode_number', mode_num);
 
     P0 = maxwell_flux(grid, [E H], [0 0 0], [+inf 100 100]);
     P1 = maxwell_flux(grid, [E H], [E1 H1]);
