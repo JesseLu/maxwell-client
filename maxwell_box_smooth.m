@@ -30,7 +30,7 @@ function [box_fun] = maxwell_box_smooth(center, box_size, varargin)
     options = my_parse_options(struct('smooth_dist', 1), ...
                                 varargin, mfilename);
     validateattributes(options.smooth_dist, {'numeric'}, ...
-        {'positive', 'scalar'}, mfilename, 'smooth_dist');
+        {'positive', 'scalar', 'finite'}, mfilename, 'smooth_dist');
 
 
         %
@@ -38,18 +38,15 @@ function [box_fun] = maxwell_box_smooth(center, box_size, varargin)
         %
 
 
-    bounding_box = {center - box_size/2 - options.smooth_dist, ...
-                    center + box_size/2 + options.smooth_dist};
         
-    function [out] = f(x, y, z)
-        if nargin == 0 % Asking for bounding box.
-            out = bounding_box;
-        else
-            s = options.smooth_dist;
-            out =   my_val_clamp(box_size(1)/2 - abs(x-center(1)), s) .* ...
-                    my_val_clamp(box_size(2)/2 - abs(y-center(2)), s) .* ...
-                    my_val_clamp(box_size(3)/2 - abs(z-center(3)), s);
-        end
+    function [is_in, bounding_box] = f(x, y, z)
+        bounding_box = {center - box_size/2 - options.smooth_dist, ...
+                        center + box_size/2 + options.smooth_dist};
+
+        s = options.smooth_dist;
+        is_in = my_val_clamp(box_size(1)/2 - abs(x-center(1)), s) .* ...
+                my_val_clamp(box_size(2)/2 - abs(y-center(2)), s) .* ...
+                my_val_clamp(box_size(3)/2 - abs(z-center(3)), s);
     end
 
     box_fun = @f;
