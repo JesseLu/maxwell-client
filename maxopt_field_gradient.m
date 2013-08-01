@@ -111,7 +111,9 @@ function [param_grad, eps_grad] = maxopt_field_gradient(grid, E, fitness_fun, ..
         A = maxwell_axb(grid, unvec(z0), E, E);
         fprintf('Error from A_dagger solve: %e\n', norm(A'*y - grad_x0));
 
-        my_gradient_test(p2z, dz_dp', params0, 'real', 'dz/dp'); % Test dz/dp.
+        % Test dz/dp.
+        my_gradient_test(p2z, dz_dp', params0, 'real', 'dz/dp', ...
+                        options.delta_p); 
 
         if ~isempty(options.solver_fun)
             my_gradient_test(@(z) fitness_fun(options.solver_fun(unvec(z))), df_dz', z0, 'real', 'df/dz');

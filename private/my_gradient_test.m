@@ -2,10 +2,13 @@ function [max_err, err] = my_gradient_test(fun, grad_x, x0, type, text, varargin
 % Just checks gradients.
    
     f0 = fun(x0);
-
     delta = mean(abs(x0(:))) / 1e6;
     if delta == 0
-        delta = 1e-6;
+        if isempty(varargin)
+            delta = 1e-6;
+        else
+            delta = varargin{1};
+        end
     end
 
     for k = 1 : 10

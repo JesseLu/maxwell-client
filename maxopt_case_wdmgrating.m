@@ -18,7 +18,7 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
         % Return recommended starting parameters.
         %
 
-    x0 = zeros(100, 2);
+    x0 = zeros(10, 2);
     wvlens = [1300 1500];
     N = length(wvlens);
 
@@ -119,9 +119,10 @@ function [Fval, E, H, grid, eps] = ...
         % Calculate gradient (if needed).
         grad_f = maxopt_field_gradient(grid{ind}, E{ind}, fitness_fun{ind}, ...
                     params, @make_eps, ...
+                    'delta_p', 1, ...
                     'solver_fun', ...
                             @(eps) maxwell_solve(grid{ind}, eps, J{ind}), ...
-                    'check_gradients', false);
+                    'check_gradients', true);
     else
         grad_f = nan;
     end
@@ -149,7 +150,7 @@ function [cb, grid, eps, E_out, J] = ...
         %
 
     for k = 1 : 2
-        [J{k}, E_out{k}, H_out{k}] = ...
+        [~, E_out{k}, H_out{k}] = ...
                 maxwell_wgmode(grid, eps, [2100 wg_pos(k) 0], [+inf 1e3 1e3]);
     end
     
@@ -229,11 +230,11 @@ function [grid, eps, J, wg_pos] = make_structure(wvlen, params, flatten)
         % Draw the holes.
         k = 1;
         for i = -4.5 : 4.5
-            for j = -4.5 : 4.5
+            for j = -4.5 : -4.5
                 pos = a * [i, j] + [x_shift(k), y_shift(k)];
                 r = abs(radius + r_shift(k));
                 my_cyl = maxwell_cyl_smooth([pos 0], r, 2*height, ...
-                                            'smooth_dist', delta/2);
+                                            'smooth_dist', delta);
                 eps = maxwell_shape(grid, eps, air, my_cyl);
                 k = k + 1;
             end
