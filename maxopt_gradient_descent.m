@@ -28,11 +28,11 @@ function [x, fval, hist] = maxopt_gradient_descent(fun, x0, varargin)
         % Validate and parse inputs.
         %
 
-    validateattributes(fun, {'function_handle'}, {}, 'fun', mfilename);
+    validateattributes(fun, {'function_handle'}, {}, mfilename, 'fun');
 
     validateattributes(x0, {'numeric'}, ...
                         {'vector', 'real', 'finite', 'nonnan'}, ...
-                        'x0', mfilename);
+                        mfilename, 'x0');
         
     % Optional parameters.
     options = my_parse_options(struct(  'init_step', 1, ...
@@ -46,7 +46,7 @@ function [x, fval, hist] = maxopt_gradient_descent(fun, x0, varargin)
     simple_check = @(var, var_name) ...
         validateattributes(var, {'numeric'}, ...
                         {'positive', 'scalar', 'finite', 'nonnan'}, ...
-                        var_name, mfilename);
+                        mfilename, var_name);
 
     simple_check(options.init_step, 'init_step');
     simple_check(options.max_delta, 'max_delta');
@@ -55,7 +55,7 @@ function [x, fval, hist] = maxopt_gradient_descent(fun, x0, varargin)
     simple_check(options.max_iters, 'max_iters');
 
     validateattributes(options.vis_progress, {'function_handle'}, {}, ...
-                        'vis_progress', mfilename);
+                        mfilename, 'vis_progress');
 
 
         %

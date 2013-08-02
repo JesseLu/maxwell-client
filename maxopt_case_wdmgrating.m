@@ -19,6 +19,9 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
         %
 
     x0 = zeros(49, 2);
+    if options.flatten
+        x0 = zeros(7, 2);
+    end
     wvlens = [1300 1500];
     N = length(wvlens);
 
@@ -29,11 +32,13 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
         % Calculate input powers.
         %
 
-    fprintf('Calculating input powers...\n');
-    [~, ~, E, H, grid, eps] = ...
-                solve_structure(wvlens, ones(N, 1), [], options.flatten, false);
-    for k = 1 : N
-        P_in(k) = maxwell_flux(grid{k}, [E{k} H{k}], [0 0 0], [1e9 1e9 -inf]);
+    if ~strcmp(type, 'get_fields')
+        fprintf('Calculating input powers...\n');
+        [~, ~, E, H, grid, eps] = ...
+                    solve_structure(wvlens, ones(N, 1), [], options.flatten, false);
+        for k = 1 : N
+            P_in(k) = maxwell_flux(grid{k}, [E{k} H{k}], [0 0 0], [1e9 1e9 -inf]);
+        end
     end
 
 
@@ -47,7 +52,7 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
 
     switch type
         case 'get_fields'
-            fun = @(x) get_fields(wvlens, P_in, x, options.flatten);
+            fun = @(x) get_fields(wvlens, ones(1, N), x, options.flatten);
         case 'fval'
             fun = @(x) solve_structure(wvlens, P_in, x, options.flatten, false);
         case 'grad_f'
@@ -101,25 +106,24 @@ function [Fval, grad_F, E, H, grid, eps] = ...
     % General fitness function.
     [vec, unvec] = my_vec(grid{1}.shape);
     function [fval, grad_E] = fitness(E, E_ref, P_in)
-        P_in = P_in * norm(vec(E_ref))^2;
+        P_in = sqrt(abs(P_in) * norm(vec(E_ref))^2);
         overlap = vec(E_ref)' * vec(E);
-        fval = (-1/P_in) * abs(overlap)^2;
-        grad_E = unvec((-2/P_in) * overlap * vec(E_ref));
+        fval = (-1/P_in) * abs(overlap);
+        grad_E = unvec((-1/P_in) * ((overlap)/abs(overlap)) * vec(E_ref));
     end
     
     % Compute fitness functions.
-    fprintf('fvals: [');
+    fprintf('[');
     for k = 1 : N
         fitness_fun{k} = @(E) fitness(E, E_out{k}{k}, P_in(k));
         [fval(k), grad_E{k}] = fitness_fun{k}(E{k});
 %         my_gradient_test(@(x) fitness_fun{k}(unvec(x)), ...
 %                             vec(grad_E{k}), vec(E{k}), ...
 %                             'real_with_imag', 'd');
-        fprintf('%1.2e ', fval(k));
+        fprintf('%e ', fval(k));
     end
-    fprintf('\b]\n');
-
     [Fval, ind] = max(fval); % Find the worst performing wavelength.
+    fprintf('\b]: %e\n', Fval);
 
     function [eps] = make_eps(params)
         [~, eps] = make_structure(wvlens(ind), params, flatten);
@@ -244,8 +248,12 @@ function [grid, eps, J, wg_pos] = make_structure(wvlen, params, flatten)
 
         % Draw the holes.
         k = 1;
+        j_range = -3 : 3;
+        if flatten 
+            j_range = -1;
+        end
         for i = -3 : 3 
-            for j = -3 : 3
+            for j = j_range
                 pos = a * [i, j] + [x_shift(k), y_shift(k)];
                 r = (radius + r_shift(k));
                 if r > 0

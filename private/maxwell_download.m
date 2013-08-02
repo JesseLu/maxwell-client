@@ -22,14 +22,14 @@ function [E, err, state, s] = maxwell_download(server_url, name)
         case '0010'
             state = 'loading';
         case '0110'
-            state = 'executing';
+            state = 'solving';
         case '0111'
             state = 'finished';
         otherwise
             state = sprintf('unknown (%s)', status_as_str);
     end
 
-    if strcmp(state, 'executing') | strcmp (state, 'finished')
+    if strcmp(state, 'solving') | strcmp (state, 'finished')
         % Get the error from the status file.
         err = str2num(s{2});
     end
