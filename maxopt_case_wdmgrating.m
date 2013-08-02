@@ -22,6 +22,8 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
     wvlens = [1300 1500];
     N = length(wvlens);
 
+%     [~, ~, E, H, grid, eps] = ...
+%                 solve_structure(wvlens, ones(N, 1), x0, options.flatten, false);
 
         %
         % Calculate input powers.
@@ -170,6 +172,7 @@ function [cb, grid, eps, E_out, J] = ...
 %     maxwell_view(grid, eps, E, 'y', [nan -500 nan], 'field_phase', nan); 
 %     subplot 122; 
 %     maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan); 
+%     pause
 
 end
 
@@ -262,6 +265,7 @@ function [grid, eps, J, wg_pos] = make_structure(wvlen, params, flatten)
 
 %     subplot 121; maxwell_view(grid, eps, [], 'y', [nan wg_pos(1) nan]);
 %     subplot 122; maxwell_view(grid, eps, [], 'y', [nan nan 0]);
+%     pause
 
     if flatten
         my_plane = [nan 0 nan];
