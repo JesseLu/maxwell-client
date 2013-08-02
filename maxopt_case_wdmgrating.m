@@ -18,7 +18,7 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
         % Return recommended starting parameters.
         %
 
-    x0 = zeros(100, 2);
+    x0 = zeros(49, 2);
     wvlens = [1300 1500];
     N = length(wvlens);
 
@@ -91,6 +91,11 @@ function [Fval, grad_F, E, H, grid, eps] = ...
 %         end
 %     end
 
+    if isempty(params)
+        [Fval, grad_F] = deal(nan);
+        return
+    end
+
     % General fitness function.
     [vec, unvec] = my_vec(grid{1}.shape);
     function [fval, grad_E] = fitness(E, E_ref, P_in)
@@ -145,7 +150,7 @@ function [cb, grid, eps, E_out, J] = ...
         % Initiate solve.
         %
     
-    % cb = maxwell_solve_async(grid, eps, J);
+    cb = maxwell_solve_async(grid, eps, J);
 
 
         %
@@ -153,10 +158,13 @@ function [cb, grid, eps, E_out, J] = ...
         %
 
     for k = 1 : 2
-        [J_wg{k}, E_out{k}, H_out{k}] = ...
+        if ~isempty(params)
+            [J_wg{k}, E_out{k}, H_out{k}] = ...
                 maxwell_wgmode(grid, eps, [2100 wg_pos(k) 0], [+inf 1e3 1e3]);
+        else
+            [J_wg{k}, E_out{k}, H_out{k}] = deal(nan);
+        end
     end
-    cb = maxwell_solve_async(grid, eps, J_wg{1});
     
 %     subplot 121; 
 %     maxwell_view(grid, eps, E, 'y', [nan -500 nan], 'field_phase', nan); 
@@ -217,8 +225,8 @@ function [grid, eps, J, wg_pos] = make_structure(wvlen, params, flatten)
     wg_pos = [-500 500];
     wg_width = 220;
     height = 440;
-    radius = 100;
-    a = 400;
+    radius = 150;
+    a = 500;
 
     if ~no_struct
         % Draw the silicon slab. 
@@ -233,8 +241,8 @@ function [grid, eps, J, wg_pos] = make_structure(wvlen, params, flatten)
 
         % Draw the holes.
         k = 1;
-        for i = -4.5 : 4.5
-            for j = -4.5 : 4.5
+        for i = -3 : 3 
+            for j = -3 : 3
                 pos = a * [i, j] + [x_shift(k), y_shift(k)];
                 r = (radius + r_shift(k));
                 if r > 0
