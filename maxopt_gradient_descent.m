@@ -22,7 +22,7 @@
 % However, in this case, the step-length will be decreased.
 %
 
-function [x, fval, hist] = maxopt_gradient_descent(fun, x0, varargin)
+function [x_opt, f_opt, hist] = maxopt_gradient_descent(fun, x0, varargin)
 
         %
         % Validate and parse inputs.
@@ -38,6 +38,7 @@ function [x, fval, hist] = maxopt_gradient_descent(fun, x0, varargin)
     options = my_parse_options(struct(  'init_step', 1, ...
                                         'max_delta', 1, ...
                                         'step_shrink', 0.5, ...
+                                        'step_big_shrink', 0.1, ...
                                         'step_grow', 1.1, ...
                                         'max_iters', 100, ...
         'vis_progress', @(hist) fprintf('%d: %e\n', length(hist), hist(end))), ...
@@ -51,6 +52,7 @@ function [x, fval, hist] = maxopt_gradient_descent(fun, x0, varargin)
     simple_check(options.init_step, 'init_step');
     simple_check(options.max_delta, 'max_delta');
     simple_check(options.step_shrink, 'step_shrink');
+    simple_check(options.step_shrink, 'step_big_shrink');
     simple_check(options.step_grow, 'step_grow');
     simple_check(options.max_iters, 'max_iters');
 
@@ -65,17 +67,24 @@ function [x, fval, hist] = maxopt_gradient_descent(fun, x0, varargin)
     x = x0;
     [f, dx] = fun(x);
     step_size = options.init_step;
-
+    f_opt = f;
+    x_opt = x;
     for k = 1 : options.max_iters
         hist(k) = f;
         options.vis_progress(hist);
 
-        if any(abs(dx) > options.max_delta)
-            dx = dx * (options.max_delta / max(abs(dx)));
+        % fprintf('step size: %e\n', step_size);
+        max_step = step_size * max(abs(dx));
+        if max_step > options.max_delta
+            dx = dx ./ max_step;
         end
 
+%         dx_over = step_size * abs(dx) > options.max_delta;
+%         dx = dx_over .* (dx ./ abs(dx)) * (options.max_delta * step_size) ...
+%             + ~dx_over .* dx;
+
         x1 = x - step_size * dx;
-        [f1, dx] = fun(x1);
+        [f1, dx1] = fun(x1);
 
         if f1 < f % Grow.
             step_size = step_size * options.step_grow;
@@ -83,12 +92,20 @@ function [x, fval, hist] = maxopt_gradient_descent(fun, x0, varargin)
             step_size = step_size * options.step_shrink;
         end
 
-        f = f1;
-        x = x1;
+        if f1 < f/2 % Accept as long as we still have half of original fitness.
+            f = f1;
+            x = x1;
+            dx = dx1;
+        else
+            step_size = step_size * options.step_big_shrink;
+        end
 
+        if f1 < f_opt % Check if currently the best we got.
+            f_opt = f1;
+            x_opt = x1;
+        end
 
     end
-    fval = f;
 
         
 

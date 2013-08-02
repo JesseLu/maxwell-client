@@ -2,7 +2,7 @@
 % Form a cavity out of a square lattice using gradient optimization.
 
 
-function [x, f_val, f_vis] = maxopt_example2_adjoint(case_name, varargin)
+function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
 
     % case_name = 'squarepc';
 
@@ -19,15 +19,21 @@ function [x, f_val, f_vis] = maxopt_example2_adjoint(case_name, varargin)
         % Set up the optimization problem.
         %
 
+    flt = options.flatten;
     switch case_name
         case 'squarepc'
-            [f, x0] = maxopt_case_squarepc('grad_f', 'flatten', options.flatten);
-            [f_vis] = maxopt_case_squarepc('get_fields', 'flatten', options.flatten);
+            [f, x0] = maxopt_case_squarepc('grad_f', 'flatten', flt);
+            [f_vis] = maxopt_case_squarepc('get_fields', 'flatten', flt);
             init_step = 0.1;
             max_delta = 0.1;
+        case '2wbeam'
+            [f, x0] = maxopt_case_2wbeam('grad_f', 'flatten', flt);
+            [f_vis] = maxopt_case_2wbeam('get_fields', 'flatten', flt);
+            init_step = 1e3;
+            max_delta = 10;
         case 'wdmgrating'
-            [f, x0] = maxopt_case_wdmgrating('grad_f', 'flatten', options.flatten);
-            [f_vis] = maxopt_case_wdmgrating('get_fields', 'flatten', options.flatten);
+            [f, x0] = maxopt_case_wdmgrating('grad_f', 'flatten', flt);
+            [f_vis] = maxopt_case_wdmgrating('get_fields', 'flatten', flt);
             init_step = 1e5;
             max_delta = 40;
         otherwise
@@ -37,7 +43,7 @@ function [x, f_val, f_vis] = maxopt_example2_adjoint(case_name, varargin)
 
     % Visualization function for optimization progress.
     function vis_progress(hist)
-        figure(2);
+        fprintf('%d: %e\n', length(hist), hist(end)); 
         plot(hist, '.-');
         xlabel('optimization iterations');
         ylabel('fval');
