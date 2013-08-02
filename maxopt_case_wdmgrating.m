@@ -18,7 +18,7 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
         % Return recommended starting parameters.
         %
 
-    x0 = zeros(10, 2);
+    x0 = zeros(100, 2);
     wvlens = [1300 1500];
     N = length(wvlens);
 
@@ -28,7 +28,7 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
         %
 
     fprintf('Calculating input powers...\n');
-    [~, E, H, grid, eps] = ...
+    [~, ~, E, H, grid, eps] = ...
                 solve_structure(wvlens, ones(N, 1), [], options.flatten, false);
     for k = 1 : N
         P_in(k) = maxwell_flux(grid{k}, [E{k} H{k}], [0 0 0], [1e9 1e9 -inf]);
@@ -56,7 +56,7 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
 end
 
 
-function [Fval, E, H, grid, eps] = ...
+function [Fval, grad_F, E, H, grid, eps] = ...
             solve_structure(wvlens, P_in, params, flatten, calc_grad)
 
     N = length(wvlens);
@@ -101,13 +101,16 @@ function [Fval, E, H, grid, eps] = ...
     end
     
     % Compute fitness functions.
+    fprintf('fvals: [');
     for k = 1 : N
         fitness_fun{k} = @(E) fitness(E, E_out{k}{k}, P_in(k));
         [fval(k), grad_E{k}] = fitness_fun{k}(E{k});
 %         my_gradient_test(@(x) fitness_fun{k}(unvec(x)), ...
 %                             vec(grad_E{k}), vec(E{k}), ...
 %                             'real_with_imag', 'd');
+        fprintf('%1.2e ', fval(k));
     end
+    fprintf('\b]\n');
 
     [Fval, ind] = max(fval); % Find the worst performing wavelength.
 
@@ -117,14 +120,14 @@ function [Fval, E, H, grid, eps] = ...
 
     if calc_grad
         % Calculate gradient (if needed).
-        grad_f = maxopt_field_gradient(grid{ind}, E{ind}, fitness_fun{ind}, ...
+        grad_F = maxopt_field_gradient(grid{ind}, E{ind}, fitness_fun{ind}, ...
                     params, @make_eps, ...
-                    'delta_p', 1, ...
+                    'delta_p', 1e-3, ...
                     'solver_fun', ...
                             @(eps) maxwell_solve(grid{ind}, eps, J{ind}), ...
                     'check_gradients', true);
     else
-        grad_f = nan;
+        grad_F = nan;
     end
 
 end
@@ -142,7 +145,7 @@ function [cb, grid, eps, E_out, J] = ...
         % Initiate solve.
         %
     
-    cb = maxwell_solve_async(grid, eps, J);
+    % cb = maxwell_solve_async(grid, eps, J);
 
 
         %
@@ -150,9 +153,10 @@ function [cb, grid, eps, E_out, J] = ...
         %
 
     for k = 1 : 2
-        [~, E_out{k}, H_out{k}] = ...
+        [J_wg{k}, E_out{k}, H_out{k}] = ...
                 maxwell_wgmode(grid, eps, [2100 wg_pos(k) 0], [+inf 1e3 1e3]);
     end
+    cb = maxwell_solve_async(grid, eps, J_wg{1});
     
 %     subplot 121; 
 %     maxwell_view(grid, eps, E, 'y', [nan -500 nan], 'field_phase', nan); 
@@ -230,12 +234,14 @@ function [grid, eps, J, wg_pos] = make_structure(wvlen, params, flatten)
         % Draw the holes.
         k = 1;
         for i = -4.5 : 4.5
-            for j = -4.5 : -4.5
+            for j = -4.5 : 4.5
                 pos = a * [i, j] + [x_shift(k), y_shift(k)];
-                r = abs(radius + r_shift(k));
-                my_cyl = maxwell_cyl_smooth([pos 0], r, 2*height, ...
-                                            'smooth_dist', delta);
-                eps = maxwell_shape(grid, eps, air, my_cyl);
+                r = (radius + r_shift(k));
+                if r > 0
+                    my_cyl = maxwell_cyl_smooth([pos 0], r, 2*height, ...
+                                                'smooth_dist', delta);
+                    eps = maxwell_shape(grid, eps, air, my_cyl);
+                end
                 k = k + 1;
             end
         end

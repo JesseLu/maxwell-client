@@ -112,7 +112,7 @@ function [param_grad, eps_grad] = maxopt_field_gradient(grid, E, fitness_fun, ..
         fprintf('Error from A_dagger solve: %e\n', norm(A'*y - grad_x0));
 
         % Test dz/dp.
-        my_gradient_test(p2z, dz_dp', params0, 'real', 'dz/dp', ...
+        my_gradient_test(p2z, dz_dp.', params0, 'real', 'dz/dp', ...
                         options.delta_p); 
 
         if ~isempty(options.solver_fun)
