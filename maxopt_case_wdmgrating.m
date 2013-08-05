@@ -52,7 +52,7 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
 
     switch type
         case 'get_fields'
-            fun = @(x) get_fields(wvlens, ones(1, N), x, options.flatten);
+            fun = @(x) get_fields(wvlens, ones(1, N), x, options.flatten, false);
         case 'fval'
             fun = @(x) solve_structure(wvlens, P_in, x, options.flatten, false);
         case 'grad_f'

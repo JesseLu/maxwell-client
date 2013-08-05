@@ -156,7 +156,7 @@ function [grid, eps, J] = make_structure(wvlen, eps_val, params, flatten)
 
     % Make a grid for a wavelength of 1550 nm.
     omega = 2*pi / wvlen;
-    delta = 40;
+    delta = 20;
     x = -4000 : delta : 4000;
     y = -1000 : delta : 1000;
     z = -1000 : delta : 1000;
