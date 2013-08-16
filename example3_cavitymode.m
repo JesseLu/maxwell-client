@@ -27,8 +27,8 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
 
     options = my_parse_options(struct(  'flatten', false, ...
                                         'omega_guess', [], ...
-                                        'added_loss', 0, ...
                                         'central_Jy', [], ...
+                                        'add_imag_eps', 0, ...
                                         'sim_only', false), ...
                                 varargin, mfilename);
 
@@ -43,7 +43,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
             omega_guess = struct('D2', 0.063, 'D3', 0.078);
         case 'L3_sic'
             filename = 'l3_sic.mat';
-            omega_guess = struct('D2', 0.063, 'D3', 0.078);
+            omega_guess = struct('D2', 0.0891, 'D3', 0.09);
         case 'beam'
             filename = 'beam.mat';
             omega_guess = struct('D2', 0.062, 'D3', 0.080);
@@ -57,6 +57,12 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     eps = getfield(load(filename), 'eps');
     omega = omega_guess.D3; % Guess frequency for 3D.
     dims = size(eps{1});
+
+    % If requested, add an imaginary part to the permittivity.
+    max_eps = max(eps{1}(:));
+    for k = 1 : 3
+        eps{k} = eps{k} + 1i * (eps{k}-1)./(max_eps-1) * options.add_imag_eps;
+    end
 
     if options.flatten % Make 2D, if needed.
         for k = 1 : 3
@@ -94,7 +100,8 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     else
         % To get the current excitation for 3D, use the 2D mode.
         % We do this via a recursive call.
-        [~, E] = example3_cavitymode(cavity_type, 'flatten', true); 
+        [~, E] = example3_cavitymode(cavity_type, 'flatten', true, ...
+                                    'add_imag_eps', options.add_imag_eps);
         J{2}(:,:,c(3)) = E{2};
         fprintf('=== 3D solve ===\n');
     end
