@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>example3_cavitymode</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-22"><meta name="DC.source" content="example3_cavitymode.m"><style type="text/css">
+      --><title>example3_cavitymode</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-20"><meta name="DC.source" content="example3_cavitymode.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -74,6 +74,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     options = my_parse_options(struct(  <span class="string">'flatten'</span>, false, <span class="keyword">...</span>
                                         <span class="string">'omega_guess'</span>, [], <span class="keyword">...</span>
                                         <span class="string">'central_Jy'</span>, [], <span class="keyword">...</span>
+                                        <span class="string">'add_imag_eps'</span>, 0, <span class="keyword">...</span>
                                         <span class="string">'sim_only'</span>, false), <span class="keyword">...</span>
                                 varargin, mfilename);
 
@@ -86,6 +87,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
         <span class="keyword">case</span> <span class="string">'L3'</span>
             filename = <span class="string">'l3.mat'</span>;
             omega_guess = struct(<span class="string">'D2'</span>, 0.063, <span class="string">'D3'</span>, 0.078);
+        <span class="keyword">case</span> <span class="string">'L3_sic'</span>
+            filename = <span class="string">'l3_sic.mat'</span>;
+            omega_guess = struct(<span class="string">'D2'</span>, 0.0891, <span class="string">'D3'</span>, 0.137);
         <span class="keyword">case</span> <span class="string">'beam'</span>
             filename = <span class="string">'beam.mat'</span>;
             omega_guess = struct(<span class="string">'D2'</span>, 0.062, <span class="string">'D3'</span>, 0.080);
@@ -99,6 +103,12 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     eps = getfield(load(filename), <span class="string">'eps'</span>);
     omega = omega_guess.D3; <span class="comment">% Guess frequency for 3D.</span>
     dims = size(eps{1});
+
+    <span class="comment">% If requested, add an imaginary part to the permittivity.</span>
+    max_eps = max(eps{1}(:));
+    <span class="keyword">for</span> k = 1 : 3
+        eps{k} = eps{k} + 1i * (eps{k}-1)./(max_eps-1) * options.add_imag_eps;
+    <span class="keyword">end</span>
 
     <span class="keyword">if</span> options.flatten <span class="comment">% Make 2D, if needed.</span>
         <span class="keyword">for</span> k = 1 : 3
@@ -136,7 +146,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     <span class="keyword">else</span>
         <span class="comment">% To get the current excitation for 3D, use the 2D mode.</span>
         <span class="comment">% We do this via a recursive call.</span>
-        [~, E] = example3_cavitymode(cavity_type, <span class="string">'flatten'</span>, true);
+        [~, E] = example3_cavitymode(cavity_type, <span class="string">'flatten'</span>, true, <span class="keyword">...</span>
+                                    <span class="string">'add_imag_eps'</span>, options.add_imag_eps);
         J{2}(:,:,c(3)) = E{2};
         fprintf(<span class="string">'=== 3D solve ===\n'</span>);
     <span class="keyword">end</span>
@@ -146,7 +157,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     <span class="keyword">end</span>
 
     fprintf(<span class="string">'Solving for initial field... '</span>);
-    [E, H] =  maxwell_solve(grid, eps, J, <span class="string">'err_thresh'</span>, 1e-2); <span class="comment">% Use this solution as an initial guess.</span>
+    [E, H] =  maxwell_solve(grid, eps, J); <span class="comment">% Use this solution as an initial guess.</span>
 
     maxwell_view(grid, eps, E, <span class="string">'y'</span>, [nan nan 0]);
 
@@ -194,6 +205,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     options = my_parse_options(struct(  'flatten', false, ...
                                         'omega_guess', [], ...
                                         'central_Jy', [], ...
+                                        'add_imag_eps', 0, ...
                                         'sim_only', false), ...
                                 varargin, mfilename);
 
@@ -206,6 +218,9 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         case 'L3'
             filename = 'l3.mat';
             omega_guess = struct('D2', 0.063, 'D3', 0.078);
+        case 'L3_sic'
+            filename = 'l3_sic.mat';
+            omega_guess = struct('D2', 0.0891, 'D3', 0.137);
         case 'beam'
             filename = 'beam.mat';
             omega_guess = struct('D2', 0.062, 'D3', 0.080);
@@ -219,6 +234,12 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     eps = getfield(load(filename), 'eps');
     omega = omega_guess.D3; % Guess frequency for 3D.
     dims = size(eps{1});
+
+    % If requested, add an imaginary part to the permittivity.
+    max_eps = max(eps{1}(:));
+    for k = 1 : 3
+        eps{k} = eps{k} + 1i * (eps{k}-1)./(max_eps-1) * options.add_imag_eps;
+    end
 
     if options.flatten % Make 2D, if needed.
         for k = 1 : 3
@@ -256,7 +277,8 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     else
         % To get the current excitation for 3D, use the 2D mode.
         % We do this via a recursive call.
-        [~, E] = example3_cavitymode(cavity_type, 'flatten', true); 
+        [~, E] = example3_cavitymode(cavity_type, 'flatten', true, ...
+                                    'add_imag_eps', options.add_imag_eps);
         J{2}(:,:,c(3)) = E{2};
         fprintf('=== 3D solve ===\n');
     end
@@ -266,7 +288,7 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
     end
 
     fprintf('Solving for initial field... ');
-    [E, H] =  maxwell_solve(grid, eps, J, 'err_thresh', 1e-2); % Use this solution as an initial guess.
+    [E, H] =  maxwell_solve(grid, eps, J); % Use this solution as an initial guess.
 
     maxwell_view(grid, eps, E, 'y', [nan nan 0]);
 

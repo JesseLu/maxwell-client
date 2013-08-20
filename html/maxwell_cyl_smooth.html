@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxwell_cyl_smooth</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-22"><meta name="DC.source" content="maxwell_cyl_smooth.m"><style type="text/css">
+      --><title>maxwell_cyl_smooth</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-20"><meta name="DC.source" content="maxwell_cyl_smooth.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -93,18 +93,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
         <span class="comment">%</span>
 
     box_size = [2*radius, 2*radius, height] + 2*options.smooth_dist;
-    bounding_box = {center - box_size/2, <span class="keyword">...</span>
-                    center + box_size/2};
 
-    <span class="keyword">function</span> [out] = f(x, y, z)
-        <span class="keyword">if</span> nargin == 0 <span class="comment">% Asking for bounding box.</span>
-            out = bounding_box;
-        <span class="keyword">else</span>
-            dist_r = (radius - sqrt((x-center(1)).^2 + (y-center(2)).^2));
-            dist_z = (height/2 - abs(z-center(3)));
-            out = my_val_clamp(dist_r, options.smooth_dist) .* <span class="keyword">...</span>
-                    my_val_clamp(dist_z, options.smooth_dist);
-        <span class="keyword">end</span>
+    <span class="keyword">function</span> [is_in, bounding_box] = f(x, y, z)
+        bounding_box = {center - box_size/2, <span class="keyword">...</span>
+                        center + box_size/2};
+        dist_r = (radius - sqrt((x-center(1)).^2 + (y-center(2)).^2));
+        dist_z = (height/2 - abs(z-center(3)));
+        is_in = my_val_clamp(dist_r, options.smooth_dist) .* <span class="keyword">...</span>
+                my_val_clamp(dist_z, options.smooth_dist);
     <span class="keyword">end</span>
 
     cyl_fun = @f;
@@ -153,18 +149,14 @@ function [cyl_fun] = maxwell_cyl_smooth(center, radius, height, varargin)
         %
 
     box_size = [2*radius, 2*radius, height] + 2*options.smooth_dist;
-    bounding_box = {center - box_size/2, ...
-                    center + box_size/2};
         
-    function [out] = f(x, y, z)
-        if nargin == 0 % Asking for bounding box.
-            out = bounding_box;
-        else
-            dist_r = (radius - sqrt((x-center(1)).^2 + (y-center(2)).^2));
-            dist_z = (height/2 - abs(z-center(3)));
-            out = my_val_clamp(dist_r, options.smooth_dist) .* ...
-                    my_val_clamp(dist_z, options.smooth_dist);
-        end
+    function [is_in, bounding_box] = f(x, y, z)
+        bounding_box = {center - box_size/2, ...
+                        center + box_size/2};
+        dist_r = (radius - sqrt((x-center(1)).^2 + (y-center(2)).^2));
+        dist_z = (height/2 - abs(z-center(3)));
+        is_in = my_val_clamp(dist_r, options.smooth_dist) .* ...
+                my_val_clamp(dist_z, options.smooth_dist);
     end
 
     cyl_fun = @f;

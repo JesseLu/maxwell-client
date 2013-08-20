@@ -55,5 +55,42 @@
 % * <example5_hiresmetal.html example5_hiresmetal> - Solve for the resonant mode of a metallic resonator.
 
 
+%%% Maxopt functions
+%
+% * <maxopt_field_gradient.html maxopt_field_gradient> - Calculate structural gradients for the E-field of a simulation.
+%
+% * <maxopt_freq_gradient.html maxopt_freq_gradient> - Calculate structural gradients for frequency of the eigenmode.
+%
+% * <maxopt_gradient_descent.html maxopt_gradient_descent> - Simple gradient descent optimization algorithm.
+%
+% * <maxopt_solve_adjoint.html maxopt_solve_adjoint> - Asynchronously solve for the adjoint of the operator.
+
+
+%%% Maxopt examples
+%
+% * <maxopt_example0_sweep.html maxopt_example0_sweep> - Sweep the parameters of a waveguide-coupled disk resonator structure.
+%
+% * <maxopt_example1_search.html maxopt_example1_search> - Derivative-free optimization of a nanophotonic grating coupler.
+%
+% * <maxopt_example2_adjoint.html maxopt_example2_adjoint> - Form a cavity out of a square lattice using gradient optimization.
+%
+% * <maxopt_example3_eigenmode.html maxopt_example3_eigenmode> - Derivative-based optimization of an L3 cavity mode.
+
+
+%%% Maxopt cases 
+%
+% * <maxopt_case_2wbeam.html maxopt_case_2wbeam> - Sets up a frequency-doubling cavity optimization.
+%
+% * <maxopt_case_L3.html maxopt_case_L3> - Sets up the optimization for an L3 photonic crystal resonator.
+%
+% * <maxopt_case_grating.html maxopt_case_grating> - Sets up a grating coupler optimization problem.
+%
+% * <maxopt_case_metalfocus.html maxopt_case_metalfocus> - Used to optimize a metal focusing structure.
+%
+% * <maxopt_case_squarepc.html maxopt_case_squarepc> - Sets up optimization problem for a square photonic crystal array.
+%
+% * <maxopt_case_wdmgrating.html maxopt_case_wdmgrating> - Used to optimize a wavelength-splitting grating coupler.
+
+
 % Allows the user to get here just by typing 'maxwell_help' in the command line.
 showdemo maxwell_help

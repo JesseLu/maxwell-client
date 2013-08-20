@@ -11,5 +11,14 @@
 %%% Examples
 <<<examples>>>
 
+%%% Maxopt functions
+<<<maxopt_functions>>>
+
+%%% Maxopt examples
+<<<maxopt_examples>>>
+
+%%% Maxopt cases 
+<<<maxopt_cases>>>
+
 % Allows the user to get here just by typing 'maxwell_help' in the command line.
 showdemo maxwell_help
