@@ -3,7 +3,7 @@
 
 %%% Syntax
 %
-% * |J = maxwell_gaussian(grid, eps, plane_size, plane_pos, polarization, focal_length, beam_diameter)|
+% * |J = maxwell_gaussian(grid, eps, plane_pos, plane_size, polarization, focal_length, beam_diameter)|
 %   computes the current source for a Gaussian beam that is focused 
 %   a distance |focal_length| away from |plane_pos|.
 %   The Gaussian beam's polarization is determined via |polarization|,
