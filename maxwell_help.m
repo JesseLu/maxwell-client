@@ -5,6 +5,10 @@
 % or to contact me at <jesselu@stanford.edu>.
 % Enjoy!
 
+%%% Introduction to Maxwell
+% Along with the functionality of Maxwell, this library includes various
+% examples which are useful in familiarizing oneself with Maxwell.
+
 %%% Maxwell functions
 %
 % * <maxwell_axb.html maxwell_axb> - Matrices and vectors associated with the electromagnetic wave equation.
@@ -55,7 +59,13 @@
 % * <example5_hiresmetal.html example5_hiresmetal> - Solve for the resonant mode of a metallic resonator.
 
 
+%%% Introduction to Maxopt
+% The |maxopt| family of functions, examples, and cases lives on top of 
+% the |maxwell| functions 
+% and implements basic structural optimization functions and examples.
+
 %%% Maxopt functions
+% These functions enable gradient-based optimization schemes.
 %
 % * <maxopt_field_gradient.html maxopt_field_gradient> - Calculate structural gradients for the E-field of a simulation.
 %
@@ -67,6 +77,9 @@
 
 
 %%% Maxopt examples
+% Various optimization examples. 
+% The various optimization methods showcased include 
+% brute-force parameter sweep, derivative-free search, and gradient-descent.
 %
 % * <maxopt_example0_sweep.html maxopt_example0_sweep> - Sweep the parameters of a waveguide-coupled disk resonator structure.
 %
@@ -78,6 +91,8 @@
 
 
 %%% Maxopt cases 
+% These cases are used in the Maxopt examples and show how structures can be
+% set up for optimization.
 %
 % * <maxopt_case_2wbeam.html maxopt_case_2wbeam> - Sets up a frequency-doubling cavity optimization.
 %
