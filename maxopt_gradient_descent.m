@@ -73,17 +73,20 @@ function [x_opt, f_opt, hist] = maxopt_gradient_descent(fun, x0, varargin)
         hist(k) = f;
         options.vis_progress(hist);
 
-        % fprintf('step size: %e\n', step_size);
-        max_step = step_size * max(abs(dx));
-        if max_step > options.max_delta
-            dx = dx ./ max_step;
-        end
+%         % fprintf('step size: %e\n', step_size);
+%         max_step = step_size * max(abs(dx));
+%         if max_step > options.max_delta
+%             dx = dx ./ max_step;
+%         end
 
 %         dx_over = step_size * abs(dx) > options.max_delta;
 %         dx = dx_over .* (dx ./ abs(dx)) * (options.max_delta * step_size) ...
 %             + ~dx_over .* dx;
 
-        x1 = x - step_size * dx;
+        x_step = step_size * dx;
+        x_step = (abs(x_step) < options.max_delta) .* x_step + ...
+                    (abs(x_step) >= options.max_delta) .* options.max_delta;
+        x1 = x - x_step;
         [f1, dx1] = fun(x1);
 
         if f1 < f % Grow.

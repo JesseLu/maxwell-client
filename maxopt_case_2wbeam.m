@@ -19,10 +19,10 @@ function [fun, x0] = maxopt_case_2wbeam(type, varargin)
 
     
     beam_height = 220;
-    beam_width = 440;
+    beam_width = 800;
     hole_pos = 400 * [0.5:7.5];
-    hole_xlen = 120 * ones(size(hole_pos));
-    hole_ylen = 200 * ones(size(hole_pos));
+    hole_xlen = 140 * ones(size(hole_pos));
+    hole_ylen = 240 * ones(size(hole_pos));
 
     hole_params = [hole_pos; hole_xlen; hole_ylen];
     x0 = [beam_height; beam_width; hole_params(:)];
@@ -55,11 +55,13 @@ end
 function [Fval, grad_F, E, H, grid, eps] = ...
                 solve_structure(wvlen, eps_val, varargin)
 % Simulate all structures.
+    wvlen = wvlen(1);
     for k = 1 : length(wvlen)
-        subplot(length(wvlen), 1, k);
+        subplot(length(wvlen)+1, 1, k);
         [fval(k), grad_f{k}, E{k}, H{k}, grid{k}, eps{k}] = ...
                     solve_one_structure(wvlen(k), eps_val(k), varargin{:});
     end
+    subplot(length(wvlen)+1, 1, length(wvlen)+1);
 
     % Find the worst one.
     [Fval, ind] = max(fval);
@@ -97,8 +99,9 @@ function [fval, grad_f, E, H, grid, eps] = ...
         % Solve.
         %
 
-    [E, H] = maxwell_solve(grid, eps, J);
-    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan); 
+    [E, H] = maxwell_solve(grid, eps, J, 'vis_progress', 'text');
+    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); 
+
 
 
         %
@@ -109,12 +112,12 @@ function [fval, grad_f, E, H, grid, eps] = ...
     % Calculates figure of merit and its derivative.
         % Figure of merit.
         E_meas = [E{2}(x, y, z); E{2}(x-1, y, z)];
-        fval = -sum(abs(E_meas)); % This is the figure of merit.
+        fval = sum(real(E_meas)); % This is the figure of merit.
 
         % Field gradient.
         grad_E = my_default_field(grid.shape, 0); 
-        grad_E{2}(x, y, z) = -E{2}(x, y, z) / abs(E{2}(x, y, z));
-        grad_E{2}(x-1, y, z) = -E{2}(x-1, y, z) / abs(E{2}(x-1, y, z));
+        grad_E{2}(x, y, z) = 1;
+        grad_E{2}(x-1, y, z) = 1;
     end
         
     [fval, grad_E] = fitness(E);
@@ -137,7 +140,8 @@ function [fval, grad_f, E, H, grid, eps] = ...
     % Calculate the structural gradient.
     grad_f = maxopt_field_gradient(grid, E, @fitness, params, @make_eps, ...
                 'solver_fun', @(eps) maxwell_solve(grid, eps, J), ...
-                'check_gradients', false);
+                'check_gradients', false, ...
+                'solver_args', {'vis_progress', 'text'});
 end
 
 
@@ -145,7 +149,7 @@ function [grid, eps, J] = make_structure(wvlen, eps_val, params, flatten)
 
     height = params(1);
     width = params(2);
-    hole_xpos = abs(params(3:3:end)) + 60; % Leave a 120 nm gap in the center.
+    hole_xpos = abs(params(3:3:end)); 
     hole_xlen = abs(params(4:3:end));
     hole_ylen = abs(params(5:3:end));
 
@@ -191,5 +195,7 @@ function [grid, eps, J] = make_structure(wvlen, eps_val, params, flatten)
         end
     end
 
+    % Draw a central non-hole to make sure we don't cut out the center.
+    eps = maxwell_shape(grid, eps, eps_val, my_box([0 0 0], [120 width height]-2*delta)); 
     % maxwell_view(grid, eps, [], 'y', [nan nan 0]);
 end
