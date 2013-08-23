@@ -14,6 +14,7 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
                                         'case_args', {{}}, ...
                                         'max_delta', [], ...
                                         'init_step', [], ...
+                                        'x0', [], ...
                                         'flatten', false), ...
                                 varargin, mfilename);
 
@@ -32,7 +33,7 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
         case '2wbeam'
             [f, x0] = maxopt_case_2wbeam('grad_f', 'flatten', flt, options.case_args{:});
             [f_vis] = maxopt_case_2wbeam('get_fields', 'flatten', flt, options.case_args{:});
-            init_step = 1e5;
+            init_step = 1e2;
             max_delta = 10;
         case 'wdmgrating'
             [f, x0] = maxopt_case_wdmgrating('grad_f', 'flatten', flt);
@@ -49,6 +50,10 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
 
     if ~isempty(options.max_delta)
         max_delta = options.max_delta;
+    end
+
+    if ~isempty(options.x0)
+        x0 = options.x0;
     end
 
     % Visualization function for optimization progress.
