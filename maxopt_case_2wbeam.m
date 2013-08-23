@@ -9,7 +9,10 @@ function [fun, x0] = maxopt_case_2wbeam(type, varargin)
 
     validateattributes(type, {'char'}, {'vector'}, 'type', mfilename);
 
-    options = my_parse_options(struct(  'flatten', false), ...
+    options = my_parse_options(struct(  'wvlen', [1550, 775], ...
+                                        'eps_val', [3.2^2, 3.5^2], ...
+                                        'delta', 40, ...
+                                        'flatten', false), ...
                                 varargin, mfilename);
 
 
@@ -18,17 +21,18 @@ function [fun, x0] = maxopt_case_2wbeam(type, varargin)
         %
 
     
+    N = 10;
     beam_height = 220;
     beam_width = 800;
-    hole_pos = 400 * [0.5:7.5];
+    hole_pos = 350 * ([1:N] - 0.5);
     hole_xlen = 140 * ones(size(hole_pos));
-    hole_ylen = 240 * ones(size(hole_pos));
+    hole_ylen = (240 + 20*[1:N]) .* ones(size(hole_pos));
 
     hole_params = [hole_pos; hole_xlen; hole_ylen];
     x0 = [beam_height; beam_width; hole_params(:)];
 
-    wvlen = [1550, 775];
-    eps_val = [3.2^2, 3.5^2];
+    wvlen = options.wvlen;
+    eps_val = options.eps_val; 
 
 
         %
@@ -42,11 +46,14 @@ function [fun, x0] = maxopt_case_2wbeam(type, varargin)
     flt = options.flatten;
     switch type
         case 'get_fields'
-            fun = @(x) get_fields(wvlen, eps_val, x, flt, false);
+            fun = @(x) get_fields(wvlen, eps_val, x, ...
+                                    options.delta, flt, false);
         case 'fval'
-            fun = @(x) solve_structure(wvlen, eps_val, x, flt, false);
+            fun = @(x) solve_structure(wvlen, eps_val, x, ...
+                                        options.delta, flt, false);
         case 'grad_f'
-            fun = @(x) solve_structure(wvlen, eps_val, x, flt, true);
+            fun = @(x) solve_structure(wvlen, eps_val, x, ...
+                                        options.delta, flt, true);
         otherwise
             error('Invalid type.');
     end
@@ -55,7 +62,7 @@ end
 function [Fval, grad_F, E, H, grid, eps] = ...
                 solve_structure(wvlen, eps_val, varargin)
 % Simulate all structures.
-    wvlen = wvlen(1);
+    % wvlen = wvlen(2);
     for k = 1 : length(wvlen)
         subplot(length(wvlen)+1, 1, k);
         [fval(k), grad_f{k}, E{k}, H{k}, grid{k}, eps{k}] = ...
@@ -80,11 +87,12 @@ function [Fval, grad_F, E, H, grid, eps] = ...
 end
 
 function [fval, grad_f, E, H, grid, eps] = ...
-                solve_one_structure(wvlen, eps_val, params, flatten, calc_grad)
+                solve_one_structure(wvlen, eps_val, params, ...
+                                    delta, flatten, calc_grad)
 % Simulate a nanobeam structure.
 
 
-    [grid, eps, J] = make_structure(wvlen, eps_val, params, flatten);
+    [grid, eps, J] = make_structure(wvlen, eps_val, params, delta, flatten);
 
         %
         % Use central point source as the excitation.
@@ -103,7 +111,6 @@ function [fval, grad_f, E, H, grid, eps] = ...
     maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); 
 
 
-
         %
         % Measure power reflected back to the center (figure of merit).
         %
@@ -112,12 +119,12 @@ function [fval, grad_f, E, H, grid, eps] = ...
     % Calculates figure of merit and its derivative.
         % Figure of merit.
         E_meas = [E{2}(x, y, z); E{2}(x-1, y, z)];
-        fval = sum(real(E_meas)); % This is the figure of merit.
+        fval = mean((real(E_meas))); % This is the figure of merit.
 
         % Field gradient.
         grad_E = my_default_field(grid.shape, 0); 
-        grad_E{2}(x, y, z) = 1;
-        grad_E{2}(x-1, y, z) = 1;
+        grad_E{2}(x, y, z) = 1/2;
+        grad_E{2}(x-1, y, z) = 1/2;
     end
         
     [fval, grad_E] = fitness(E);
@@ -134,7 +141,7 @@ function [fval, grad_f, E, H, grid, eps] = ...
 
     function [eps] = make_eps(params)
     % Function handle for creating the structure.
-        [~, eps] = make_structure(wvlen, eps_val, params, flatten);
+        [~, eps] = make_structure(wvlen, eps_val, params, delta, flatten);
     end
 
     % Calculate the structural gradient.
@@ -145,7 +152,7 @@ function [fval, grad_f, E, H, grid, eps] = ...
 end
 
 
-function [grid, eps, J] = make_structure(wvlen, eps_val, params, flatten)
+function [grid, eps, J] = make_structure(wvlen, eps_val, params, delta, flatten)
 
     height = params(1);
     width = params(2);
@@ -160,9 +167,8 @@ function [grid, eps, J] = make_structure(wvlen, eps_val, params, flatten)
 
     % Make a grid for a wavelength of 1550 nm.
     omega = 2*pi / wvlen;
-    delta = 20;
-    x = -4000 : delta : 4000;
-    y = -1000 : delta : 1000;
+    x = -4200 : delta : 4200;
+    y = -1200 : delta : 1200;
     z = -1000 : delta : 1000;
 
     if flatten

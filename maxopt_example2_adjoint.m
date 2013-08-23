@@ -11,6 +11,9 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
         %
 
     options = my_parse_options(struct(  'iters', 100, ...
+                                        'case_args', {{}}, ...
+                                        'max_delta', [], ...
+                                        'init_step', [], ...
                                         'flatten', false), ...
                                 varargin, mfilename);
 
@@ -27,10 +30,10 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
             init_step = 0.1;
             max_delta = 0.1;
         case '2wbeam'
-            [f, x0] = maxopt_case_2wbeam('grad_f', 'flatten', flt);
-            [f_vis] = maxopt_case_2wbeam('get_fields', 'flatten', flt);
-            init_step = 1e4;
-            max_delta = 20;
+            [f, x0] = maxopt_case_2wbeam('grad_f', 'flatten', flt, options.case_args{:});
+            [f_vis] = maxopt_case_2wbeam('get_fields', 'flatten', flt, options.case_args{:});
+            init_step = 1e5;
+            max_delta = 10;
         case 'wdmgrating'
             [f, x0] = maxopt_case_wdmgrating('grad_f', 'flatten', flt);
             [f_vis] = maxopt_case_wdmgrating('get_fields', 'flatten', flt);
@@ -40,14 +43,29 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
             error('Invalid case_name.');
     end
 
+    if ~isempty(options.init_step)
+        init_step = options.init_step;
+    end
+
+    if ~isempty(options.max_delta)
+        max_delta = options.max_delta;
+    end
 
     % Visualization function for optimization progress.
-    function vis_progress(hist)
-        fprintf('%d: %e\n', length(hist), hist(end)); 
+    try
+        mkdir(tempdir, case_name);
+    end
+    x_hist = [];
+    function vis_progress(hist, step_size, x)
+        fprintf('%d: %e [ss: %1.2e]\n', length(hist), hist(end), step_size); 
         plot(hist, '.-');
         xlabel('optimization iterations');
         ylabel('fval');
         title('structure optimization progress');
+        saveas(gcf, [tempdir, case_name, filesep, ...
+                    case_name, '_', sprintf('%04d', length(hist))], 'png');
+        x_hist(:,length(hist)) = x(:);
+        save([tempdir, case_name, filesep, 'x_hist.mat'], 'hist', 'x_hist');
     end
 
         

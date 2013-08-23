@@ -71,7 +71,7 @@ function [x_opt, f_opt, hist] = maxopt_gradient_descent(fun, x0, varargin)
     x_opt = x;
     for k = 1 : options.max_iters
         hist(k) = f;
-        options.vis_progress(hist);
+        options.vis_progress(hist, step_size, x);
 
 %         % fprintf('step size: %e\n', step_size);
 %         max_step = step_size * max(abs(dx));

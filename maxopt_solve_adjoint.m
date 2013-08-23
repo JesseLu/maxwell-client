@@ -67,7 +67,7 @@ function [cb] = maxopt_solve_adjoint(grid, eps_mu, J, varargin)
         %
 
     % Because of the conjugated terms, this actually solves A conjugate.
-    cb_orig = maxwell_solve_async(grid, [eps mu], J);
+    cb_orig = maxwell_solve_async(grid, [eps mu], J, varargin{:});
 
     % Special callback...
     cb = @() my_adjoint_callback(cb_orig, s, t);
