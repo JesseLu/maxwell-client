@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxwell_box</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-22"><meta name="DC.source" content="maxwell_box.m"><style type="text/css">
+      --><title>maxwell_box</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-20"><meta name="DC.source" content="maxwell_box.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -72,17 +72,17 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     validateattributes(box_size, {<span class="string">'double'</span>}, <span class="keyword">...</span>
         {<span class="string">'vector'</span>, <span class="string">'positive'</span>, <span class="string">'numel'</span>, 3}, mfilename, <span class="string">'box_size'</span>);
 
-    bounding_box = {center - box_size/2, <span class="keyword">...</span>
-                    center + box_size/2};
 
-    <span class="keyword">function</span> [out] = f(x, y, z)
-        <span class="keyword">if</span> nargin == 0 <span class="comment">% Asking for bounding box.</span>
-            out = bounding_box;
-        <span class="keyword">else</span>
-            out =   (abs(x-center(1)) &lt; box_size(1)/2) &amp; <span class="keyword">...</span>
-                    (abs(y-center(2)) &lt; box_size(2)/2) &amp; <span class="keyword">...</span>
-                    (abs(z-center(3)) &lt; box_size(3)/2);
-        <span class="keyword">end</span>
+    <span class="keyword">function</span> [is_in, bounding_box] = f(x, y, z)
+        <span class="comment">% Returning a bounding box is optional but often greatly speeds up</span>
+        <span class="comment">% shape generation.</span>
+        bounding_box = {center - box_size/2, <span class="keyword">...</span>
+                        center + box_size/2};
+
+        <span class="comment">% Simply denote whether or not a point is inside or is_inside the box.</span>
+        is_in = (abs(x-center(1)) &lt; box_size(1)/2) &amp; <span class="keyword">...</span>
+                (abs(y-center(2)) &lt; box_size(2)/2) &amp; <span class="keyword">...</span>
+                (abs(z-center(3)) &lt; box_size(3)/2);
     <span class="keyword">end</span>
 
     box_fun = @f;
@@ -106,17 +106,17 @@ function [box_fun] = maxwell_box(center, box_size)
     validateattributes(box_size, {'double'}, ...
         {'vector', 'positive', 'numel', 3}, mfilename, 'box_size');
 
-    bounding_box = {center - box_size/2, ...
-                    center + box_size/2};
         
-    function [out] = f(x, y, z)
-        if nargin == 0 % Asking for bounding box.
-            out = bounding_box;
-        else
-            out =   (abs(x-center(1)) < box_size(1)/2) & ...
-                    (abs(y-center(2)) < box_size(2)/2) & ...
-                    (abs(z-center(3)) < box_size(3)/2);
-        end
+    function [is_in, bounding_box] = f(x, y, z)
+        % Returning a bounding box is optional but often greatly speeds up 
+        % shape generation.
+        bounding_box = {center - box_size/2, ...
+                        center + box_size/2}; 
+
+        % Simply denote whether or not a point is inside or is_inside the box.
+        is_in = (abs(x-center(1)) < box_size(1)/2) & ...
+                (abs(y-center(2)) < box_size(2)/2) & ...
+                (abs(z-center(3)) < box_size(3)/2);
     end
 
     box_fun = @f;

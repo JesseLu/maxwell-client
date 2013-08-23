@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxwell_gaussian</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-07-22"><meta name="DC.source" content="maxwell_gaussian.m"><style type="text/css">
+      --><title>maxwell_gaussian</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-20"><meta name="DC.source" content="maxwell_gaussian.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -65,7 +65,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>maxwell_gaussian</h1><!--introduction--><p>Excitation source for free-space Gaussian modes.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Description</a></li><li><a href="#3">Source code</a></li></ul></div><h2>Syntax<a name="1"></a></h2><div><ul><li><tt>J = maxwell_gaussian(grid, eps, plane_size, plane_pos, polarization, focal_length, beam_diameter)</tt>   computes the current source for a Gaussian beam that is focused   a distance <tt>focal_length</tt> away from <tt>plane_pos</tt>.   The Gaussian beam's polarization is determined via <tt>polarization</tt>,   which must be <tt>'x'</tt>, <tt>'y'</tt>, or <tt>'z'</tt>.   The Gaussian beam's diameter (full-width half-maximum) is determined   by <tt>beam_diameter</tt>.   Similar to the <tt>maxwell_wgmode</tt> function, the excitation is provided   at the finite plane located at <tt>plane_pos</tt>,   which is of size <tt>plane_size</tt>.   One of the elements of <tt>plane_size</tt> must be either <tt>+inf</tt> or <tt>-inf</tt>   in order to denote the directionality of the desired waveguide mode.</li></ul></div><div><ul><li><tt>... = maxwell_gaussian(grid, [eps mu], ...)</tt>   allows for <tt>mu</tt> not equal to 1.</li></ul></div><h2>Description<a name="2"></a></h2><p><tt>maxwell_gaussian</tt> allows the user to easily generate input Gaussian beams with chosen beam diameters and focal length. <tt>maxwell_gaussian</tt> is actually just a wrapper for the <tt>maxwell_fsmode</tt> function which is able to generate arbitrary free-space input excitation for the user. As such, it requires that the material parameters be uniform across the excitation plane.</p><h2>Source code<a name="3"></a></h2><pre class="codeinput"><span class="keyword">function</span> [J] = maxwell_gaussian(grid, eps_mu, plane_pos, plane_size, <span class="keyword">...</span>
+  </style></head><body><div class="content"><h1>maxwell_gaussian</h1><!--introduction--><p>Excitation source for free-space Gaussian modes.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Description</a></li><li><a href="#3">Source code</a></li></ul></div><h2>Syntax<a name="1"></a></h2><div><ul><li><tt>J = maxwell_gaussian(grid, eps, plane_pos, plane_size, polarization, focal_length, beam_diameter)</tt>   computes the current source for a Gaussian beam that is focused   a distance <tt>focal_length</tt> away from <tt>plane_pos</tt>.   The Gaussian beam's polarization is determined via <tt>polarization</tt>,   which must be <tt>'x'</tt>, <tt>'y'</tt>, or <tt>'z'</tt>.   The Gaussian beam's diameter (full-width half-maximum) is determined   by <tt>beam_diameter</tt>.   Similar to the <tt>maxwell_wgmode</tt> function, the excitation is provided   at the finite plane located at <tt>plane_pos</tt>,   which is of size <tt>plane_size</tt>.   One of the elements of <tt>plane_size</tt> must be either <tt>+inf</tt> or <tt>-inf</tt>   in order to denote the directionality of the desired waveguide mode.</li></ul></div><div><ul><li><tt>... = maxwell_gaussian(grid, [eps mu], ...)</tt>   allows for <tt>mu</tt> not equal to 1.</li></ul></div><h2>Description<a name="2"></a></h2><p><tt>maxwell_gaussian</tt> allows the user to easily generate input Gaussian beams with chosen beam diameters and focal length. <tt>maxwell_gaussian</tt> is actually just a wrapper for the <tt>maxwell_fsmode</tt> function which is able to generate arbitrary free-space input excitation for the user. As such, it requires that the material parameters be uniform across the excitation plane.</p><h2>Source code<a name="3"></a></h2><pre class="codeinput"><span class="keyword">function</span> [J] = maxwell_gaussian(grid, eps_mu, plane_pos, plane_size, <span class="keyword">...</span>
                                 polarization, focal_length, beam_diameter)
 
 
@@ -82,7 +82,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     validateattributes(beam_diameter, {<span class="string">'numeric'</span>}, <span class="keyword">...</span>
                     {<span class="string">'positive'</span>, <span class="string">'finite'</span>, <span class="string">'real'</span>}, mfilename, <span class="string">'beam_diameter'</span>);
 
-    mode_fun = gaussian([0 0 0], beam_diameter, find(polarization == <span class="string">'xyz'</span>));
+    mode_fun = gaussian(plane_pos, beam_diameter, find(polarization == <span class="string">'xyz'</span>));
     J = maxwell_fsmode(grid, eps_mu, plane_pos, plane_size, mode_fun, <span class="keyword">...</span>
                         <span class="string">'focal_length'</span>, focal_length);
 <span class="keyword">end</span>
@@ -110,7 +110,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 %%% Syntax
 %
-% * |J = maxwell_gaussian(grid, eps, plane_size, plane_pos, polarization, focal_length, beam_diameter)|
+% * |J = maxwell_gaussian(grid, eps, plane_pos, plane_size, polarization, focal_length, beam_diameter)|
 %   computes the current source for a Gaussian beam that is focused 
 %   a distance |focal_length| away from |plane_pos|.
 %   The Gaussian beam's polarization is determined via |polarization|,
@@ -153,7 +153,7 @@ function [J] = maxwell_gaussian(grid, eps_mu, plane_pos, plane_size, ...
     validateattributes(beam_diameter, {'numeric'}, ...
                     {'positive', 'finite', 'real'}, mfilename, 'beam_diameter');
 
-    mode_fun = gaussian([0 0 0], beam_diameter, find(polarization == 'xyz'));
+    mode_fun = gaussian(plane_pos, beam_diameter, find(polarization == 'xyz'));
     J = maxwell_fsmode(grid, eps_mu, plane_pos, plane_size, mode_fun, ...
                         'focal_length', focal_length);
 end

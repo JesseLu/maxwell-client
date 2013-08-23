@@ -29,8 +29,8 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
         case '2wbeam'
             [f, x0] = maxopt_case_2wbeam('grad_f', 'flatten', flt);
             [f_vis] = maxopt_case_2wbeam('get_fields', 'flatten', flt);
-            init_step = 1e3;
-            max_delta = 10;
+            init_step = 1e4;
+            max_delta = 20;
         case 'wdmgrating'
             [f, x0] = maxopt_case_wdmgrating('grad_f', 'flatten', flt);
             [f_vis] = maxopt_case_wdmgrating('get_fields', 'flatten', flt);
@@ -55,10 +55,15 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
         % Perform the optimization.
         %
         
-    [x, fval, hist] = maxopt_gradient_descent(f, x0(:), ...
-                                                'init_step', init_step, ...
-                                                'max_delta', max_delta, ...
-                                                'max_iters', options.iters, ...
-                                                'vis_progress', @vis_progress);
+    if options.iters > 0
+        [x, fval, hist] = maxopt_gradient_descent(f, x0(:), ...
+                                                    'init_step', init_step, ...
+                                                    'max_delta', max_delta, ...
+                                                    'max_iters', options.iters, ...
+                                                    'vis_progress', @vis_progress);
+    else
+        x = x0;
+        fval = nan;
+    end
 
 end

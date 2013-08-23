@@ -47,7 +47,7 @@ function [fun, x0] = maxopt_case_wdmgrating(type, varargin)
         %
         
     function [E, H, grid, eps] = get_fields(varargin)
-        [~, E, H, grid, eps] = solve_structure(varargin{:});
+        [~, ~, E, H, grid, eps] = solve_structure(varargin{:});
     end
 
     switch type
