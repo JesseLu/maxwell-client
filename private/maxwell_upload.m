@@ -53,7 +53,7 @@ function [server_url, name, vis_progress] = maxwell_upload(grid, eps, mu, J, ...
     my_write(prefix, 'e', eps);
     my_write(prefix, 'J', J);
     my_write(prefix, 'm', mu);
-    my_write(prefix, 'E', E0);
+    my_write(prefix, 'A', E0);
 
     
     % Upload files.
@@ -66,7 +66,7 @@ function [server_url, name, vis_progress] = maxwell_upload(grid, eps, mu, J, ...
     my_upload({strrep([prefix, 'request'], tempdir, '')}, tempdir, server_url);
     
     % Delete files.
-    for f = 'eJmE'
+    for f = 'eJmA'
         for g = 'xyz'
             for h = 'ri'
                 delete([prefix, f, '_', g, h])
