@@ -128,8 +128,6 @@ function [fval, grad_f, omega, E, H, grid, eps] = ...
     [vec, unvec] = my_vec(grid.shape);
     function [fval, grad_w] = fitness(w)
     % Calculates figure of merit (fitness function) and its derivative.
-        fval = 0.5 * norm(w)^2;
-        grad_w = w;
         fval = imag(w);
         grad_w = 1i;
     end

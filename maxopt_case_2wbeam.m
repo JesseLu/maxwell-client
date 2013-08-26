@@ -12,6 +12,7 @@ function [fun, x0] = maxopt_case_2wbeam(type, varargin)
     options = my_parse_options(struct(  'wvlen', [1550, 775], ...
                                         'eps_val', [3.2^2, 3.5^2], ...
                                         'delta', 40, ...
+                                        'E', [], ...
                                         'flatten', false), ...
                                 varargin, mfilename);
 
@@ -42,6 +43,28 @@ function [fun, x0] = maxopt_case_2wbeam(type, varargin)
     function [E, H, grid, eps] = get_fields(varargin)
         [~, ~, E, H, grid, eps] = solve_structure(varargin{:});
     end
+        
+
+    % Save previously used values.
+    E_cache = options.E;
+
+    function [fval, grad_f, omega, E, H, grid, eps] = cached_solve(varargin)
+    % This is a cached solve which uses the most recent omega and E values
+    % as initial guesses for the eigenmode solve.
+        if isempty(E_cache)
+            error('Need an initial E-field guess.');
+        end
+
+        [fval, grad_f, omega, E, H, grid, eps] = ...
+            solve_eigenmodes(E_cache, varargin{:}); % Solve.
+
+        % Update cached values.
+        E_cache = E;
+    end
+
+    function [omega, E, H, grid, eps] = get_modes(varargin)
+        [~, ~, omega, E, H, grid, eps] = cached_solve(varargin{:});
+    end
 
     flt = options.flatten;
     switch type
@@ -54,10 +77,108 @@ function [fun, x0] = maxopt_case_2wbeam(type, varargin)
         case 'grad_f'
             fun = @(x) solve_structure(wvlen, eps_val, x, ...
                                         options.delta, flt, true);
+        case 'get_fields_eig'
+            fun = @(x) get_modes(wvlen, eps_val, x, ...
+                                    options.delta, flt, false);
+        case 'grad_f_eig'
+            fun = @(x) cached_solve(wvlen, eps_val, x, ...
+                                        options.delta, flt, true);
         otherwise
             error('Invalid type.');
     end
 end
+
+function [Fval, grad_F, omega, E, H, grid, eps] = ...
+                solve_eigenmodes(E, wvlen, eps_val, varargin)
+% Solve all eigenmodes.
+    for k = 1 : length(wvlen)
+        subplot(length(wvlen)+1, 1, k);
+        [fval(k), grad_f{k}, omega{k}, E{k}, H{k}, grid{k}, eps{k}] = ...
+                solve_one_eigenmode(E{k}, wvlen(k), eps_val(k), varargin{:});
+    end
+    subplot(length(wvlen)+1, 1, length(wvlen)+1);
+
+    
+    % Find the worst one, with 1w mode bias.
+    if length(fval) > 1 
+        [Fval, ind] = max([sqrt(fval(1)), fval(2:end)]);
+    else
+        Fval = fval(1);
+        ind = 1;
+    end
+    grad_F = grad_f{ind};
+
+    % Pretty print.
+    fprintf('fvals: ');
+    for k = 1 : length(wvlen)
+        if k == ind
+            fprintf('[%e] ', fval(k));
+        else
+            fprintf('%e ', fval(k));
+        end
+    end
+    fprintf('\n');
+end
+
+
+% Solve the resonance modes and return a gradient.
+function [fval, grad_f, omega, E, H, grid, eps] = ...
+                                solve_one_eigenmode(E, wvlen, eps_val, params, ...
+                                                delta, flatten, calc_grad)
+
+
+    [grid, eps, J] = make_structure(wvlen, eps_val, params, delta, flatten);
+
+
+        %
+        % Solve for the eigenmode.
+        %
+
+    [omega, E, H] = maxwell_solve_eigenmode(grid, eps, E, 'eig_max_iters', 3);
+    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan); % Visualize.
+
+
+        % 
+        % Compose and evaluate fitness function (function to minimize).
+        %
+
+    function [fval, grad_w] = fitness(w)
+    % Calculates figure of merit (fitness function) and its derivative.
+        fval = imag(w);
+        grad_w = 1i;
+    end
+        
+    [fval, grad_w] = fitness(omega);
+
+
+        % 
+        % Calculate structural gradient needed for gradient descent optimization.
+        %
+
+    if ~calc_grad % Skip if not needed.
+        grad_f = nan;
+        return
+    end
+
+    function [eps] = make_eps(params)
+    % Function handle for creating the structure.
+        [~, eps] = make_structure(wvlen, eps_val, params, delta, flatten);
+    end
+
+    function [lambda] = solver(eps)
+    % Function that evaluates the fitness based on eps.
+    % Only used for gradient checking.
+        [omega_fit, E_fit, H_fit] = maxwell_solve_eigenmode(grid, eps, E, 'err_thresh', 1e-2);
+        lambda = omega_fit^2;
+    end
+
+    % Calculate the structural gradient.
+    if ~flatten; figure(3); end
+    grad_f = maxopt_freq_gradient(grid, E, omega, @fitness, params, @make_eps, ...
+                'solver', @solver, ...
+                'check_gradients', false);
+end
+
 
 function [Fval, grad_F, E, H, grid, eps] = ...
                 solve_structure(wvlen, eps_val, varargin)

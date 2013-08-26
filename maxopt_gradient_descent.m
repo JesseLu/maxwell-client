@@ -95,7 +95,7 @@ function [x_opt, f_opt, hist] = maxopt_gradient_descent(fun, x0, varargin)
             step_size = step_size * options.step_shrink;
         end
 
-        if f1 < f/2 % Accept as long as we still have half of original fitness.
+        if (f1 < f/2) || (any([f f1]) > 0) % Accept as long as we still have half of original fitness.
             f = f1;
             x = x1;
             dx = dx1;

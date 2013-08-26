@@ -35,6 +35,11 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
             [f_vis] = maxopt_case_2wbeam('get_fields', 'flatten', flt, options.case_args{:});
             init_step = 1e2;
             max_delta = 10;
+        case '2wbeam_eig'
+            [f, x0] = maxopt_case_2wbeam('grad_f_eig', 'flatten', flt, options.case_args{:});
+            [f_vis] = maxopt_case_2wbeam('get_fields_eig', 'flatten', flt, options.case_args{:});
+            init_step = 1e6;
+            max_delta = 10;
         case 'wdmgrating'
             [f, x0] = maxopt_case_wdmgrating('grad_f', 'flatten', flt);
             [f_vis] = maxopt_case_wdmgrating('get_fields', 'flatten', flt);
