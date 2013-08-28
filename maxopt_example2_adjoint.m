@@ -72,8 +72,8 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
         xlabel('optimization iterations');
         ylabel('fval');
         title('structure optimization progress');
-        saveas(gcf, [tempdir, case_name, filesep, ...
-                    case_name, '_', sprintf('%04d', length(hist))], 'png');
+%         saveas(gcf, [tempdir, case_name, filesep, ...
+%                     case_name, '_', sprintf('%04d', length(hist))], 'png');
         x_hist(:,length(hist)) = x(:);
         save([tempdir, case_name, filesep, 'x_hist.mat'], 'hist', 'x_hist');
     end

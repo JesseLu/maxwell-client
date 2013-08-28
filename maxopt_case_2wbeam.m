@@ -101,7 +101,8 @@ function [Fval, grad_F, omega, E, H, grid, eps] = ...
     
     % Find the worst one, with 1w mode bias.
     if length(fval) > 1 
-        [Fval, ind] = max([sqrt(fval(1)), fval(2:end)]);
+        % [Fval, ind] = max([sqrt(fval(1)), fval(2:end)]);
+        [Fval, ind] = max([fval(1), fval(2:end)]);
     else
         Fval = fval(1);
         ind = 1;
@@ -134,7 +135,8 @@ function [fval, grad_f, omega, E, H, grid, eps] = ...
         % Solve for the eigenmode.
         %
 
-    [omega, E, H] = maxwell_solve_eigenmode(grid, eps, E, 'eig_max_iters', 3);
+    [omega, E, H] = maxwell_solve_eigenmode(grid, eps, E, ...
+                        'eig_max_iters', 3, 'vis_progress', 'text');
     maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan); % Visualize.
 
 

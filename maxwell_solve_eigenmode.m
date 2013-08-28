@@ -15,14 +15,15 @@
 % * |... = maxwell_solve_eigenmode(..., 'eig_max_iters', eig_n, 'eig_err_thresh', eig_err)|
 %   sets the termination conditions for the eigenmode algorithm 
 %   (Rayleigh quotient iteration).
-%   Defaults to |eig_n = 10|, and |eig_err = 1e-6|.
+%   Defaults to |eig_n = 20|, and |eig_err = 1e-9|.
 %%
 % * |... = maxwell_solve_eigenmode(..., 'vis_progress', vis_opt)|
 %   controls the progress visualization for individual calls to |maxwell_solve|.
 %   Defaults to |both|.
 %
 % * |... = maxwell_solve_eigenmode(..., 'max_iters', n, 'err_thresh', err)|
-%   sets the termination conditions for the underlying calls to |maxwell_solve|,
+%   sets the termination conditions for the underlying calls to |maxwell_solve|.
+%   Defaults to |n = 1e6| and |err = 1e-6|.
 
 %%% Description
 % |maxwell_solve_eigenmode| utilizes the Rayleigh quotient iteration algorithm
@@ -64,10 +65,10 @@ function [omega, E, H] = maxwell_solve_eigenmode(grid, eps_mu, E0, varargin)
     my_validate_field(E0, grid.shape, 'E0', mfilename);
 
     % Optional parameter-value pairs.
-    options = my_parse_options(struct(  'eig_max_iters', 10, ...
-                                        'eig_err_thresh', 1e-6, ...
+    options = my_parse_options(struct(  'eig_max_iters', 20, ...
+                                        'eig_err_thresh', 1e-9, ...
                                         'vis_progress', 'both', ...
-                                        'max_iters', 1e5, ...
+                                        'max_iters', 1e6, ...
                                         'err_thresh', 1e-6), ...
                                 varargin, mfilename);
 
