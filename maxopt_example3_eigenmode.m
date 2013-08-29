@@ -29,7 +29,7 @@ function [fval, x, f_vis] = maxopt_example3_eigenmode(varargin)
     end
 
 
-    function vis_progress(hist)
+    function vis_progress(hist, step_size, x)
         fprintf('fval: %e\n', hist(end));
         figure(2);
         plot(hist, '.-');

@@ -104,10 +104,6 @@ function [Fval, grad_F, omega, E, H, grid, eps] = ...
     [Fval, ind] = max(fval);
     grad_F = grad_f{ind};
 
-    if length(fval) > 1 && ind == 1 
-        grad_F = grad_F * 1e3; % This is a hack, 1w mode gradient boost.
-    end
-
     % Pretty print.
     fprintf('fvals: ');
     for k = 1 : length(wvlen)
