@@ -91,6 +91,7 @@ end
 function [Fval, grad_F, omega, E, H, grid, eps] = ...
                 solve_eigenmodes(E, wvlen, eps_val, varargin)
 % Solve all eigenmodes.
+
     for k = 1 : length(wvlen)
         subplot(length(wvlen)+1, 1, k);
         [fval(k), grad_f{k}, omega{k}, E{k}, H{k}, grid{k}, eps{k}] = ...
@@ -99,15 +100,13 @@ function [Fval, grad_F, omega, E, H, grid, eps] = ...
     subplot(length(wvlen)+1, 1, length(wvlen)+1);
 
     
-    % Find the worst one, with 1w mode bias.
-    if length(fval) > 1 
-        % [Fval, ind] = max([sqrt(fval(1)), fval(2:end)]);
-        [Fval, ind] = max([fval(1), fval(2:end)]);
-    else
-        Fval = fval(1);
-        ind = 1;
-    end
+    % Optimize the lower-Q mode.
+    [Fval, ind] = max(fval);
     grad_F = grad_f{ind};
+
+    if length(fval) > 1 && ind == 1 
+        grad_F = grad_F * 1e3; % This is a hack, 1w mode gradient boost.
+    end
 
     % Pretty print.
     fprintf('fvals: ');
@@ -136,8 +135,8 @@ function [fval, grad_f, omega, E, H, grid, eps] = ...
         %
 
     [omega, E, H] = maxwell_solve_eigenmode(grid, eps, E, ...
-                        'eig_max_iters', 3, 'vis_progress', 'text');
-    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', nan); % Visualize.
+                        'eig_max_iters', 10, 'vis_progress', 'text');
+    maxwell_view(grid, eps, E, 'y', [nan nan 0], 'field_phase', 0); % Visualize.
 
 
         % 
@@ -146,8 +145,9 @@ function [fval, grad_f, omega, E, H, grid, eps] = ...
 
     function [fval, grad_w] = fitness(w)
     % Calculates figure of merit (fitness function) and its derivative.
-        fval = imag(w);
-        grad_w = 1i;
+        real_w = real(pi^2/wvlen);
+        fval = -real_w / imag(w); % Negative Q-factor.
+        grad_w = 1i * real_w / imag(w)^2;
     end
         
     [fval, grad_w] = fitness(omega);
@@ -175,7 +175,6 @@ function [fval, grad_f, omega, E, H, grid, eps] = ...
     end
 
     % Calculate the structural gradient.
-    if ~flatten; figure(3); end
     grad_f = maxopt_freq_gradient(grid, E, omega, @fitness, params, @make_eps, ...
                 'solver', @solver, ...
                 'check_gradients', false);

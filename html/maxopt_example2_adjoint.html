@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxopt_example2_adjoint</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-20"><meta name="DC.source" content="maxopt_example2_adjoint.m"><style type="text/css">
+      --><title>maxopt_example2_adjoint</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-29"><meta name="DC.source" content="maxopt_example2_adjoint.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -74,6 +74,10 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
         <span class="comment">%</span>
 
     options = my_parse_options(struct(  <span class="string">'iters'</span>, 100, <span class="keyword">...</span>
+                                        <span class="string">'case_args'</span>, {{}}, <span class="keyword">...</span>
+                                        <span class="string">'max_delta'</span>, [], <span class="keyword">...</span>
+                                        <span class="string">'init_step'</span>, [], <span class="keyword">...</span>
+                                        <span class="string">'x0'</span>, [], <span class="keyword">...</span>
                                         <span class="string">'flatten'</span>, false), <span class="keyword">...</span>
                                 varargin, mfilename);
 
@@ -90,9 +94,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
             init_step = 0.1;
             max_delta = 0.1;
         <span class="keyword">case</span> <span class="string">'2wbeam'</span>
-            [f, x0] = maxopt_case_2wbeam(<span class="string">'grad_f'</span>, <span class="string">'flatten'</span>, flt);
-            [f_vis] = maxopt_case_2wbeam(<span class="string">'get_fields'</span>, <span class="string">'flatten'</span>, flt);
-            init_step = 1e3;
+            [f, x0] = maxopt_case_2wbeam(<span class="string">'grad_f'</span>, <span class="string">'flatten'</span>, flt, options.case_args{:});
+            [f_vis] = maxopt_case_2wbeam(<span class="string">'get_fields'</span>, <span class="string">'flatten'</span>, flt, options.case_args{:});
+            init_step = 1e2;
+            max_delta = 10;
+        <span class="keyword">case</span> <span class="string">'2wbeam_eig'</span>
+            [f, x0] = maxopt_case_2wbeam(<span class="string">'grad_f_eig'</span>, <span class="string">'flatten'</span>, flt, options.case_args{:});
+            [f_vis] = maxopt_case_2wbeam(<span class="string">'get_fields_eig'</span>, <span class="string">'flatten'</span>, flt, options.case_args{:});
+            init_step = 1e-1;
             max_delta = 10;
         <span class="keyword">case</span> <span class="string">'wdmgrating'</span>
             [f, x0] = maxopt_case_wdmgrating(<span class="string">'grad_f'</span>, <span class="string">'flatten'</span>, flt);
@@ -103,14 +112,33 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
             error(<span class="string">'Invalid case_name.'</span>);
     <span class="keyword">end</span>
 
+    <span class="keyword">if</span> ~isempty(options.init_step)
+        init_step = options.init_step;
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> ~isempty(options.max_delta)
+        max_delta = options.max_delta;
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> ~isempty(options.x0)
+        x0 = options.x0;
+    <span class="keyword">end</span>
 
     <span class="comment">% Visualization function for optimization progress.</span>
-    <span class="keyword">function</span> vis_progress(hist)
-        fprintf(<span class="string">'%d: %e\n'</span>, length(hist), hist(end));
+    <span class="keyword">try</span>
+        mkdir(tempdir, case_name);
+    <span class="keyword">end</span>
+    x_hist = [];
+    <span class="keyword">function</span> vis_progress(hist, step_size, x)
+        fprintf(<span class="string">'%d: %e [ss: %1.2e]\n'</span>, length(hist), hist(end), step_size);
         plot(hist, <span class="string">'.-'</span>);
         xlabel(<span class="string">'optimization iterations'</span>);
         ylabel(<span class="string">'fval'</span>);
         title(<span class="string">'structure optimization progress'</span>);
+        saveas(gcf, [tempdir, case_name, filesep, <span class="keyword">...</span>
+                    case_name, <span class="string">'_'</span>, sprintf(<span class="string">'%04d'</span>, length(hist))], <span class="string">'png'</span>);
+        x_hist(:,length(hist)) = x(:);
+        save([tempdir, case_name, filesep, <span class="string">'x_hist.mat'</span>], <span class="string">'hist'</span>, <span class="string">'x_hist'</span>);
     <span class="keyword">end</span>
 
 
@@ -118,11 +146,16 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
         <span class="comment">% Perform the optimization.</span>
         <span class="comment">%</span>
 
-    [x, fval, hist] = maxopt_gradient_descent(f, x0(:), <span class="keyword">...</span>
-                                                <span class="string">'init_step'</span>, init_step, <span class="keyword">...</span>
-                                                <span class="string">'max_delta'</span>, max_delta, <span class="keyword">...</span>
-                                                <span class="string">'max_iters'</span>, options.iters, <span class="keyword">...</span>
-                                                <span class="string">'vis_progress'</span>, @vis_progress);
+    <span class="keyword">if</span> options.iters &gt; 0
+        [x, fval, hist] = maxopt_gradient_descent(f, x0(:), <span class="keyword">...</span>
+                                                    <span class="string">'init_step'</span>, init_step, <span class="keyword">...</span>
+                                                    <span class="string">'max_delta'</span>, max_delta, <span class="keyword">...</span>
+                                                    <span class="string">'max_iters'</span>, options.iters, <span class="keyword">...</span>
+                                                    <span class="string">'vis_progress'</span>, @vis_progress);
+    <span class="keyword">else</span>
+        x = x0;
+        fval = nan;
+    <span class="keyword">end</span>
 
 <span class="keyword">end</span>
 </pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
@@ -140,6 +173,10 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
         %
 
     options = my_parse_options(struct(  'iters', 100, ...
+                                        'case_args', {{}}, ...
+                                        'max_delta', [], ...
+                                        'init_step', [], ...
+                                        'x0', [], ...
                                         'flatten', false), ...
                                 varargin, mfilename);
 
@@ -156,9 +193,14 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
             init_step = 0.1;
             max_delta = 0.1;
         case '2wbeam'
-            [f, x0] = maxopt_case_2wbeam('grad_f', 'flatten', flt);
-            [f_vis] = maxopt_case_2wbeam('get_fields', 'flatten', flt);
-            init_step = 1e3;
+            [f, x0] = maxopt_case_2wbeam('grad_f', 'flatten', flt, options.case_args{:});
+            [f_vis] = maxopt_case_2wbeam('get_fields', 'flatten', flt, options.case_args{:});
+            init_step = 1e2;
+            max_delta = 10;
+        case '2wbeam_eig'
+            [f, x0] = maxopt_case_2wbeam('grad_f_eig', 'flatten', flt, options.case_args{:});
+            [f_vis] = maxopt_case_2wbeam('get_fields_eig', 'flatten', flt, options.case_args{:});
+            init_step = 1e-1;
             max_delta = 10;
         case 'wdmgrating'
             [f, x0] = maxopt_case_wdmgrating('grad_f', 'flatten', flt);
@@ -169,14 +211,33 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
             error('Invalid case_name.');
     end
 
+    if ~isempty(options.init_step)
+        init_step = options.init_step;
+    end
+
+    if ~isempty(options.max_delta)
+        max_delta = options.max_delta;
+    end
+
+    if ~isempty(options.x0)
+        x0 = options.x0;
+    end
 
     % Visualization function for optimization progress.
-    function vis_progress(hist)
-        fprintf('%d: %e\n', length(hist), hist(end)); 
+    try
+        mkdir(tempdir, case_name);
+    end
+    x_hist = [];
+    function vis_progress(hist, step_size, x)
+        fprintf('%d: %e [ss: %1.2e]\n', length(hist), hist(end), step_size); 
         plot(hist, '.-');
         xlabel('optimization iterations');
         ylabel('fval');
         title('structure optimization progress');
+        saveas(gcf, [tempdir, case_name, filesep, ...
+                    case_name, '_', sprintf('%04d', length(hist))], 'png');
+        x_hist(:,length(hist)) = x(:);
+        save([tempdir, case_name, filesep, 'x_hist.mat'], 'hist', 'x_hist');
     end
 
         
@@ -184,11 +245,16 @@ function [x, fval, f_vis] = maxopt_example2_adjoint(case_name, varargin)
         % Perform the optimization.
         %
         
-    [x, fval, hist] = maxopt_gradient_descent(f, x0(:), ...
-                                                'init_step', init_step, ...
-                                                'max_delta', max_delta, ...
-                                                'max_iters', options.iters, ...
-                                                'vis_progress', @vis_progress);
+    if options.iters > 0
+        [x, fval, hist] = maxopt_gradient_descent(f, x0(:), ...
+                                                    'init_step', init_step, ...
+                                                    'max_delta', max_delta, ...
+                                                    'max_iters', options.iters, ...
+                                                    'vis_progress', @vis_progress);
+    else
+        x = x0;
+        fval = nan;
+    end
 
 end
 

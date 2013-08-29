@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxopt_gradient_descent</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-20"><meta name="DC.source" content="maxopt_gradient_descent.m"><style type="text/css">
+      --><title>maxopt_gradient_descent</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-29"><meta name="DC.source" content="maxopt_gradient_descent.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -83,6 +83,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
                                         <span class="string">'step_shrink'</span>, 0.5, <span class="keyword">...</span>
                                         <span class="string">'step_big_shrink'</span>, 0.1, <span class="keyword">...</span>
                                         <span class="string">'step_grow'</span>, 1.1, <span class="keyword">...</span>
+                                        <span class="string">'min_step'</span>, 1e-3, <span class="keyword">...</span>
                                         <span class="string">'max_iters'</span>, 100, <span class="keyword">...</span>
         <span class="string">'vis_progress'</span>, @(hist) fprintf(<span class="string">'%d: %e\n'</span>, length(hist), hist(end))), <span class="keyword">...</span>
                                 varargin, mfilename);
@@ -114,19 +115,22 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     x_opt = x;
     <span class="keyword">for</span> k = 1 : options.max_iters
         hist(k) = f;
-        options.vis_progress(hist);
+        options.vis_progress(hist, step_size, x);
 
-        <span class="comment">% fprintf('step size: %e\n', step_size);</span>
-        max_step = step_size * max(abs(dx));
-        <span class="keyword">if</span> max_step &gt; options.max_delta
-            dx = dx ./ max_step;
-        <span class="keyword">end</span>
+<span class="comment">%         % fprintf('step size: %e\n', step_size);</span>
+<span class="comment">%         max_step = step_size * max(abs(dx));</span>
+<span class="comment">%         if max_step &gt; options.max_delta</span>
+<span class="comment">%             dx = dx ./ max_step;</span>
+<span class="comment">%         end</span>
 
 <span class="comment">%         dx_over = step_size * abs(dx) &gt; options.max_delta;</span>
 <span class="comment">%         dx = dx_over .* (dx ./ abs(dx)) * (options.max_delta * step_size) ...</span>
 <span class="comment">%             + ~dx_over .* dx;</span>
 
-        x1 = x - step_size * dx;
+        x_step = step_size * dx;
+        x_step = (abs(x_step) &lt; options.max_delta) .* x_step + <span class="keyword">...</span>
+                    (abs(x_step) &gt;= options.max_delta) .* options.max_delta;
+        x1 = x - x_step;
         [f1, dx1] = fun(x1);
 
         <span class="keyword">if</span> f1 &lt; f <span class="comment">% Grow.</span>
@@ -135,7 +139,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
             step_size = step_size * options.step_shrink;
         <span class="keyword">end</span>
 
-        <span class="keyword">if</span> f1 &lt; f/2 <span class="comment">% Accept as long as we still have half of original fitness.</span>
+        <span class="keyword">if</span> (f1 &lt; f/2) || (any([f f1]) &gt; 0) <span class="comment">% Accept as long as we still have half of original fitness.</span>
             f = f1;
             x = x1;
             dx = dx1;
@@ -148,6 +152,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
             x_opt = x1;
         <span class="keyword">end</span>
 
+        <span class="keyword">if</span> step_size &lt; options.min_step
+            step_size = options.min_step; <span class="comment">% Don't allow step_size below minimum.</span>
+        <span class="keyword">end</span>
     <span class="keyword">end</span>
 </pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
@@ -193,6 +200,7 @@ function [x_opt, f_opt, hist] = maxopt_gradient_descent(fun, x0, varargin)
                                         'step_shrink', 0.5, ...
                                         'step_big_shrink', 0.1, ...
                                         'step_grow', 1.1, ...
+                                        'min_step', 1e-3, ...
                                         'max_iters', 100, ...
         'vis_progress', @(hist) fprintf('%d: %e\n', length(hist), hist(end))), ...
                                 varargin, mfilename);
@@ -224,19 +232,22 @@ function [x_opt, f_opt, hist] = maxopt_gradient_descent(fun, x0, varargin)
     x_opt = x;
     for k = 1 : options.max_iters
         hist(k) = f;
-        options.vis_progress(hist);
+        options.vis_progress(hist, step_size, x);
 
-        % fprintf('step size: %e\n', step_size);
-        max_step = step_size * max(abs(dx));
-        if max_step > options.max_delta
-            dx = dx ./ max_step;
-        end
+%         % fprintf('step size: %e\n', step_size);
+%         max_step = step_size * max(abs(dx));
+%         if max_step > options.max_delta
+%             dx = dx ./ max_step;
+%         end
 
 %         dx_over = step_size * abs(dx) > options.max_delta;
 %         dx = dx_over .* (dx ./ abs(dx)) * (options.max_delta * step_size) ...
 %             + ~dx_over .* dx;
 
-        x1 = x - step_size * dx;
+        x_step = step_size * dx;
+        x_step = (abs(x_step) < options.max_delta) .* x_step + ...
+                    (abs(x_step) >= options.max_delta) .* options.max_delta;
+        x1 = x - x_step;
         [f1, dx1] = fun(x1);
 
         if f1 < f % Grow.
@@ -245,7 +256,7 @@ function [x_opt, f_opt, hist] = maxopt_gradient_descent(fun, x0, varargin)
             step_size = step_size * options.step_shrink;
         end
 
-        if f1 < f/2 % Accept as long as we still have half of original fitness.
+        if (f1 < f/2) || (any([f f1]) > 0) % Accept as long as we still have half of original fitness.
             f = f1;
             x = x1;
             dx = dx1;
@@ -258,6 +269,9 @@ function [x_opt, f_opt, hist] = maxopt_gradient_descent(fun, x0, varargin)
             x_opt = x1;
         end
 
+        if step_size < options.min_step
+            step_size = options.min_step; % Don't allow step_size below minimum.
+        end
     end
 
         

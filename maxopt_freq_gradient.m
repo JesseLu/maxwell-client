@@ -24,7 +24,7 @@ function [param_grad, eps_grad] = maxopt_freq_gradient(grid, E, omega, fitness_f
 
     % Check fitness_fun's gradient.
     err = my_gradient_test(fitness_fun, grad_omega, omega, 'real_with_imag', '');
-    if err > 1e-3
+    if err > 1e-2 % Above 1%.
         warning('Error in fitness_fun gradient is large (%e).', err);
     end
 
@@ -80,6 +80,7 @@ function [param_grad, eps_grad] = maxopt_freq_gradient(grid, E, omega, fitness_f
 
     % Find the dz/dp derivative.
     dz_dp = my_parameter_gradient(p2z, params0, options.delta_p); % Find the dz/dp derivative.
+    fprintf('\n');
 
     % Put everything together the df/dp derivative that we're looking for.
     df_dz = df_dlambda * dlambda_dz; % Get the df/dz derivative.

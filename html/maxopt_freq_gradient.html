@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxopt_freq_gradient</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-20"><meta name="DC.source" content="maxopt_freq_gradient.m"><style type="text/css">
+      --><title>maxopt_freq_gradient</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-29"><meta name="DC.source" content="maxopt_freq_gradient.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -88,7 +88,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
     <span class="comment">% Check fitness_fun's gradient.</span>
     err = my_gradient_test(fitness_fun, grad_omega, omega, <span class="string">'real_with_imag'</span>, <span class="string">''</span>);
-    <span class="keyword">if</span> err &gt; 1e-3
+    <span class="keyword">if</span> err &gt; 1e-2 <span class="comment">% Above 1%.</span>
         warning(<span class="string">'Error in fitness_fun gradient is large (%e).'</span>, err);
     <span class="keyword">end</span>
 
@@ -144,6 +144,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
     <span class="comment">% Find the dz/dp derivative.</span>
     dz_dp = my_parameter_gradient(p2z, params0, options.delta_p); <span class="comment">% Find the dz/dp derivative.</span>
+    fprintf(<span class="string">'\n'</span>);
 
     <span class="comment">% Put everything together the df/dp derivative that we're looking for.</span>
     df_dz = df_dlambda * dlambda_dz; <span class="comment">% Get the df/dz derivative.</span>
@@ -193,7 +194,7 @@ function [param_grad, eps_grad] = maxopt_freq_gradient(grid, E, omega, fitness_f
 
     % Check fitness_fun's gradient.
     err = my_gradient_test(fitness_fun, grad_omega, omega, 'real_with_imag', '');
-    if err > 1e-3
+    if err > 1e-2 % Above 1%.
         warning('Error in fitness_fun gradient is large (%e).', err);
     end
 
@@ -249,6 +250,7 @@ function [param_grad, eps_grad] = maxopt_freq_gradient(grid, E, omega, fitness_f
 
     % Find the dz/dp derivative.
     dz_dp = my_parameter_gradient(p2z, params0, options.delta_p); % Find the dz/dp derivative.
+    fprintf('\n');
 
     % Put everything together the df/dp derivative that we're looking for.
     df_dz = df_dlambda * dlambda_dz; % Get the df/dz derivative.

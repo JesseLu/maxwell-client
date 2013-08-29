@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>maxopt_solve_adjoint</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-20"><meta name="DC.source" content="maxopt_solve_adjoint.m"><style type="text/css">
+      --><title>maxopt_solve_adjoint</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-29"><meta name="DC.source" content="maxopt_solve_adjoint.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -124,7 +124,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
         <span class="comment">%</span>
 
     <span class="comment">% Because of the conjugated terms, this actually solves A conjugate.</span>
-    cb_orig = maxwell_solve_async(grid, [eps mu], J);
+    cb_orig = maxwell_solve_async(grid, [eps mu], J, varargin{:});
 
     <span class="comment">% Special callback...</span>
     cb = @() my_adjoint_callback(cb_orig, s, t);
@@ -216,7 +216,7 @@ function [cb] = maxopt_solve_adjoint(grid, eps_mu, J, varargin)
         %
 
     % Because of the conjugated terms, this actually solves A conjugate.
-    cb_orig = maxwell_solve_async(grid, [eps mu], J);
+    cb_orig = maxwell_solve_async(grid, [eps mu], J, varargin{:});
 
     % Special callback...
     cb = @() my_adjoint_callback(cb_orig, s, t);
