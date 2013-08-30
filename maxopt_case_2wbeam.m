@@ -100,9 +100,41 @@ function [Fval, grad_F, omega, E, H, grid, eps] = ...
     subplot(length(wvlen)+1, 1, length(wvlen)+1);
 
     
-    % Optimize the lower-Q mode.
-    [Fval, ind] = max(fval);
-    grad_F = grad_f{ind};
+%     % Optimize the lower-Q mode.
+%     [Fval, ind] = max(fval);
+%     grad_F = grad_f{ind};
+
+%     % Favor the lower-Q mode.
+%     Fval = 0;
+%     grad_F = 0;
+%     for i = 1 : length(grad_f)
+%         if fval(i) < -1e4 % Q over 10k.
+%             Fval = Fval + -1e4; % Cap fitness value at 10k for indiv. modes.
+%             % Once Q exceeds 10k, no longer use that mode's gradient.
+%         else % Normal addition.
+%             Fval = Fval + fval(i);
+%             grad_F = grad_F + grad_f{i};
+%         end
+%     end
+%     ind = 0;
+
+    % Another try.
+    fmax = -1e4;
+    Fval = 0;
+    grad_F = 0;
+    for i = 1 : length(fval)
+        if fval(i) < fmax % Cap fitness to fmax.
+            fval(i) = fmax;
+        end
+        fhat = abs((fval(i) - fmax) / fmax);
+        Fval = Fval + 0.5*fhat^2;
+        grad_F = grad_F + fhat * grad_f{i};
+    end
+    ind = 0;
+
+
+
+    % Fval = sum(0.5 * (-1.0e-4 - fval).^2);
 
     % Pretty print.
     fprintf('fvals: ');
