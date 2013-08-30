@@ -47,9 +47,6 @@ function [omega, E, H, grid, eps] = example3_cavitymode(cavity_type, varargin)
         case 'beam'
             filename = 'beam.mat';
             omega_guess = struct('D2', 0.062, 'D3', 0.080);
-        case 'beam2w'
-            filename = 'beam.mat';
-            omega_guess = struct('D2', 0.118, 'D3', 0.166);
         otherwise
             error('cavity_type must either be ''L3'' or ''beam''.');
     end
