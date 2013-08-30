@@ -26,7 +26,11 @@ function [E, err, state, s] = maxwell_download(server_url, name)
         case '0111'
             state = 'finished';
         otherwise
-            state = sprintf('unknown (%s)', status_as_str);
+            if status_as_str(4) == 1
+                state = 'finished';
+            else
+                state = sprintf('unknown (%s)', status_as_str);
+            end
     end
 
     if strcmp(state, 'solving') | strcmp (state, 'finished')
@@ -34,7 +38,7 @@ function [E, err, state, s] = maxwell_download(server_url, name)
         err = str2num(s{2});
     end
 
-    if strcmp(state, 'finished')
+    if strcmp(state, 'finished') 
         % Download all files.
         [quad, comp] = ndgrid('ri', 'xyz');
         for k = 1 : numel(quad)
